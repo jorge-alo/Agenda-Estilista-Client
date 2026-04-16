@@ -1,0 +1,74 @@
+.admin-header {
+  background: var(--color-dark);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--color-primary-soft);
+}
+.admin-subtitle {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  margin-top: 2px;
+  font-family: var(--font-sans);
+}
+.admin-logout {
+  background: transparent;
+  border: 0.5px solid rgba(201,169,110,0.4);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.admin-logout:hover {
+  background: rgba(201,169,110,0.1);
+}
+
+.admin-tabs {
+  display: flex;
+  background: var(--color-white);
+  border-bottom: 0.5px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.admin-tab {
+  flex: 1;
+  padding: 14px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.admin-tab:hover {
+  color: var(--color-primary);
+}
+
+.admin-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.admin-content {
+  padding: 24px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}

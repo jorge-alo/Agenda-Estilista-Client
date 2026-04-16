@@ -1,0 +1,101 @@
+.agenda-filtro {
+  margin-bottom: 24px;
+}
+
+.agenda-date-input {
+  width: 100%;
+  background: var(--color-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.agenda-date-input:focus {
+  border-color: var(--color-primary);
+}
+
+.agenda-fecha-titulo {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-text);
+  margin: 24px 0 12px;
+}
+
+.agenda-empty {
+  text-align: center;
+  padding: 32px 20px;
+  font-size: 14px;
+  color: var(--color-text-hint);
+  background: var(--color-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.agenda-turno {
+  background: var(--color-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.agenda-turno-hora {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 10px;
+}
+
+.agenda-turno-hora span {
+  color: var(--color-text-soft);
+  font-weight: 300;
+  font-size: 13px;
+  margin-left: 6px;
+}
+
+.agenda-turno-info {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  margin-bottom: 4px;
+}
+
+.agenda-turno-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.agenda-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 0.5px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-soft);
+}
+
+.agenda-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.agenda-btn.cancelar:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.agenda-btn.completar:hover {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}

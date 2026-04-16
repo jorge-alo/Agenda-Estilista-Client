@@ -1,0 +1,87 @@
+.rp-hero {
+  background: var(--color-dark);
+  padding: 48px 32px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.rp-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 40px,
+    rgba(201,169,110,0.04) 40px,
+    rgba(201,169,110,0.04) 41px
+  );
+}
+
+.rp-hero-tag {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+}
+
+.rp-hero-title {
+  font-family: var(--font-serif);
+  font-size: 42px;
+  font-weight: 400;
+  color: var(--color-primary-soft);
+  margin: 0 0 8px;
+  line-height: 1.1;
+}
+
+.rp-hero-sub {
+  font-size: 14px;
+  color: rgba(245,240,232,0.5);
+  font-weight: 300;
+}
+
+.rp-body {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.rp-step {
+  margin-bottom: 28px;
+}
+
+.rp-step-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-step-label::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--color-border);
+}
+
+@media (max-width: 480px) {
+  .rp-hero {
+    padding: 36px 20px 28px;
+  }
+
+  .rp-hero-title {
+    font-size: 32px;
+  }
+
+  .rp-body {
+    padding: 24px 16px 40px;
+  }
+}
