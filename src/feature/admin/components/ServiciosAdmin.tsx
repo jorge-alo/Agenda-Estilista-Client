@@ -120,6 +120,7 @@ export const ServiciosAdmin = ({ estilistas, setEstilistas, estilistaId, setEsti
     const eliminarServicio = async (id: number) => {
         const res = await fetch(`${API_URL}/api/servicios/${id}`, {
             method: "DELETE",
+            headers: getAuthHeaders()          
         });
 
         const data = await res.json();
