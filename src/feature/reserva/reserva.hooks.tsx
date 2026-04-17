@@ -57,7 +57,7 @@ export const useDisponibilidad = ({ slug, fecha, estilistaId, servicioId, setDis
             const data = await getDisponibilidad(slug, fecha, estilistaId, servicioId);
 
             if (data.disponibles && JSON.stringify(prevRef.current) !== JSON.stringify(data.disponible)) {
-                prevRef.current = data.disponible;
+                prevRef.current = data.disponibles;
                 setDisponibles(data.disponibles || []);
             }
         };
