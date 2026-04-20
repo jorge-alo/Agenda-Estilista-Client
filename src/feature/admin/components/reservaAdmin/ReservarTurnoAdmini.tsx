@@ -11,14 +11,13 @@ import '../../../reserva/components/Horarios.css'
 
 interface props {
     estilistas: any[]
-    setEstilistas: (val: any) => void
     estilistaId: number | null
     setEstilistaId: (val: any) => void
 }
 
-export const ReservarTurnoAdmin = ({ estilistas, setEstilistas, estilistaId, setEstilistaId }: props) => {
+export const ReservarTurnoAdmin = ({ estilistas, estilistaId, setEstilistaId }: props) => {
 
-    const [fecha, setFecha] = useState("2026-03-31");
+    const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
     const [servicioId, setServicioId] = useState<number | null>(null);
     const [nombre, setNombre] = useState("");
     const [telefono, setTelefono] = useState("");
@@ -61,7 +60,7 @@ export const ReservarTurnoAdmin = ({ estilistas, setEstilistas, estilistaId, set
         <div>
             <div className="rp-step">
                 <p className="rp-step-label">Estilista</p>
-                <SelectEstilistas estilistaId={estilistaId} setEstilistaId={setEstilistaId} estilistas={estilistas} setEstilistas={setEstilistas} />
+                <SelectEstilistas estilistaId={estilistaId} setEstilistaId={setEstilistaId} estilistas={estilistas} />
             </div>
 
             {estilistaId && (

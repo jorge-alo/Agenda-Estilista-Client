@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { getAuthHeaders } from "../../auth/auth.helpers";
 import './HorariosAdmin.css'
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -16,13 +15,12 @@ const dias = [
 
 interface props {
   estilistas: any[]
-  setEstilistas: (val: any) => void
   estilistaId: number | null
  setEstilistaId: (val:any) => void
 }
 
 
-export const HorariosAdmin = ({ estilistas, setEstilistas, estilistaId,setEstilistaId }: props) => {
+export const HorariosAdmin = ({ estilistas, estilistaId,setEstilistaId }: props) => {
     
 
     const [dia, setDia] = useState(1);
@@ -31,23 +29,6 @@ export const HorariosAdmin = ({ estilistas, setEstilistas, estilistaId,setEstili
 
     const [horarios, setHorarios] = useState<any[]>([]);
 
-   const cargarEstilistas = async () => {
-       try {
-         const res = await fetch(`${API_URL}/api/estilistas/admin`, {
-           headers: getAuthHeaders()
-         });
-         const data = await res.json();
-         setEstilistas(data);
-   
-       } catch (error) {
-         console.log("Error cargando turnos:", error);
-       }
-   
-     };
-   
-     useEffect(() => {
-       cargarEstilistas();
-     }, []);
 
     // cargar horarios
     useEffect(() => {

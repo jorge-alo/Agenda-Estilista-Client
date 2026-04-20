@@ -11,12 +11,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 interface props {
     estilistas: any[]
-    setEstilistas: (val: any) => void
     estilistaId: number | null
     setEstilistaId: (val: any) => void
 }
 
-export const ServiciosAdmin = ({ estilistas, setEstilistas, estilistaId, setEstilistaId }: props) => {
+export const ServiciosAdmin = ({ estilistas, estilistaId, setEstilistaId }: props) => {
 
     const [servicios, setServicios] = useState<any[]>([]);
     const [serviciosAsignados, setServiciosAsignados] = useState<any[]>([]);
@@ -28,24 +27,6 @@ export const ServiciosAdmin = ({ estilistas, setEstilistas, estilistaId, setEsti
     const [nombre, setNombre] = useState("");
     const [duracion, setDuracion] = useState<number>(30);
     const [precio, setPrecio] = useState<number>(0);
-
-    const cargarEstilistas = async () => {
-        try {
-            const res = await fetch(`${API_URL}/api/estilistas/admin`, {
-                headers: getAuthHeaders()
-            });
-            const data = await res.json();
-            setEstilistas(data);
-
-        } catch (error) {
-            console.log("Error cargando turnos:", error);
-        }
-
-    };
-
-    useEffect(() => {
-        cargarEstilistas();
-    }, []);
 
     const cargarServicios = async () => {
         try {

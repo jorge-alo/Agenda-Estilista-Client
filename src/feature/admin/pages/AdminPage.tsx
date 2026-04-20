@@ -37,6 +37,39 @@ export const AdminPage = () => {
       });
   }, []);
 
+  const cargarEstilistas = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/estilistas/admin`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login"); // usás navigate en vez de window.location porque ya lo tenés
+        }
+        setEstilistas([]);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setEstilistas(data);
+      } else {
+        setEstilistas([]);
+      }
+
+    } catch (error) {
+      console.log("Error cargando estilistas:", error);
+      setEstilistas([]);
+    }
+  };
+
+  useEffect(() => {
+    cargarEstilistas();
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
@@ -80,13 +113,12 @@ export const AdminPage = () => {
             estilistaId={estilistaId}
             setEstilistaId={setEstilistaId}
             estilistas={estilistas}
-            setEstilistas={setEstilistas}
           />
         )}
         {tabActiva === "estilistas" && (
           <EstilistasAdmin
             estilistas={estilistas}
-            setEstilistas={setEstilistas}
+            cargarEstilistas = {cargarEstilistas}
           />
         )}
         {tabActiva === "servicios" && (
@@ -94,7 +126,6 @@ export const AdminPage = () => {
             estilistaId={estilistaId}
             setEstilistaId={setEstilistaId}
             estilistas={estilistas}
-            setEstilistas={setEstilistas}
           />
         )}
         {tabActiva === "horarios" && (
@@ -102,7 +133,6 @@ export const AdminPage = () => {
             estilistaId={estilistaId}
             setEstilistaId={setEstilistaId}
             estilistas={estilistas}
-            setEstilistas={setEstilistas}
           />
         )}
       </div>

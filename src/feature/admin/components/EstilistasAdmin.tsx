@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getAuthHeaders } from "../../auth/auth.helpers";
 import './EstilistasAdmin.css'
 
@@ -6,30 +6,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 interface props {
   estilistas: any[]
-  setEstilistas: (val: any) => void
+  cargarEstilistas: () => void
 }
 
-export const EstilistasAdmin = ({ estilistas, setEstilistas }: props) => {
+export const EstilistasAdmin = ({ estilistas, cargarEstilistas }: props) => {
   const [nombre, setNombre] = useState("");
 
-
-  const cargarEstilistas = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/estilistas/admin`, {
-        headers: getAuthHeaders()
-      });
-      const data = await res.json();
-      setEstilistas(data);
-
-    } catch (error) {
-      console.log("Error cargando turnos:", error);
-    }
-
-  };
-
-  useEffect(() => {
-    cargarEstilistas();
-  }, []);
 
   const crear = async () => {
     if (!nombre) {
