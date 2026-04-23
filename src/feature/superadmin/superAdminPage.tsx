@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAuthHeaders } from "../auth/auth.helpers";
 import { LocalesLista } from "./components/LocalesLista";
 import { CrearLocalModal } from "./components/CrearLocalModal";
-import "./SuperAdminPage.css";
+import "./superAdminPage.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
