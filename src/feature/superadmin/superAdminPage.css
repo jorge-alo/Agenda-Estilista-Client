@@ -1,0 +1,316 @@
+/* ── Header ── */
+.sa-header {
+  background: var(--color-dark);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sa-header-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--color-primary-soft);
+}
+
+.sa-subtitle {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  margin-top: 2px;
+  font-family: var(--font-sans);
+}
+
+.sa-logout {
+  background: transparent;
+  border: 0.5px solid rgba(201,169,110,0.4);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sa-logout:hover {
+  background: rgba(201,169,110,0.1);
+}
+
+/* ── Content ── */
+.sa-content {
+  padding: 24px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.sa-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sa-section-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.sa-empty {
+  text-align: center;
+  padding: 32px 20px;
+  font-size: 14px;
+  color: var(--color-text-hint);
+  background: var(--color-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* ── Lista de locales ── */
+.sa-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sa-local {
+  background: var(--color-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: opacity var(--transition);
+}
+
+.sa-local.bloqueado {
+  opacity: 0.6;
+}
+
+.sa-local-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.sa-local-nombre {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-right: 8px;
+}
+
+.sa-badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.sa-badge.activo {
+  background: rgba(92,184,92,0.1);
+  color: var(--color-success);
+}
+
+.sa-badge.inactivo {
+  background: rgba(224,92,92,0.1);
+  color: var(--color-error);
+}
+
+.sa-local-fecha {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  white-space: nowrap;
+}
+
+.sa-local-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-text-soft);
+  margin-bottom: 14px;
+}
+
+.sa-local-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Botones ── */
+.sa-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 0.5px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-soft);
+}
+
+.sa-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.sa-btn.bloquear:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.sa-btn.activar:hover {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.sa-btn.eliminar:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.sa-btn-crear {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.sa-btn-crear:hover {
+  opacity: 0.85;
+}
+
+/* ── Confirm eliminar ── */
+.sa-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-text-soft);
+}
+
+.sa-confirm-btns {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Modal ── */
+.sa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.sa-modal {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.sa-modal-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--color-text);
+  margin-bottom: 20px;
+}
+
+.sa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sa-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-soft);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sa-field input {
+  background: var(--color-bg);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.sa-field input:focus {
+  border-color: var(--color-primary);
+}
+
+.sa-opcional {
+  font-weight: 300;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-hint);
+}
+
+.sa-error {
+  font-size: 13px;
+  color: var(--color-error);
+  text-align: center;
+}
+
+.sa-modal-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sa-btn-primary {
+  flex: 1;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.sa-btn-primary:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.sa-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
