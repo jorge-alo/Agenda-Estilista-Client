@@ -28,6 +28,8 @@ export const LoginPage = () => {
                 body: JSON.stringify({ email, password }),
             });
 
+            console.log("STATUS:", res.status);
+
             const data = await res.json();
 
             if (data.error) {
