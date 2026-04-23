@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./LoginPage.module.css";
+import { jwtDecode } from "jwt-decode";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -40,7 +41,13 @@ export const LoginPage = () => {
             // 🔥 guardar token
             localStorage.setItem("token", data.token);
 
-            navigate("/admin");
+            const decoded: any = jwtDecode(data.token);
+
+            if (decoded.rol === "superadmin") {
+                navigate("/superadmin");
+            } else {
+                navigate("/admin");
+            }
         } catch (error) {
             setError("Error de conexión");
         }
