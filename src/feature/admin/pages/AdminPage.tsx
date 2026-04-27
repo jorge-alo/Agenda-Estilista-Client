@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import './AdminPage.css'
 import { ReservarTurnoAdmin } from "../components/reservaAdmin/ReservarTurnoAdmini";
 import { getAuthHeaders } from "../../auth/auth.helpers";
+import { WhatsAppStatus } from "../components/whatsappStatus";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -15,6 +16,7 @@ export const AdminPage = () => {
   const [estilistaId, setEstilistaId] = useState<number | null>(null);
   const [tabActiva, setTabActiva] = useState("agenda");
   const [localNombre, setLocalNombre] = useState("");
+  const [localId, setLocalId] = useState<string>("");
   const navigate = useNavigate();
   useEffect(() => {
     fetch(`${API_URL}/api/auth/me`, {
@@ -30,6 +32,7 @@ export const AdminPage = () => {
       .then(data => {
         if (data) {
           setLocalNombre(data.nombreLocal);
+          setLocalId(String(data.localId));
         }
       })
       .catch(() => {
@@ -100,6 +103,9 @@ export const AdminPage = () => {
             {tab}
           </div>
         ))}
+        {tabActiva === "whatsapp" && (
+          <WhatsAppStatus localId={localId} />
+        )}
       </div>
 
       <div className="admin-content">
@@ -118,7 +124,7 @@ export const AdminPage = () => {
         {tabActiva === "estilistas" && (
           <EstilistasAdmin
             estilistas={estilistas}
-            cargarEstilistas = {cargarEstilistas}
+            cargarEstilistas={cargarEstilistas}
           />
         )}
         {tabActiva === "servicios" && (

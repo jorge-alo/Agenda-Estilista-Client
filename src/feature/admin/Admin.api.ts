@@ -57,3 +57,13 @@ export const getDisponibilidadAdmin = async (fecha: string, estilistaId: number,
             setDisponibles(data.disponibles || []);
         });
 };
+
+export const getWhatsAppEstado = async (localId: string, headers: HeadersInit) => {
+  const res = await fetch(`${API_URL}/api/whatsapp/estado/${localId}`, { headers });
+  return res.json();
+};
+
+export const getWhatsAppQR = async (localId: string, headers: HeadersInit) => {
+  const res = await fetch(`${API_URL}/api/whatsapp/conectar/${localId}`, { headers });
+  return res.json();
+};
