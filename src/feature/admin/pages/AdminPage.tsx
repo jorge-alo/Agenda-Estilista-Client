@@ -94,7 +94,7 @@ export const AdminPage = () => {
       </div>
 
       <div className="admin-tabs">
-        {["agenda", "reservar", "estilistas", "servicios", "horarios"].map((tab) => (
+        {["agenda", "reservar", "estilistas", "servicios", "horarios", "whatsapp"].map((tab) => (
           <div
             key={tab}
             className={`admin-tab ${tabActiva === tab ? "active" : ""}`}
@@ -103,9 +103,6 @@ export const AdminPage = () => {
             {tab}
           </div>
         ))}
-        {tabActiva === "whatsapp" && (
-          <WhatsAppStatus localId={localId} />
-        )}
       </div>
 
       <div className="admin-content">
@@ -140,6 +137,9 @@ export const AdminPage = () => {
             setEstilistaId={setEstilistaId}
             estilistas={estilistas}
           />
+        )}
+         {tabActiva === "whatsapp" && (
+          <WhatsAppStatus localId={localId} />
         )}
       </div>
     </div>
