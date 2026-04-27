@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { getWhatsAppEstado, getWhatsAppQR } from "../Admin.api";
 import { getAuthHeaders } from "../../auth/auth.helpers";
-
+import './whatsappStatus.css'
 interface Props {
   localId: string;
 }
