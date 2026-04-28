@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { reservarTurnoAdmin } from "../../Admin.api";
+import { reservarTurnoAdmin } from "../../../api/Admin.api";
 import { SelectEstilistas } from "./SelectEstilistas";
 import { SelectServicios } from "./SelectServicios";
 import { SelectFormCliente } from "./SelectFormClient";

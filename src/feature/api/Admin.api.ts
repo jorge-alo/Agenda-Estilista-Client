@@ -67,3 +67,33 @@ export const getWhatsAppQR = async (localId: string, headers: HeadersInit) => {
   const res = await fetch(`${API_URL}/api/whatsapp/conectar/${localId}`, { headers });
   return res.json();
 };
+
+export const obtenerServicios = async () => {
+  const res = await fetch(`${API_URL}/api/servicios/admin`, {
+    headers: getAuthHeaders()
+  });
+
+  if (!res.ok) {
+    throw new Error("Error cargando servicios");
+  }
+
+  return res.json();
+};
+
+export const obtenerTurnos = async (fecha?: string, desde?: string, hasta?: string) => {
+  let url: string;
+
+  if (desde && hasta) {
+    url = `${API_URL}/api/turnos/rango?desde=${desde}&hasta=${hasta}`;
+  } else if (fecha) {
+    url = `${API_URL}/api/turnos?fecha=${fecha}`;
+  } else {
+    url = `${API_URL}/api/turnos/futuros`;
+  }
+
+  const res = await fetch(url, { headers: getAuthHeaders() });
+
+  if (!res.ok) throw new Error("Error cargando turnos");
+
+  return res.json();
+};

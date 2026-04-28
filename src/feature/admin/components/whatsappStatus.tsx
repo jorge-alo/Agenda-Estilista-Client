@@ -1,6 +1,6 @@
 // src/feature/admin/components/WhatsAppStatus.tsx
 import { useEffect, useState } from "react";
-import { getWhatsAppEstado, getWhatsAppQR } from "../Admin.api";
+import { getWhatsAppEstado, getWhatsAppQR } from "../../api/Admin.api";
 import { getAuthHeaders } from "../../auth/auth.helpers";
 import './whatsappStatus.css'
 interface Props {

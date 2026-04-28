@@ -1,0 +1,324 @@
+/* AgendaSemanal.css */
+
+.semanal-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+/* ── Navegación de semana ── */
+.semanal-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+.semanal-nav-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  background: transparent;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text, #1a202c);
+  transition: background 0.15s;
+}
+.semanal-nav-btn:hover {
+  background: var(--color-hover, #f7fafc);
+}
+
+.semanal-rango {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text, #1a202c);
+  letter-spacing: 0.01em;
+  min-width: 180px;
+  text-align: center;
+}
+
+.semanal-hoy-btn {
+  margin-left: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--color-accent, #3b82f6);
+  background: transparent;
+  color: var(--color-accent, #3b82f6);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.semanal-hoy-btn:hover {
+  background: var(--color-accent, #3b82f6);
+  color: #fff;
+}
+
+/* ── Scroll container ── */
+.semanal-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Grid ── */
+.semanal-grid {
+  display: grid;
+  /* col horas + 7 días */
+  grid-template-columns: 52px repeat(7, minmax(120px, 1fr));
+  min-width: 900px;
+}
+
+/* ── Columna de horas ── */
+.semanal-col-horas {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border, #e2e8f0);
+}
+
+.semanal-header-vacio {
+  height: 56px;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+.semanal-hora-label {
+  height: 50px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 4px 8px 0 0;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-muted, #718096);
+  border-bottom: 1px solid var(--color-border-light, #f0f4f8);
+}
+.semanal-hora-label.media {
+  color: transparent;
+  border-bottom-style: dashed;
+  border-bottom-color: var(--color-border-light, #f0f4f8);
+}
+
+/* ── Columnas de días ── */
+.semanal-col-dia {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border, #e2e8f0);
+}
+
+.semanal-col-hoy {
+  background: var(--color-hoy-bg, #eff6ff);
+}
+
+.semanal-dia-header {
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-bottom: 2px solid var(--color-border, #e2e8f0);
+  position: relative;
+  padding-top: 4px;
+}
+
+.semanal-col-hoy .semanal-dia-header {
+  border-bottom-color: var(--color-accent, #3b82f6);
+}
+
+.semanal-dia-nombre {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted, #718096);
+}
+
+.semanal-dia-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text, #1a202c);
+  line-height: 1;
+}
+
+.semanal-dia-num.hoy {
+  color: #fff;
+  background: var(--color-accent, #3b82f6);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.semanal-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--color-accent, #3b82f6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ── Cuerpo del día ── */
+.semanal-dia-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.semanal-franja {
+  height: 50px;
+  border-bottom: 1px solid var(--color-border-light, #f0f4f8);
+  padding: 3px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: visible;
+  position: relative;
+}
+
+/* ── Turnos ── */
+.semanal-turno {
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.semanal-turno.expandido {
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 3px;
+}
+
+/* Estados */
+.estado-pendiente {
+  background: #dbeafe;
+  border-left-color: #3b82f6;
+  color: #1e3a8a;
+}
+.estado-pendiente:hover {
+  background: #bfdbfe;
+}
+
+.estado-completado {
+  background: #dcfce7;
+  border-left-color: #22c55e;
+  color: #14532d;
+}
+.estado-completado:hover {
+  background: #bbf7d0;
+}
+
+.estado-cancelado {
+  background: #fee2e2;
+  border-left-color: #ef4444;
+  color: #7f1d1d;
+  opacity: 0.7;
+}
+.estado-cancelado:hover {
+  opacity: 1;
+}
+
+.semanal-turno-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.semanal-turno-hora {
+  font-weight: 700;
+  font-size: 10px;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.semanal-turno-servicio {
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.semanal-turno-cliente {
+  font-size: 10px;
+  opacity: 0.85;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Detalle expandido */
+.semanal-turno-detalle {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.semanal-turno-acciones {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.semanal-btn {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.semanal-btn:hover { opacity: 0.8; }
+
+.semanal-btn.cancelar {
+  background: #fca5a5;
+  color: #7f1d1d;
+}
+.semanal-btn.completar {
+  background: #86efac;
+  color: #14532d;
+}
+.semanal-btn.reprogramar {
+  background: #93c5fd;
+  color: #1e3a8a;
+}
+
+/* ── Responsive: en mobile volver a lista ── */
+@media (max-width: 640px) {
+  .semanal-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

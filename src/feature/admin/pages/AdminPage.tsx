@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { EstilistasAdmin } from "../components/EstilistasAdmin";
 import { HorariosAdmin } from "../components/HorariosAdmin";
 import { ServiciosAdmin } from "../components/ServiciosAdmin";
-import { AgendaAdmin } from "../components/AgendAdmin";
+import { AgendaLista } from "../agenda/components/AgendaLista";
 import { useNavigate } from "react-router-dom";
 import './AdminPage.css'
 import { ReservarTurnoAdmin } from "../components/reservaAdmin/ReservarTurnoAdmini";
@@ -107,7 +107,7 @@ export const AdminPage = () => {
 
       <div className="admin-content">
         {tabActiva === "agenda" && (
-          <AgendaAdmin
+          <AgendaLista
             estilistas={estilistas}
           />
         )}

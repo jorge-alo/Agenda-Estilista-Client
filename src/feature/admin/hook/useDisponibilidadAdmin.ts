@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { getDisponibilidadAdmin } from "../Admin.api"
+import { getDisponibilidadAdmin } from "../../api/Admin.api"
 
 interface DisponibilidadAdminProps {
     fecha: string

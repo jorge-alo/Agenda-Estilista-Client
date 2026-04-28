@@ -3,7 +3,7 @@ import {
     getServiciosPorEstilista,
     asignarServicio,
     desasignarServicio,
-} from "../Admin.api";
+} from "../../api/Admin.api";
 import { getAuthHeaders } from "../../auth/auth.helpers";
 import './ServiciosAdmin.css'
 
