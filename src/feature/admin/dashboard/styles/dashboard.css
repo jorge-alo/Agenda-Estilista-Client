@@ -1,0 +1,424 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashboard-title {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  color: var(--color-dark);
+  font-weight: 500;
+}
+
+.dashboard-date {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  letter-spacing: 0.5px;
+}
+
+.dashboard-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(150px, 1fr));
+
+  gap: 14px;
+}
+
+.dashboard-card {
+  background: var(--color-white);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  padding: 18px;
+
+  transition: all var(--transition);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(201,169,110,0.35);
+}
+
+.dashboard-card-title {
+  font-size: 12px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+
+  color: var(--color-text-soft);
+
+  margin-bottom: 12px;
+}
+
+.dashboard-card-value {
+  font-size: 30px;
+
+  font-family: var(--font-serif);
+
+  color: var(--color-dark);
+}
+
+.dashboard-turnos {
+  background: var(--color-white);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  overflow: hidden;
+}
+
+.dashboard-turnos-header {
+  padding: 18px 20px;
+
+  border-bottom:
+    1px solid var(--color-border);
+}
+
+.dashboard-turnos-title {
+  font-family: var(--font-serif);
+
+  font-size: 24px;
+
+  font-weight: 500;
+}
+
+.turno-row {
+  display: grid;
+
+  grid-template-columns:
+    70px
+    1fr
+    1fr;
+
+  gap: 10px;
+
+  padding: 16px 20px;
+
+  border-bottom:
+    1px solid rgba(0,0,0,0.04);
+
+  align-items: center;
+}
+
+.turno-row:last-child {
+  border-bottom: none;
+}
+
+.turno-hora {
+  font-weight: 600;
+
+  color: var(--color-primary);
+}
+
+.turno-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.turno-nombre {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.turno-servicio {
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+
+.turno-estado {
+  justify-self: end;
+
+  font-size: 11px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+}
+
+.turno-estado.activo {
+  background: rgba(201,169,110,0.12);
+  color: var(--color-primary);
+}
+
+.turno-estado.completado {
+  background: rgba(92,184,92,0.12);
+  color: var(--color-success);
+}
+
+.turno-estado.cancelado {
+  background: rgba(224,92,92,0.12);
+  color: var(--color-error);
+}
+
+.dashboard-section-header {
+  margin-bottom: 16px;
+}
+
+.dashboard-section-title {
+  font-family: var(--font-serif);
+
+  font-size: 26px;
+
+  font-weight: 500;
+}
+
+.dashboard-estilistas {
+  background: var(--color-white);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  padding: 20px;
+}
+
+.dashboard-estilistas-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(220px, 1fr));
+
+  gap: 14px;
+}
+
+.dashboard-estilista-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 14px;
+
+  border-radius: var(--radius-md);
+
+  background:
+    var(--color-primary-light);
+}
+
+.dashboard-estilista-avatar {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 50%;
+
+  background: var(--color-primary);
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 600;
+
+  font-size: 14px;
+}
+
+.dashboard-estilista-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-estilista-nombre {
+  font-weight: 600;
+}
+
+.dashboard-estilista-turnos {
+  font-size: 13px;
+
+  color: var(--color-text-soft);
+}
+
+.dashboard-grafico {
+  background: var(--color-white);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  padding: 20px;
+}
+
+.grafico-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grafico-row {
+  display: grid;
+
+  grid-template-columns:
+    60px
+    1fr
+    30px;
+
+  gap: 12px;
+
+  align-items: center;
+}
+
+.grafico-hora {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.grafico-barra-container {
+  width: 100%;
+
+  height: 10px;
+
+  background:
+    rgba(201,169,110,0.12);
+
+  border-radius: 999px;
+
+  overflow: hidden;
+}
+
+.grafico-barra {
+  height: 100%;
+
+  background: var(--color-primary);
+
+  border-radius: 999px;
+
+  transition:
+    width 0.25s ease;
+}
+
+.grafico-numero {
+  font-size: 13px;
+
+  color: var(--color-text-soft);
+
+  text-align: right;
+}
+
+.dashboard-empty {
+  font-size: 14px;
+
+  color: var(--color-text-soft);
+}
+
+.dashboard-clientes {
+  background: var(--color-white);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  padding: 20px;
+}
+
+.dashboard-clientes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-cliente-card {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 14px;
+
+  border-radius: var(--radius-md);
+
+  background: var(--color-primary-light);
+}
+
+.dashboard-cliente-nombre {
+  font-weight: 600;
+}
+
+.dashboard-cliente-phone {
+  font-size: 13px;
+
+  color: var(--color-text-soft);
+
+  margin-top: 4px;
+}
+
+.dashboard-cliente-info {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  gap: 4px;
+
+  font-size: 13px;
+}
+
+.dashboard-reporte {
+  background: var(--color-white);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  padding: 20px;
+}
+
+.dashboard-reporte-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(140px, 1fr));
+
+  gap: 14px;
+}
+
+.dashboard-reporte-card {
+  background:
+    var(--color-primary-light);
+
+  border-radius: var(--radius-md);
+
+  padding: 16px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.dashboard-reporte-card span {
+  font-size: 13px;
+
+  color: var(--color-text-soft);
+}
+
+.dashboard-reporte-card strong {
+  font-size: 20px;
+
+  font-family: var(--font-serif);
+
+  color: var(--color-dark);
+}

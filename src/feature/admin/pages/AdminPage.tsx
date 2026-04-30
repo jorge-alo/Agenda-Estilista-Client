@@ -8,6 +8,7 @@ import './AdminPage.css'
 import { ReservarTurnoAdmin } from "../components/reservaAdmin/ReservarTurnoAdmini";
 import { getAuthHeaders } from "../../auth/auth.helpers";
 import { WhatsAppStatus } from "../components/whatsappStatus";
+import { Resumen } from "../dashboard/components/Resumen";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -94,7 +95,7 @@ export const AdminPage = () => {
       </div>
 
       <div className="admin-tabs">
-        {["agenda", "reservar", "estilistas", "servicios", "horarios", "whatsapp"].map((tab) => (
+        {["dashboard", "agenda", "reservar", "estilistas", "servicios", "horarios", "whatsapp"].map((tab) => (
           <div
             key={tab}
             className={`admin-tab ${tabActiva === tab ? "active" : ""}`}
@@ -106,6 +107,9 @@ export const AdminPage = () => {
       </div>
 
       <div className="admin-content">
+        {tabActiva === "dashboard" && (
+          <Resumen />
+        )}
         {tabActiva === "agenda" && (
           <AgendaLista
             estilistas={estilistas}
@@ -138,7 +142,7 @@ export const AdminPage = () => {
             estilistas={estilistas}
           />
         )}
-         {tabActiva === "whatsapp" && (
+        {tabActiva === "whatsapp" && (
           <WhatsAppStatus localId={localId} />
         )}
       </div>
