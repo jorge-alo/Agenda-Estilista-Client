@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getAuthHeaders } from "../../auth/auth.helpers";
 import './EstilistasAdmin.css'
+import { ListaBloqueos } from "../bloqueos/components/BloqueosLista";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -62,6 +63,7 @@ export const EstilistasAdmin = ({ estilistas, cargarEstilistas }: props) => {
           </li>
         ))}
       </ul>
+      <ListaBloqueos />
     </div>
   );
 };

@@ -1,0 +1,67 @@
+.clientes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.clientes-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.clientes-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.clientes-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.clientes-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.clientes-table thead {
+  background: #f3f4f6;
+}
+
+.clientes-table th {
+  text-align: left;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.clientes-table td {
+  padding: 14px;
+  border-top: 1px solid #f1f1f1;
+  font-size: 14px;
+  color: #111827;
+}
+
+.clientes-table tbody tr:hover {
+  background: #fafafa;
+  transition: 0.2s;
+}
+
+@media (max-width: 768px) {
+
+  .clientes-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+}

@@ -9,6 +9,8 @@ import { ReservarTurnoAdmin } from "../components/reservaAdmin/ReservarTurnoAdmi
 import { getAuthHeaders } from "../../auth/auth.helpers";
 import { WhatsAppStatus } from "../components/whatsappStatus";
 import { Resumen } from "../dashboard/components/Resumen";
+import { BloqueosAdmin } from "../bloqueos/components/BloqueosAdmin";
+import { ClientesPage } from "../clientes/pages/ClientesPage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -95,7 +97,7 @@ export const AdminPage = () => {
       </div>
 
       <div className="admin-tabs">
-        {["dashboard", "agenda", "reservar", "estilistas", "servicios", "horarios", "whatsapp"].map((tab) => (
+        {["dashboard", "agenda", "reservar", "clientes", "estilistas", "servicios", "horarios", "bloqueos", "whatsapp"].map((tab) => (
           <div
             key={tab}
             className={`admin-tab ${tabActiva === tab ? "active" : ""}`}
@@ -122,6 +124,9 @@ export const AdminPage = () => {
             estilistas={estilistas}
           />
         )}
+        {tabActiva === "clientes" && (
+          <ClientesPage />
+        )}
         {tabActiva === "estilistas" && (
           <EstilistasAdmin
             estilistas={estilistas}
@@ -139,6 +144,11 @@ export const AdminPage = () => {
           <HorariosAdmin
             estilistaId={estilistaId}
             setEstilistaId={setEstilistaId}
+            estilistas={estilistas}
+          />
+        )}
+        {tabActiva === "bloqueos" && (
+          <BloqueosAdmin
             estilistas={estilistas}
           />
         )}

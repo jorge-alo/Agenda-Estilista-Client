@@ -1,0 +1,80 @@
+.bloqueos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bloqueos-title {
+  font-size: 22px;
+  font-family: var(--font-serif);
+  color: var(--color-dark);
+}
+
+.bloqueos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bloqueos-form input,
+.bloqueos-form select {
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: white;
+  font-family: var(--font-sans);
+}
+
+.bloqueos-form button {
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-md);
+
+  background: var(--color-primary);
+
+  color: white;
+
+  cursor: pointer;
+
+  font-weight: 500;
+}
+
+.bloqueos-list {
+  margin-top: 2rem;
+}
+
+.bloqueo-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1rem;
+
+  border: 1px solid #ddd;
+  border-radius: 10px;
+
+  margin-bottom: 1rem;
+
+  background: white;
+}
+
+.bloqueo-card h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.bloqueo-card p {
+  margin: 0.25rem 0;
+}
+
+.bloqueo-card button {
+  background: #e53935;
+  color: white;
+
+  border: none;
+
+  padding: 0.7rem 1rem;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+}
