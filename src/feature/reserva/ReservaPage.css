@@ -72,6 +72,27 @@
   background: var(--color-border);
 }
 
+.rp-info-local {
+  padding: 16px 20px;
+  background: var(--color-white);
+  border-bottom: 0.5px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-info-desc {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  font-family: var(--font-sans);
+}
+
+.rp-info-item {
+  font-size: 12px;
+  color: var(--color-text-hint);
+  font-family: var(--font-sans);
+}
+
 @media (max-width: 480px) {
   .rp-hero {
     padding: 36px 20px 28px;

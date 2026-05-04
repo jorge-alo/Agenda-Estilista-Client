@@ -18,52 +18,56 @@ export const useReservaHooks = () => {
     return { horarios }
 }
 
-interface props {
-    slug: string
-    fecha: string
-    estilistaId: number | null
-    servicioId: number | null
-    setDisponibles: (valor: string[]) => void
-    setNombreLocal: (valor: string) => void
+export interface InfoLocal {
+  nombreLocal: string;
+  descripcion: string;
+  direccion: string;
+  telefono: string;
+  horario_apertura: string;
+  horario_cierre: string;
 }
 
-export const useDisponibilidad = ({ slug, fecha, estilistaId, servicioId, setDisponibles, setNombreLocal }: props) => {
-    const prevRef = useRef<string[]>([]);
+interface Props {
+  slug: string;
+  fecha: string;
+  estilistaId: number | null;
+  servicioId: number | null;
+  setDisponibles: (valor: string[]) => void;
+  setInfoLocal: (valor: InfoLocal) => void;
+}
 
-    // EFECTO 1: Para obtener el nombre del local apenas carga el SLUG
-    useEffect(() => {
-        if (!slug) return;
+export const useDisponibilidad = ({ slug, fecha, estilistaId, servicioId, setDisponibles, setInfoLocal }: Props) => {
+  const prevRef = useRef<string[]>([]);
 
-        const fetchInfoLocal = async () => {
-            const data = await getDisponibilidad(slug, fecha, null, null);
-            if (data.nombreLocal) {
-                // Tomamos el string, la primera en Mayús y el resto como estaba
-                const nombreFormateado =
-                    data.nombreLocal.charAt(0).toUpperCase() + data.nombreLocal.slice(1);
+  // EFECTO 1: Info del local al cargar el slug
+  useEffect(() => {
+    if (!slug) return;
+    getDisponibilidad(slug, fecha, null, null).then((data) => {
+      setInfoLocal({
+        nombreLocal: data.nombreLocal
+          ? data.nombreLocal.charAt(0).toUpperCase() + data.nombreLocal.slice(1)
+          : "",
+        descripcion: data.descripcion ?? "",
+        direccion: data.direccion ?? "",
+        telefono: data.telefono ?? "",
+        horario_apertura: data.horario_apertura ?? "",
+        horario_cierre: data.horario_cierre ?? "",
+      });
+    });
+  }, [slug]);
 
-                setNombreLocal(nombreFormateado);
-            }
-        };
-
-        fetchInfoLocal();
-    }, [slug]); // Solo depende del slug
-
-    // EFECTO 2: Para obtener los horarios disponibles
-    useEffect(() => {
-        // Solo buscamos turnos si tenemos todos los datos
-        if (!slug || !estilistaId || !servicioId) return;
-
-        const fetchTurnos = async () => {
-            const data = await getDisponibilidad(slug, fecha, estilistaId, servicioId);
-
-            if (data.disponibles && JSON.stringify(prevRef.current) !== JSON.stringify(data.disponible)) {
-                prevRef.current = data.disponibles;
-                setDisponibles(data.disponibles || []);
-            }
-        };
-
-        fetchTurnos();
-    }, [slug, fecha, estilistaId, servicioId]);
+  // EFECTO 2: Disponibilidad cuando hay estilista y servicio
+  useEffect(() => {
+    if (!slug || !estilistaId || !servicioId) return;
+    const fetchTurnos = async () => {
+      const data = await getDisponibilidad(slug, fecha, estilistaId, servicioId);
+      if (data.disponibles && JSON.stringify(prevRef.current) !== JSON.stringify(data.disponibles)) {
+        prevRef.current = data.disponibles;
+        setDisponibles(data.disponibles || []);
+      }
+    };
+    fetchTurnos();
+  }, [slug, fecha, estilistaId, servicioId]);
 };
 
 
