@@ -11,6 +11,7 @@ import { WhatsAppStatus } from "../components/whatsappStatus";
 import { Resumen } from "../dashboard/components/Resumen";
 import { BloqueosAdmin } from "../bloqueos/components/BloqueosAdmin";
 import { ClientesPage } from "../clientes/pages/ClientesPage";
+import { ConfiguracionPage } from "../configuracion/page/ConfiguracionPage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -97,7 +98,7 @@ export const AdminPage = () => {
       </div>
 
       <div className="admin-tabs">
-        {["dashboard", "agenda", "reservar", "clientes", "estilistas", "servicios", "horarios", "bloqueos", "whatsapp"].map((tab) => (
+        {["dashboard", "agenda", "reservar", "clientes", "estilistas", "servicios", "horarios", "bloqueos", "configuracion", "whatsapp"].map((tab) => (
           <div
             key={tab}
             className={`admin-tab ${tabActiva === tab ? "active" : ""}`}
@@ -151,6 +152,9 @@ export const AdminPage = () => {
           <BloqueosAdmin
             estilistas={estilistas}
           />
+        )}
+        {tabActiva === "configuracion" && (
+          <ConfiguracionPage />
         )}
         {tabActiva === "whatsapp" && (
           <WhatsAppStatus localId={localId} />
