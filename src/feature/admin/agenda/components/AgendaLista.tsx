@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
-import { getAuthHeaders } from "../../../auth/auth.helpers.ts";
 import { formatearFecha } from "../../helpers/formatearFecha.ts";
 import { ModalReprogramar } from "../../components/reprogramar/ModalReprogramar.tsx";
 import '../styles/AgendaLista.css'
 import type { Turno } from "../types/agenda.types.ts";
 import { agruparTurnos } from "../helpers/agruparTurnos.ts";
-import { obtenerServicios, obtenerTurnos } from "../../../api/Admin.api.ts";
+import { obtenerServicios } from "../../../api/Admin.api.ts";
 import { useTurnos } from "../hooks/useTurnos.ts";
 import { AgendaSemanal } from "./AgendaSemanal.tsx";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { useCancelarTurno } from "../mutations/useCancelarTurno";
+import { useCompletarTurno } from "../mutations/useCompletarTurno";
 
 interface Props {
   estilistas: any[];
@@ -36,11 +35,22 @@ export const AgendaLista = ({ estilistas }: Props) => {
   const [fecha, setFecha] = useState("");
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<Turno | null>(null);
   const [servicios, setServicios] = useState<any[]>([]);
-  const [turnosSemana, setTurnosSemana] = useState<Turno[]>([]);
-  const [loadingSemana, setLoadingSemana] = useState(false);
   const [semanaOffset, setSemanaOffset] = useState(0);
 
-  const { turnos, loading, recargar } = useTurnos(fecha);
+  const { data: turnos = [],
+    isLoading: loading, } = useTurnos(fecha);
+
+  const dias =
+    getDiasDeSemana(semanaOffset);
+
+  const {
+    data: turnosSemana = [],
+    isLoading: loadingSemana,
+  } = useTurnos(
+    undefined,
+    dias[0],
+    dias[6]
+  );
 
   useEffect(() => {
     obtenerServicios()
@@ -48,55 +58,13 @@ export const AgendaLista = ({ estilistas }: Props) => {
       .catch(() => setServicios([]));
   }, []);
 
-  useEffect(() => {
-    recargar();
-  }, [fecha]);
 
-  useEffect(() => {
-    if (vista !== "semana") return;
-    cargarSemana(semanaOffset);
-  }, [vista, semanaOffset]);
+  const cancelarMutation =
+    useCancelarTurno();
 
-  const cargarSemana = async (offset: number) => {
-    setLoadingSemana(true);
-    try {
-       const dias = getDiasDeSemana(offset);
-    console.log("Pidiendo rango:", dias[0], "→", dias[6]);
-    const data = await obtenerTurnos(undefined, dias[0], dias[6]);
-    console.log("Turnos recibidos:", data);
-      setTurnosSemana(data);
-    } catch {
-      setTurnosSemana([]);
-    } finally {
-      setLoadingSemana(false);
-    }
-  };
+  const completarMutation =
+    useCompletarTurno();
 
-  const cancelarTurno = async (id: number) => {
-    try {
-      await fetch(`${API_URL}/api/turnos/${id}/cancelar`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-      });
-      recargar();
-      if (vista === "semana") cargarSemana(semanaOffset);
-    } catch (error) {
-      console.log("Error cancelando turno:", error);
-    }
-  };
-
-  const completarTurno = async (id: number) => {
-    try {
-      await fetch(`${API_URL}/api/turnos/${id}/completar`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-      });
-      recargar();
-      if (vista === "semana") cargarSemana(semanaOffset);
-    } catch (error) {
-      console.log("Error completando turno:", error);
-    }
-  };
 
   const turnosAgrupados = agruparTurnos(turnos);
 
@@ -109,8 +77,7 @@ export const AgendaLista = ({ estilistas }: Props) => {
           servicios={servicios}
           onClose={() => setTurnoSeleccionado(null)}
           onSuccess={() => {
-            recargar();
-            if (vista === "semana") cargarSemana(semanaOffset);
+             setTurnoSeleccionado(null);
           }}
         />
       )}
@@ -160,8 +127,8 @@ export const AgendaLista = ({ estilistas }: Props) => {
                       <div className="agenda-turno-info">📞 {t.cliente_telefono}</div>
                       <div className="agenda-turno-info">💇 {t.estilista_nombre}</div>
                       <div className="agenda-turno-acciones">
-                        <button className="agenda-btn cancelar" onClick={() => cancelarTurno(t.id)}>Cancelar</button>
-                        <button className="agenda-btn completar" onClick={() => completarTurno(t.id)}>Completar</button>
+                        <button className="agenda-btn cancelar" onClick={() => cancelarMutation.mutate(t.id)}>Cancelar</button>
+                        <button className="agenda-btn completar" onClick={() => completarMutation.mutate(t.id)}>Completar</button>
                         <button className="agenda-btn" onClick={() => setTurnoSeleccionado(t)}>Reprogramar</button>
                       </div>
                     </div>
@@ -181,8 +148,8 @@ export const AgendaLista = ({ estilistas }: Props) => {
             turnos={turnosSemana}
             semanaOffset={semanaOffset}
             onSemanaChange={setSemanaOffset}
-            onCancelar={cancelarTurno}
-            onCompletar={completarTurno}
+            onCancelar={(id) => cancelarMutation.mutate(id)}
+            onCompletar={(id) => completarMutation.mutate(id)}
             onReprogramar={setTurnoSeleccionado}
           />
         )

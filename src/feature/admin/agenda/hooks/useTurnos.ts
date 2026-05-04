@@ -1,35 +1,38 @@
-import { useEffect, useState } from "react";
-import { obtenerTurnos } from "../../../api/Admin.api";
-import type { Turno } from "../types/agenda.types";
+import { useQuery } from "@tanstack/react-query";
 
+import { obtenerTurnos }
+  from "../../../api/Admin.api";
 
-export const useTurnos = (fecha?: string) => {
-  const [turnos, setTurnos] = useState<Turno[]>([]);
-  const [loading, setLoading] = useState(false);
+import type { Turno }
+  from "../types/agenda.types";
 
-  const cargarTurnos = async () => {
-    try {
-      setLoading(true);
+export const useTurnos = (
+  fecha?: string,
+  desde?: string,
+  hasta?: string
+) => {
 
-      const data = await obtenerTurnos(fecha);
+  return useQuery<Turno[]>({
 
-      setTurnos(Array.isArray(data) ? data : []);
+    queryKey: [
+      "turnos",
+      fecha,
+      desde,
+      hasta
+    ],
 
-    } catch (error) {
-      console.log(error);
-      setTurnos([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    queryFn: async () => {
 
-  useEffect(() => {
-    cargarTurnos();
-  }, [fecha]);
+      const data = await obtenerTurnos(
+        fecha,
+        desde,
+        hasta
+      );
 
-  return {
-    turnos,
-    loading,
-    recargar: cargarTurnos
-  };
+      return Array.isArray(data)
+        ? data
+        : [];
+    },
+
+  });
 };

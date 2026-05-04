@@ -24,22 +24,22 @@ export const Resumen = () => {
 
     const {
         data,
-        loading,
+        isLoading,
         error
     } = useDashboard(fecha);
 
-    if (loading) {
+    if (isLoading) {
         return (
             <p>Cargando dashboard...</p>
         );
     }
 
-    if (error || !data) {
-        return (
-            <p>
-                Error al cargar dashboard
-            </p>
-        );
+    if (error) {
+        return <p>Error al cargar dashboard</p>;
+    }
+
+    if (!data) {
+        return null;
     }
 
     return (
