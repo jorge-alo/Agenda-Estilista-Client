@@ -6,6 +6,7 @@ import {
 import {
   reprogramarTurno
 } from "../services/agenda.service";
+import { toast } from "sonner";
 
 interface Payload {
   id: number;
@@ -27,6 +28,10 @@ export const useReprogramarTurno = () => {
 
     onSuccess: () => {
 
+      toast.success(
+        "Turno reprogramado"
+      );
+
       queryClient.invalidateQueries({
         queryKey: ["turnos"]
       });
@@ -34,6 +39,14 @@ export const useReprogramarTurno = () => {
       queryClient.invalidateQueries({
         queryKey: ["dashboard"]
       });
+
+    },
+    onError: (error: any) => {
+
+      toast.error(
+        error.message ||
+        "Error reprogramando"
+      );
 
     },
 

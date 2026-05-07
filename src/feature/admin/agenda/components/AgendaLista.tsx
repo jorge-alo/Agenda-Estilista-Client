@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { formatearFecha } from "../../helpers/formatearFecha.ts";
 import { ModalReprogramar } from "../../components/reprogramar/ModalReprogramar.tsx";
 import '../styles/AgendaLista.css'
 import type { Turno } from "../types/agenda.types.ts";
 import { agruparTurnos } from "../helpers/agruparTurnos.ts";
-import { obtenerServicios } from "../../../api/Admin.api.ts";
 import { useTurnos } from "../hooks/useTurnos.ts";
 import { AgendaSemanal } from "./AgendaSemanal.tsx";
 import { useCancelarTurno } from "../mutations/useCancelarTurno";
 import { useCompletarTurno } from "../mutations/useCompletarTurno";
+import { useServicios } from "../hooks/useServicio.ts";
+import { getDiasDeSemana } from "../helpers/getSemanaDias.ts";
 
 interface Props {
   estilistas: any[];
@@ -16,32 +17,32 @@ interface Props {
 
 type Vista = "lista" | "semana";
 
-function getDiasDeSemana(offset: number): string[] {
-  const hoy = new Date();
-  const dia = hoy.getDay();
-  const diffLunes = dia === 0 ? -6 : 1 - dia;
-  const lunes = new Date(hoy);
-  lunes.setDate(hoy.getDate() + diffLunes + offset * 7);
-  lunes.setHours(0, 0, 0, 0);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(lunes);
-    d.setDate(lunes.getDate() + i);
-    return d.toISOString().slice(0, 10);
-  });
-}
-
 export const AgendaLista = ({ estilistas }: Props) => {
   const [vista, setVista] = useState<Vista>("lista");
   const [fecha, setFecha] = useState("");
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<Turno | null>(null);
-  const [servicios, setServicios] = useState<any[]>([]);
   const [semanaOffset, setSemanaOffset] = useState(0);
 
-  const { data: turnos = [],
-    isLoading: loading, } = useTurnos(fecha);
+  const {
+    data: turnos = [],
+    isLoading: loading,
+  } = useTurnos(
+    fecha,
+    undefined,
+    undefined,
+    vista === "lista"
+  );
 
-  const dias =
-    getDiasDeSemana(semanaOffset);
+  const dias = useMemo(() => {
+
+    if (vista !== "semana") {
+      return [];
+    }
+    return getDiasDeSemana(
+      semanaOffset
+    );
+
+  }, [vista, semanaOffset]);
 
   const {
     data: turnosSemana = [],
@@ -49,14 +50,13 @@ export const AgendaLista = ({ estilistas }: Props) => {
   } = useTurnos(
     undefined,
     dias[0],
-    dias[6]
+    dias[6],
+    vista === "semana"
   );
 
-  useEffect(() => {
-    obtenerServicios()
-      .then(setServicios)
-      .catch(() => setServicios([]));
-  }, []);
+  const {
+    data: servicios = [],
+  } = useServicios();
 
 
   const cancelarMutation =
@@ -77,7 +77,7 @@ export const AgendaLista = ({ estilistas }: Props) => {
           servicios={servicios}
           onClose={() => setTurnoSeleccionado(null)}
           onSuccess={() => {
-             setTurnoSeleccionado(null);
+            setTurnoSeleccionado(null);
           }}
         />
       )}

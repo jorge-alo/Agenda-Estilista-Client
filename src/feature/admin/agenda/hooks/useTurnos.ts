@@ -5,24 +5,28 @@ import { obtenerTurnos }
 
 import type { Turno }
   from "../types/agenda.types";
+import { queryKeys } from "../../../../shared/lib/queryKeys";
 
 export const useTurnos = (
   fecha?: string,
   desde?: string,
-  hasta?: string
+  hasta?: string,
+  enabled = true
 ) => {
 
   return useQuery<Turno[]>({
 
-    queryKey: [
-      "turnos",
-      fecha,
-      desde,
-      hasta
-    ],
-
+      queryKey:
+      desde && hasta
+        ? queryKeys.turnos.semana(
+            desde,
+            hasta
+          )
+        : queryKeys.turnos.lista(
+            fecha
+          ),
+          
     queryFn: async () => {
-
       const data = await obtenerTurnos(
         fecha,
         desde,
@@ -33,6 +37,6 @@ export const useTurnos = (
         ? data
         : [];
     },
-
+    enabled,
   });
 };

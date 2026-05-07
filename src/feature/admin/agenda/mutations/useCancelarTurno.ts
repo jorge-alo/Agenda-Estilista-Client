@@ -5,6 +5,7 @@ import {
 
 import { getAuthHeaders }
   from "../../../auth/auth.helpers";
+import { toast } from "sonner";
 
 const API_URL =
   import.meta.env.VITE_API_URL;
@@ -27,7 +28,7 @@ const cancelarTurno =
     }
 
     return res.json();
-};
+  };
 
 export const useCancelarTurno = () => {
 
@@ -40,6 +41,10 @@ export const useCancelarTurno = () => {
 
     onSuccess: () => {
 
+      toast.success(
+        "Turno cancelado"
+      );
+
       queryClient.invalidateQueries({
         queryKey: ["turnos"]
       });
@@ -47,6 +52,13 @@ export const useCancelarTurno = () => {
       queryClient.invalidateQueries({
         queryKey: ["dashboard"]
       });
+
+    },
+    onError: () => {
+
+      toast.error(
+        "Error cancelando turno"
+      );
 
     },
 

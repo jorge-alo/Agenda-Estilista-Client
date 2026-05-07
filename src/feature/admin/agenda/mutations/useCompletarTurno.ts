@@ -6,6 +6,7 @@ import {
 import {
   completarTurno
 } from "../services/agenda.service";
+import { toast } from "sonner";
 
 export const useCompletarTurno = () => {
 
@@ -17,6 +18,9 @@ export const useCompletarTurno = () => {
     mutationFn: completarTurno,
 
     onSuccess: () => {
+      toast.success(
+        "Turno completado"
+      );
 
       queryClient.invalidateQueries({
         queryKey: ["turnos"]
@@ -25,6 +29,13 @@ export const useCompletarTurno = () => {
       queryClient.invalidateQueries({
         queryKey: ["dashboard"]
       });
+
+    },
+    onError: () => {
+
+      toast.error(
+        "Error completando turno"
+      );
 
     },
 
