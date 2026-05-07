@@ -1,14 +1,7 @@
 import { useState } from "react";
-
-import { useDashboard }
-    from "../hooks/useDashboard";
-
-import { MetricasCard }
-    from "./MetricasCard";
-
-import { ListaTurnosHoy }
-    from "./ListaTurnosHoy";
-
+import { useDashboard }from "../hooks/useDashboard";
+import { MetricasCard }from "./MetricasCard";
+import { ListaTurnosHoy } from "./ListaTurnosHoy";
 import "../styles/dashboard.css";
 import { PorEstilista } from "./PorEstilista";
 import { HistorialClientes } from "./HistorialCliente";

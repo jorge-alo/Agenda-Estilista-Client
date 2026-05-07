@@ -5,9 +5,9 @@ import {
 export const HistorialClientes = () => {
 
   const {
-    clientes,
-    loading
-  } = useHistorialClientes();
+  data: clientes = [],
+  isLoading: loading,
+} = useHistorialClientes();
 
   if (loading) {
     return <p>Cargando clientes...</p>;

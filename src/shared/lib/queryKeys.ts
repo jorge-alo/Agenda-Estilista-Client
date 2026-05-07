@@ -34,12 +34,12 @@ export const queryKeys = {
                 fecha
             ],
 
-        clientes: [
+        clientes: () => [
             "dashboard",
             "clientes"
         ],
 
-        reporteMensual: [
+        reporteMensual: () => [
             "dashboard",
             "reporteMensual"
         ],

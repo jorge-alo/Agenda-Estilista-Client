@@ -1,15 +1,6 @@
-import {
-  useEffect,
-  useState
-} from "react";
-
-import {
-  dashboardService
-} from "../services/dashboard.service";
-
-import type {
-  ClienteHistorial
-} from "../types/dashboard.types";
+import { useEffect,useState } from "react";
+import { dashboardService } from "../services/dashboard.service";
+import type { ClienteHistorial } from "../types/dashboard.types";
 
 export const useHistorialClientes =
   () => {
