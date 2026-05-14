@@ -2,49 +2,47 @@ import { fetchWithAuth }
 from "../../../../shared/lib/fetchWithAuth";
 
 import type {
-  Configuracion
-} from "../types/configuracion.types";
+  WhatsAppEstado,
+  WhatsAppQR
+} from "../types/whatsapp.types";
 
 const API_URL =
   import.meta.env.VITE_API_URL;
 
-export const configuracionService = {
+export const whatsappService = {
 
-  obtener:
-    async (): Promise<Configuracion> => {
+  estado:
+    async (
+      localId: string
+    ): Promise<WhatsAppEstado> => {
 
       const res =
         await fetchWithAuth(
-          `${API_URL}/api/configuracion`
+          `${API_URL}/api/whatsapp/estado/${localId}`
         );
 
       if (!res.ok) {
         throw new Error(
-          "Error al obtener configuración"
+          "Error verificando WhatsApp"
         );
       }
 
       return res.json();
     },
 
-  actualizar:
+  generarQR:
     async (
-      data: Configuracion
-    ) => {
+      localId: string
+    ): Promise<WhatsAppQR> => {
 
       const res =
         await fetchWithAuth(
-          `${API_URL}/api/configuracion`,
-          {
-            method: "PUT",
-
-            body: JSON.stringify(data),
-          }
+          `${API_URL}/api/whatsapp/conectar/${localId}`
         );
 
       if (!res.ok) {
         throw new Error(
-          "Error al actualizar configuración"
+          "Error generando QR"
         );
       }
 

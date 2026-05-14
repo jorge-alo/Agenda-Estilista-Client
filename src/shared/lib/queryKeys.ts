@@ -78,4 +78,34 @@ export const queryKeys = {
     all: ["estilistas"],
   },
 
+  horarios: {
+
+  all: ["horarios"],
+
+  porEstilista:
+    (estilistaId: number) => [
+      "horarios",
+      estilistaId,
+    ],
+},
+
+bloqueos: {
+
+    all: ["bloqueos"],
+  },
+
+  configuracion: {
+
+  all: ["configuracion"],
+
+},
+
+whatsapp: {
+
+  estado: (
+    localId: string
+  ) => ["whatsapp", localId],
+
+},
+
 };

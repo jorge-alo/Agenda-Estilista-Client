@@ -1,34 +1,15 @@
 // components/AdminContent.tsx
 
-import { Resumen }
-from "../../../dashboard/components/Resumen";
-
-import { AgendaLista }
-from "../../../agenda/components/AgendaLista";
-
-import { ReservarTurnoAdmin }
-from "../../../reservar/components/ReservarTurnoAdmini";
-
-import { ClientesPage }
-from "../../../clientes/pages/ClientesPage";
-
-import { EstilistasAdmin }
-from "../../../estilistas/componentes/EstilistasAdmin";
-
-import { ServiciosAdmin }
-from "../../../servicios/components/ServiciosAdmin";
-
-import { HorariosAdmin }
-from "../../../components/HorariosAdmin";
-
-import { BloqueosAdmin }
-from "../../../bloqueos/components/BloqueosAdmin";
-
-import { ConfiguracionPage }
-from "../../../configuracion/page/ConfiguracionPage";
-
-import { WhatsAppStatus }
-from "../../../components/whatsappStatus";
+import { Resumen } from "../../../dashboard/components/Resumen";
+import { AgendaLista } from "../../../agenda/components/AgendaLista";
+import { ReservarTurnoAdmin }from "../../../reservar/components/ReservarTurnoAdmini";
+import { ClientesPage }from "../../../clientes/pages/ClientesPage";
+import { EstilistasAdmin }from "../../../estilistas/componentes/EstilistasAdmin";
+import { ServiciosAdmin }from "../../../servicios/components/ServiciosAdmin";
+import { BloqueosAdmin }from "../../../bloqueos/components/BloqueosAdmin";
+import { ConfiguracionPage }from "../../../configuracion/page/ConfiguracionPage";
+import { WhatsAppStatus }from "../../../whatsapp/components/whatsappStatus";
+import { HorariosAdmin } from "../../../horarios/components/HorariosAdmin";
 
 interface Props {
   tabActiva: string;

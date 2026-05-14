@@ -1,40 +1,42 @@
 import { useState }
-  from "react";
-
-import {
-  useBloqueos
-} from "../hooks/useBloqueos";
+from "react";
+import { useCrearBloqueo } from "../mutations/useCrearBloqueos";
 
 interface Props {
   estilistas: any[];
 }
 
-export const BloqueosForm = ({
+export const BloqueosForm =
+({
   estilistas
 }: Props) => {
 
-  const {
-    crearBloqueo,
-    loading
-  } = useBloqueos();
+  const crearMutation =
+    useCrearBloqueo();
 
   const [estilistaId,
-    setEstilistaId] = useState("");
+    setEstilistaId] =
+      useState("");
 
   const [fecha,
-    setFecha] = useState("");
+    setFecha] =
+      useState("");
 
   const [horaInicio,
-    setHoraInicio] = useState("");
+    setHoraInicio] =
+      useState("");
 
   const [horaFin,
-    setHoraFin] = useState("");
+    setHoraFin] =
+      useState("");
 
   const [motivo,
-    setMotivo] = useState("");
+    setMotivo] =
+      useState("");
 
   const [diaCompleto,
-    setDiaCompleto] = useState(false);
+    setDiaCompleto] =
+      useState(false);
 
   const handleSubmit =
     async () => {
@@ -43,12 +45,9 @@ export const BloqueosForm = ({
         !estilistaId ||
         !fecha
       ) {
-        alert("Completar campos");
         return;
       }
 
-      // 🔒 si NO es día completo,
-      // validar horas
       if (
         !diaCompleto &&
         (
@@ -56,11 +55,10 @@ export const BloqueosForm = ({
           !horaFin
         )
       ) {
-        alert("Completar horarios");
         return;
       }
 
-      await crearBloqueo({
+      await crearMutation.mutateAsync({
 
         estilista_id:
           Number(estilistaId),
@@ -77,7 +75,7 @@ export const BloqueosForm = ({
             ? "23:59"
             : horaFin,
 
-        motivo
+        motivo,
       });
 
       setFecha("");
@@ -104,7 +102,7 @@ export const BloqueosForm = ({
           Seleccionar estilista
         </option>
 
-        {estilistas.map((e) => (
+        {estilistas.map((e: any) => (
 
           <option
             key={e.id}
@@ -127,8 +125,6 @@ export const BloqueosForm = ({
         }
       />
 
-      {/* 🔒 Checkbox día completo */}
-
       <label>
 
         <input
@@ -144,8 +140,6 @@ export const BloqueosForm = ({
         Bloquear día completo
 
       </label>
-
-      {/* ⏰ Horarios */}
 
       {!diaCompleto && (
         <>
@@ -186,11 +180,15 @@ export const BloqueosForm = ({
 
       <button
         onClick={handleSubmit}
-        disabled={loading}
+        disabled={
+          crearMutation.isPending
+        }
       >
-        {loading
+
+        {crearMutation.isPending
           ? "Guardando..."
           : "Guardar bloqueo"}
+
       </button>
 
     </div>

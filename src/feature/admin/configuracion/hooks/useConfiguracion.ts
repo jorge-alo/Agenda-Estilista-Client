@@ -1,22 +1,22 @@
 import { useQuery }
 from "@tanstack/react-query";
 
-import { bloqueosService }
-from "../services/bloqueos.service";
+import { configuracionService }
+from "../services/configuracion.service";
 
 import { queryKeys }
 from "../../../../shared/lib/queryKeys";
 
-export const useBloqueos =
+export const useConfiguracion =
 () => {
 
   return useQuery({
 
     queryKey:
-      queryKeys.bloqueos.all,
+      queryKeys.configuracion.all,
 
     queryFn: () =>
-      bloqueosService.getBloqueos(),
+      configuracionService.obtener(),
 
   });
 };
