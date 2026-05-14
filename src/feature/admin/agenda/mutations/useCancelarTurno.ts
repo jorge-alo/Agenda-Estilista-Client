@@ -10,8 +10,7 @@ import { toast } from "sonner";
 const API_URL =
   import.meta.env.VITE_API_URL;
 
-const cancelarTurno =
-  async (id: number) => {
+const cancelarTurno = async (id: number) => {
 
     const res = await fetch(
       `${API_URL}/api/turnos/${id}/cancelar`,
@@ -40,7 +39,6 @@ export const useCancelarTurno = () => {
     mutationFn: cancelarTurno,
 
     onSuccess: () => {
-
       toast.success(
         "Turno cancelado"
       );

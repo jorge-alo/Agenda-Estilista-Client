@@ -1,6 +1,6 @@
 import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AdminPage } from './feature/admin/pages/AdminPage'
+import { AdminPage } from './feature/admin/pages/adminPage/AdminPage'
 import { ReservaPage } from './feature/reserva/ReservaPage'
 import { LoginPage } from './feature/admin/pages/LoginPage';
 import { ProtectedRoute } from './feature/admin/components/ProtectedRoute';

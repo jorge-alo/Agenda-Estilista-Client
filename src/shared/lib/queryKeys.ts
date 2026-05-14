@@ -1,55 +1,81 @@
 export const queryKeys = {
 
-    turnos: {
+  turnos: {
 
-        all: ["turnos"],
+    all: ["turnos"],
 
-        lista: (
-            fecha?: string
-        ) => [
-                "turnos",
-                fecha
-            ],
+    lista: (
+      fecha?: string
+    ) => [
+        "turnos",
+        fecha
+      ],
 
-        semana: (
-            desde: string,
-            hasta: string
-        ) => [
-                "turnos",
-                "semana",
-                desde,
-                hasta
-            ],
+    semana: (
+      desde: string,
+      hasta: string
+    ) => [
+        "turnos",
+        "semana",
+        desde,
+        hasta
+      ],
 
-    },
+  },
 
-    dashboard: {
+  dashboard: {
 
-        all: ["dashboard"],
+    all: ["dashboard"],
 
-        resumen: (
-            fecha: string
-        ) => [
-                "dashboard",
-                fecha
-            ],
+    resumen: (
+      fecha: string
+    ) => [
+        "dashboard",
+        fecha
+      ],
 
-        clientes: () => [
-            "dashboard",
-            "clientes"
-        ],
+    clientes: () => [
+      "dashboard",
+      "clientes"
+    ],
 
-        reporteMensual: () => [
-            "dashboard",
-            "reporteMensual"
-        ],
+    reporteMensual: () => [
+      "dashboard",
+      "reporteMensual"
+    ],
 
-    },
+  },
 
-    servicios: {
+  servicios: {
 
-        all: ["servicios"],
+    all: [
+      "servicios"
+    ],
 
-    },
+    porEstilista: (
+      estilistaId: number
+    ) => [
+        "servicios-estilista",
+        estilistaId
+      ],
+  },
+
+  disponibilidad: {
+
+    admin: (
+      fecha: string,
+      estilistaId: number,
+      servicioId: number
+    ) => [
+        "disponibilidad-admin",
+        fecha,
+        estilistaId,
+        servicioId
+      ],
+  },
+
+  estilistas: {
+    all: ["estilistas"],
+  },
 
 };

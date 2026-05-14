@@ -1,29 +1,18 @@
-import { useEffect,useState } from "react";
 import { dashboardService } from "../services/dashboard.service";
-import type { ClienteHistorial } from "../types/dashboard.types";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "../../../../shared/lib/queryKeys";
 
 export const useHistorialClientes =
   () => {
+    return useQuery({
 
-    const [clientes, setClientes] =
-      useState<ClienteHistorial[]>([]);
+      queryKey:
+        queryKeys.dashboard.clientes(),
 
-    const [loading, setLoading] =
-      useState(true);
+      queryFn: () =>
+        dashboardService
+          .getHistorialClientes(),
 
-    useEffect(() => {
+    });
 
-      dashboardService
-        .getHistorialClientes()
-        .then(setClientes)
-        .finally(() =>
-          setLoading(false)
-        );
-
-    }, []);
-
-    return {
-      clientes,
-      loading
-    };
   };

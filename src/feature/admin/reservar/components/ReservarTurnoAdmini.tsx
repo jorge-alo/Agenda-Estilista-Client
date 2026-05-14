@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { reservarTurnoAdmin } from "../../../api/Admin.api";
-import { SelectEstilistas } from "./SelectEstilistas";
-import { SelectServicios } from "./SelectServicios";
-import { SelectFormCliente } from "./SelectFormClient";
-import { useDisponibilidadAdmin } from "../../hook/useDisponibilidadAdmin";
 import '../../../reserva/components/Estilistas.css'
 import '../../../reserva/components/Servicios.css'
 import '../../../reserva/components/FormCliente.css'
 import '../../../reserva/components/Horarios.css'
+import { SelectEstilistas } from "./SelectEstilistas";
+import { SelectServicios } from "./SelectServicios";
+import { SelectFormCliente } from "./SelectFormClient";
+import { useReservarTurnoAdmin } from "../mutations/useReservarTurnoAdmin";
+import { useDisponibilidadAdmin } from "../hooks/useDisponibilidadAdmin";
 
 interface props {
     estilistas: any[]
@@ -21,43 +21,54 @@ export const ReservarTurnoAdmin = ({ estilistas, estilistaId, setEstilistaId }: 
     const [servicioId, setServicioId] = useState<number | null>(null);
     const [nombre, setNombre] = useState("");
     const [telefono, setTelefono] = useState("");
-    const [disponibles, setDisponibles] = useState<string[]>([]);
+    const reservarMutation = useReservarTurnoAdmin();
 
+    const {
+        data: disponibles = [],
+        
+    } = useDisponibilidadAdmin({
+        fecha,
+        estilistaId,
+        servicioId,
+    });
 
-    useDisponibilidadAdmin({ fecha, estilistaId, servicioId, setDisponibles })
+    const reservar = async (
+        hora: string
+    ) => {
 
-    const reservar = async (hora: string) => {
-        if (!nombre || !telefono || !fecha || !estilistaId) {
+        if (
+            !nombre ||
+            !telefono ||
+            !fecha ||
+            !estilistaId ||
+            !servicioId
+        ) {
             alert("Completa todos los campos");
             return;
         }
 
-        try {
-            const data = await reservarTurnoAdmin({
+            await reservarMutation.mutateAsync({
                 fecha,
                 hora,
-                estilista_id: estilistaId, // ¡Importante! Usa el estado, no el número 5 fijo
+                estilista_id: estilistaId,
                 servicio_id: servicioId,
                 cliente_nombre: nombre,
                 cliente_telefono: telefono,
             });
 
-            if (data.error) {
-                alert(data.error);
-            } else {
-                alert("Turno reservado con éxito");
-                setNombre("");
-                setTelefono("");
-                setServicioId(null);
-                setEstilistaId(null);
-            }
-        } catch (error) {
-            alert("Error de conexión con el servidor");
-        }
+            setNombre("");
+            setTelefono("");
+            setServicioId(null);
+            setEstilistaId(null);
+
+        
     };
 
     return (
-        <div>
+        reservarMutation.isPending ? 
+            <p>Reservando turno...</p>
+            : 
+             <div>
             <div className="rp-step">
                 <p className="rp-step-label">Estilista</p>
                 <SelectEstilistas estilistaId={estilistaId} setEstilistaId={setEstilistaId} estilistas={estilistas} />
@@ -82,5 +93,7 @@ export const ReservarTurnoAdmin = ({ estilistas, estilistaId, setEstilistaId }: 
                 servicioId={servicioId}
             />
         </div>
+        
+       
     )
 }
