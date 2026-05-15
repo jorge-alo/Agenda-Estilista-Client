@@ -1,8 +1,8 @@
 import { useState } from "react";
-import '../../../reserva/components/Estilistas.css'
-import '../../../reserva/components/Servicios.css'
-import '../../../reserva/components/FormCliente.css'
-import '../../../reserva/components/Horarios.css'
+import '../../../reserva/styles/Estilistas.css'
+import '../../../reserva/styles/Servicios.css'
+import '../../../reserva/styles/FormCliente.css'
+import '../../../reserva/styles/Horarios.css'
 import { SelectEstilistas } from "./SelectEstilistas";
 import { SelectServicios } from "./SelectServicios";
 import { SelectFormCliente } from "./SelectFormClient";

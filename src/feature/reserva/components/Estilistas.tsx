@@ -1,41 +1,93 @@
-import { useEffect, useState } from "react";
-import './Estilistas.css'
+import "../styles/Estilistas.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
-interface props {
-  slug: string
-  estilistaId: number | null
-  setEstilistaId: (id: number | null) => void
+import { useEstilistasQuery }
+from "../queries/useEstilistasQuery";
+
+import type {
+  Estilista
+} from "../types/reserva.types";
+
+interface Props {
+  slug: string;
+
+  estilistaId: number | null;
+
+  setEstilistaId:
+    (id: number | null) => void;
 }
-export const Estilistas = ({ slug, estilistaId, setEstilistaId }: props) => {
-  const [estilistas, setEstilistas] = useState<any[]>([]);
 
+export const Estilistas = ({
+  slug,
+  estilistaId,
+  setEstilistaId,
+}: Props) => {
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/estilistas?slug=${slug}`)
-      .then(res => res.json())
-      .then(data => {
-        setEstilistas(data);
-      });
-  }, []);
+  const {
+    data: estilistas = [],
+    isLoading,
+    isError,
+  } = useEstilistasQuery(slug);
 
-  // función para sacar las iniciales del nombre
-const iniciales = (nombre: string) => {
-  return nombre.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-};
+  // función para sacar iniciales
+
+  const iniciales = (
+    nombre: string
+  ) => {
+
+    return nombre
+      .split(" ")
+      .map(n => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (isLoading) {
+    return (
+      <p>
+        Cargando estilistas...
+      </p>
+    );
+  }
+
+  if (isError) {
+    return (
+      <p>
+        Error cargando estilistas
+      </p>
+    );
+  }
 
   return (
-  <div className="est-cards">
-    {estilistas.map((e) => (
-      <div
-        key={e.id}
-        className={`est-card ${estilistaId === e.id ? "selected" : ""}`}
-        onClick={() => setEstilistaId(e.id)}
-      >
-        <div className="est-avatar">{iniciales(e.nombre)}</div>
-        <div className="est-nombre">{e.nombre}</div>
-      </div>
-    ))}
-  </div>
-);
-}
+
+    <div className="est-cards">
+
+      {estilistas.map(
+        (e: Estilista) => (
+
+          <div
+            key={e.id}
+            className={`est-card ${
+              estilistaId === e.id
+                ? "selected"
+                : ""
+            }`}
+            onClick={() =>
+              setEstilistaId(e.id)
+            }
+          >
+
+            <div className="est-avatar">
+              {iniciales(e.nombre)}
+            </div>
+
+            <div className="est-nombre">
+              {e.nombre}
+            </div>
+
+          </div>
+        )
+      )}
+    </div>
+  );
+};

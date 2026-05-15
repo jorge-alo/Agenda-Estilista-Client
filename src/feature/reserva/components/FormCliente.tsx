@@ -1,5 +1,5 @@
 import { Horarios } from "./Horarios"
-import './FormCliente.css'
+import '../styles/FormCliente.css'
 
 interface props {
     nombre: string

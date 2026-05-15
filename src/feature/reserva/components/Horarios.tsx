@@ -1,4 +1,4 @@
-import './Horarios.css'
+import '../styles/Horarios.css'
 
 export const Horarios = ({ disponibles, onSelect }: any) => {
   if (disponibles.length === 0) {
