@@ -57,31 +57,32 @@ export const ReservaPage = () => {
   }
 
   const reservar = (hora: string) =>
-    handleSubmit(async (formData) => {
+    handleSubmit(
+      async (formData) => {
 
-      try {
+        try {
 
-        const data =
-          await reservarMutation.mutateAsync({
-            slug,
-            fecha,
-            hora,
+          const data =
+            await reservarMutation.mutateAsync({
+              slug,
+              fecha,
+              hora,
 
-            estilista_id:
-              estilistaId,
+              estilista_id:
+                estilistaId,
 
-            servicio_id:
-              servicioId,
+              servicio_id:
+                servicioId,
 
-            cliente_nombre:
-              formData.nombre,
+              cliente_nombre:
+                formData.nombre,
 
-            cliente_telefono:
-              formData.telefono,
-          });
+              cliente_telefono:
+                formData.telefono,
+            });
 
-        const mensaje =
-          `💈 Nuevo turno
+          const mensaje =
+            `💈 Nuevo turno
 
 📅 Fecha: ${fecha}
 ⏰ Hora: ${hora}
@@ -89,29 +90,33 @@ export const ReservaPage = () => {
 👤 Cliente: ${formData.nombre}
 📞 Teléfono: ${formData.telefono}`;
 
-        const url =
-          `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
+          const url =
+            `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
 
-        alert(
-          "Turno reservado con éxito. Te redirigimos a WhatsApp..."
-        );
-        console.log("🧹 Reseteando formulario...");
-        reset({
-          nombre: "",
-          telefono: "",
-        });
-        setFecha(getFechaLocal());
-        setServicioId(null);
-        setEstilistaId(null);
+          alert(
+            "Turno reservado con éxito. Te redirigimos a WhatsApp..."
+          );
+          console.log("🧹 Reseteando formulario...");
+          reset({
+            nombre: "",
+            telefono: "",
+          });
+          setFecha(getFechaLocal());
+          setServicioId(null);
+          setEstilistaId(null);
 
-        window.open(url, "_blank");
+          window.open(url, "_blank");
 
-      } catch (error) {
+        } catch (error) {
 
-        console.error(error);
+          console.error(error);
+        }
+
+      },
+      (formErrors) => {
+        console.log("❌ Validación falló:", formErrors); // 👈 nuevo
       }
-
-    })();
+    )();
 
   return (
     <div>
