@@ -96,15 +96,15 @@ export const ReservaPage = () => {
           "Turno reservado con éxito. Te redirigimos a WhatsApp..."
         );
 
-        window.open(url, "_blank");
-
-        reset({
+         reset({
           nombre: "",
           telefono: "",
         });
         setFecha(getFechaLocal());
         setServicioId(null);
         setEstilistaId(null);
+
+        window.open(url, "_blank");
 
       } catch (error) {
 
