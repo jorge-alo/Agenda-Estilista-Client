@@ -95,8 +95,8 @@ export const ReservaPage = () => {
         alert(
           "Turno reservado con éxito. Te redirigimos a WhatsApp..."
         );
-
-         reset({
+        console.log("🧹 Reseteando formulario...");
+        reset({
           nombre: "",
           telefono: "",
         });
