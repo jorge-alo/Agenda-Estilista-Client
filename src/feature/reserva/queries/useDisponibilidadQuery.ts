@@ -14,6 +14,12 @@ export const useDisponibilidadQuery = ({
   estilistaId,
   servicioId,
 }: Props) => {
+  console.log({
+    slug,
+    fecha,
+    estilistaId,
+    servicioId
+  });
 
   return useQuery({
 
@@ -36,7 +42,9 @@ export const useDisponibilidadQuery = ({
     enabled:
       !!slug &&
       !!fecha &&
-      !!estilistaId &&
-      !!servicioId,
+      estilistaId !== null &&
+      servicioId !== null,
+
+       retry: false,
   });
 };

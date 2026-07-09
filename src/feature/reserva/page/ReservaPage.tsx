@@ -12,31 +12,27 @@ import { useReservarTurno } from "../mutations/useReservarTurno";
 import "../styles/ReservaPage.css";
 import { useDisponibilidadQuery } from "../queries/useDisponibilidadQuery";
 import { useInfoLocal } from "../queries/useInfoLocalQuery";
+import { useReservaForm } from "../hooks/useReservaForm";
+import { getFechaLocal } from "../../../shared/helpers/date.helpers";
 
 export const ReservaPage = () => {
 
   const { slug } = useParams();
+  const {
+    register,
+    reset,
+    handleSubmit,
+    formState: { errors }
+  } = useReservaForm();
 
-  const [fecha, setFecha] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [fecha, setFecha] = useState(getFechaLocal());
+  const [servicioId, setServicioId] = useState<number | null>(null);
+  const [estilistaId, setEstilistaId] = useState<number | null>(null);
+  const [servicio, setServicio] = useState("");
+  const reservarMutation = useReservarTurno();
 
-  const [servicioId, setServicioId] =
-    useState<number | null>(null);
+  //const fecha = watch("fecha") || getFechaLocal();
 
-  const [nombre, setNombre] = useState("");
-
-  const [telefono, setTelefono] =
-    useState("");
-
-  const [estilistaId, setEstilistaId] =
-    useState<number | null>(null);
-
-  const [servicio, setServicio] =
-    useState("");
-
-  const reservarMutation =
-    useReservarTurno();
 
   // INFO LOCAL
   const {
@@ -60,68 +56,62 @@ export const ReservaPage = () => {
     return <p>Local no encontrado</p>;
   }
 
-  const reservar = async (
-    hora: string
-  ) => {
+  const reservar = (hora: string) =>
+    handleSubmit(async (formData) => {
 
-    if (
-      !nombre ||
-      !telefono ||
-      !fecha ||
-      !estilistaId
-    ) {
-      return;
-    }
+      try {
 
-    try {
+        const data =
+          await reservarMutation.mutateAsync({
+            slug,
+            fecha,
+            hora,
 
-      const data =
-        await reservarMutation.mutateAsync({
-          slug,
-          fecha,
-          hora,
+            estilista_id:
+              estilistaId,
 
-          estilista_id:
-            estilistaId,
+            servicio_id:
+              servicioId,
 
-          servicio_id:
-            servicioId,
+            cliente_nombre:
+              formData.nombre,
 
-          cliente_nombre:
-            nombre,
+            cliente_telefono:
+              formData.telefono,
+          });
 
-          cliente_telefono:
-            telefono,
-        });
-
-      const mensaje =
-        `💈 Nuevo turno
+        const mensaje =
+          `💈 Nuevo turno
 
 📅 Fecha: ${fecha}
 ⏰ Hora: ${hora}
 💇 Servicio: ${servicio}
-👤 Cliente: ${nombre}
-📞 Teléfono: ${telefono}`;
+👤 Cliente: ${formData.nombre}
+📞 Teléfono: ${formData.telefono}`;
 
-      const url =
-        `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
+        const url =
+          `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
 
-      alert(
-        "Turno reservado con éxito. Te redirigimos a WhatsApp..."
-      );
+        alert(
+          "Turno reservado con éxito. Te redirigimos a WhatsApp..."
+        );
 
-      window.open(url, "_blank");
+        window.open(url, "_blank");
 
-      setNombre("");
-      setTelefono("");
-      setServicioId(null);
-      setEstilistaId(null);
+        reset({
+          nombre: "",
+          telefono: "",
+        });
+        setFecha(getFechaLocal());
+        setServicioId(null);
+        setEstilistaId(null);
 
-    } catch (error) {
+      } catch (error) {
 
-      console.error(error);
-    }
-  };
+        console.error(error);
+      }
+
+    })();
 
   return (
     <div>
@@ -206,15 +196,13 @@ export const ReservaPage = () => {
         )}
 
         <FormCliente
-          nombre={nombre}
-          telefono={telefono}
-          fecha={fecha}
           disponibles={disponibles}
-          setNombre={setNombre}
-          setTelefono={setTelefono}
-          setFecha={setFecha}
+          register={register}
+          errors={errors}
           reservar={reservar}
           servicioId={servicioId}
+          fecha={fecha}
+          onFechaChange={setFecha}
         />
       </div>
     </div>
