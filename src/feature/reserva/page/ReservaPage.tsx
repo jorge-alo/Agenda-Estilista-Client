@@ -14,6 +14,7 @@ import { useDisponibilidadQuery } from "../queries/useDisponibilidadQuery";
 import { useInfoLocal } from "../queries/useInfoLocalQuery";
 import { useReservaForm } from "../hooks/useReservaForm";
 import { getFechaLocal } from "../../../shared/helpers/date.helpers";
+import { toast } from "sonner";
 
 export const ReservaPage = () => {
 
@@ -115,6 +116,7 @@ export const ReservaPage = () => {
       },
       (formErrors) => {
         console.log("❌ Validación falló:", formErrors); // 👈 nuevo
+         toast.error("Completá tu nombre y teléfono antes de reservar");
       }
     )();
 
