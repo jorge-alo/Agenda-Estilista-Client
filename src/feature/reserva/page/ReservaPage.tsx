@@ -99,10 +99,7 @@ export const ReservaPage = () => {
             "Turno reservado con éxito. Te redirigimos a WhatsApp..."
           );
           console.log("🧹 Reseteando formulario...");
-          reset({
-            nombre: "",
-            telefono: "",
-          });
+          reset();
           setFecha(getFechaLocal());
           setServicioId(null);
           setEstilistaId(null);

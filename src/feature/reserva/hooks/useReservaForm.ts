@@ -18,5 +18,6 @@ export const useReservaForm = () => {
       nombre: "",
       telefono: "",
     },
+    shouldUnregister: false,
   });
 };
