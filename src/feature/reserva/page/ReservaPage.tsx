@@ -23,7 +23,7 @@ export const ReservaPage = () => {
     register,
     reset,
     handleSubmit,
-      getValues,
+    getValues,
     formState: { errors }
   } = useReservaForm();
 
@@ -117,8 +117,8 @@ export const ReservaPage = () => {
       },
       (formErrors) => {
         console.log("❌ Validación falló:", formErrors); // 👈 nuevo
-         console.log("📋 Valores internos de RHF:", getValues()); 
-         toast.error("Completá tu nombre y teléfono antes de reservar");
+        console.log("📋 Valores internos de RHF:", getValues());
+        toast.error("Completá tu nombre y teléfono antes de reservar");
       }
     )();
 
@@ -174,7 +174,7 @@ export const ReservaPage = () => {
 
       <div className="rp-body">
 
-        <div className="rp-step">
+        <div className="rp-step" key="estilista-step">
 
           <p className="rp-step-label">
             Estilista
@@ -189,7 +189,7 @@ export const ReservaPage = () => {
 
         {estilistaId && (
 
-          <div className="rp-step">
+          <div className="rp-step" key="servicio-step">
 
             <p className="rp-step-label">
               Servicio
@@ -205,6 +205,7 @@ export const ReservaPage = () => {
         )}
 
         <FormCliente
+          key="form-cliente"
           disponibles={disponibles}
           register={register}
           errors={errors}
