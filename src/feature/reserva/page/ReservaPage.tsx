@@ -23,6 +23,7 @@ export const ReservaPage = () => {
     register,
     reset,
     handleSubmit,
+      getValues,
     formState: { errors }
   } = useReservaForm();
 
@@ -116,6 +117,7 @@ export const ReservaPage = () => {
       },
       (formErrors) => {
         console.log("❌ Validación falló:", formErrors); // 👈 nuevo
+         console.log("📋 Valores internos de RHF:", getValues()); 
          toast.error("Completá tu nombre y teléfono antes de reservar");
       }
     )();
