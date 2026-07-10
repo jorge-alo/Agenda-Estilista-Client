@@ -1,22 +1,11 @@
-import type {
-  FieldErrors,
-  UseFormRegister
-} from "react-hook-form";
-
-import type {
-  ReservaFormData
-} from "../schemas/reserva.schema";
-
+import { Controller, type Control, type FieldErrors } from "react-hook-form";
+import type { ReservaFormData } from "../schemas/reserva.schema";
 import { Horarios } from "./Horarios";
-
 import "../styles/FormCliente.css";
 
 interface Props {
-
-  register:
-  UseFormRegister<ReservaFormData>;
-  errors:
-  FieldErrors<ReservaFormData>;
+  control: Control<ReservaFormData>; // 👈 Agregado
+  errors: FieldErrors<ReservaFormData>;
   disponibles: string[];
   reservar: (val: string) => void;
   servicioId: number | null;
@@ -25,7 +14,7 @@ interface Props {
 }
 
 export const FormCliente = ({
-  register,
+  control, // 👈 Recibimos el control
   errors,
   disponibles,
   reservar,
@@ -36,40 +25,40 @@ export const FormCliente = ({
 
   return (
     <div>
-
       <div className="rp-step">
+        <p className="rp-step-label">Tus datos</p>
 
-        <p className="rp-step-label">
-          Tus datos
-        </p>
-
-        <input
-          className="fc-input"
-          placeholder="Tu nombre completo"
-
-          {...register("nombre", {
-            onChange: (e) => console.log("⌨️ onChange nombre:", e.target.value),
-          })}
+        {/* INPUT DE NOMBRE CONTROLADO */}
+        <Controller
+          name="nombre"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              className="fc-input"
+              placeholder="Tu nombre completo"
+              onChange={(e) => {
+                field.onChange(e); // Mantiene RHF actualizado
+                console.log("⌨️ onChange nombre:", e.target.value);
+              }}
+            />
+          )}
         />
+        {errors.nombre && <p className="fc-error">{errors.nombre.message}</p>}
 
-        {errors.nombre && (
-          <p className="fc-error">
-            {errors.nombre.message}
-          </p>
-        )}
-
-        <input
-          className="fc-input"
-          placeholder="Tu teléfono"
-
-          {...register("telefono")}
+        {/* INPUT DE TELÉFONO CONTROLADO */}
+        <Controller
+          name="telefono"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              className="fc-input"
+              placeholder="Tu teléfono"
+            />
+          )}
         />
-
-        {errors.telefono && (
-          <p className="fc-error">
-            {errors.telefono.message}
-          </p>
-        )}
+        {errors.telefono && <p className="fc-error">{errors.telefono.message}</p>}
 
         <input
           className="fc-input"
@@ -80,17 +69,9 @@ export const FormCliente = ({
       </div>
 
       {servicioId && (
-
         <div className="rp-step">
-
-          <p className="rp-step-label">
-            Horario disponible
-          </p>
-
-          <Horarios
-            disponibles={disponibles}
-            onSelect={reservar}
-          />
+          <p className="rp-step-label">Horario disponible</p>
+          <Horarios disponibles={disponibles} onSelect={reservar} />
         </div>
       )}
     </div>
