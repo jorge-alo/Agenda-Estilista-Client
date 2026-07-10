@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-
 import { Estilistas } from "../components/Estilistas";
 import { FormCliente } from "../components/FormCliente";
 import { Servicios } from "../components/Servicios";
-
 import { useReservarTurno } from "../mutations/useReservarTurno";
-
-
-
 import "../styles/ReservaPage.css";
 import { useDisponibilidadQuery } from "../queries/useDisponibilidadQuery";
 import { useInfoLocal } from "../queries/useInfoLocalQuery";
