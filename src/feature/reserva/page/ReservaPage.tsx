@@ -20,10 +20,10 @@ export const ReservaPage = () => {
 
   const { slug } = useParams();
   const {
-    register,
     reset,
     handleSubmit,
     getValues,
+    control,
     formState: { errors }
   } = useReservaForm();
 
@@ -202,9 +202,8 @@ export const ReservaPage = () => {
         )}
 
         <FormCliente
-          key="form-cliente"
+          control={control}
           disponibles={disponibles}
-          register={register}
           errors={errors}
           reservar={reservar}
           servicioId={servicioId}
