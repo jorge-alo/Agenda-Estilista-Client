@@ -47,7 +47,9 @@ export const FormCliente = ({
           className="fc-input"
           placeholder="Tu nombre completo"
 
-          {...register("nombre")}
+          {...register("nombre", {
+            onChange: (e) => console.log("⌨️ onChange nombre:", e.target.value),
+          })}
         />
 
         {errors.nombre && (
