@@ -1,5 +1,5 @@
 import { fetchWithAuth }
-from "../../../../shared/lib/fetchWithAuth";
+  from "../../../../shared/lib/fetchWithAuth";
 import type { AsignarServicioDTO, CrearServicioDTO } from "../types/services.types";
 
 
@@ -22,7 +22,13 @@ export const serviciosService = {
         );
       }
 
-      return res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
 
   crear:
@@ -64,7 +70,13 @@ export const serviciosService = {
           }
         );
 
-      return res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
 
   toggle:
@@ -80,7 +92,13 @@ export const serviciosService = {
           }
         );
 
-      return res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
 
   obtenerPorEstilista:
@@ -93,7 +111,13 @@ export const serviciosService = {
           `${API_URL}/api/servicios/estilista/${estilistaId}`
         );
 
-      return res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
 
   asignar:
@@ -110,7 +134,13 @@ export const serviciosService = {
           }
         );
 
-      return res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
 
   desasignar:
@@ -127,6 +157,12 @@ export const serviciosService = {
           }
         );
 
-      return res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
 };
