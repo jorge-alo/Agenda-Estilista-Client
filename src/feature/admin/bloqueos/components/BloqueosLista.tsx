@@ -7,6 +7,8 @@ import {
 } from "../mutations/useEliminarBloqueo";
 
 import "../styles/bloqueos.css";
+import type { Bloqueo } from "../types/bloqueos.types";
+import { BloqueosSkeleton } from "./BloqueosSkeleton";
 
 export const ListaBloqueos = () => {
 
@@ -18,12 +20,8 @@ export const ListaBloqueos = () => {
   const eliminarMutation =
     useEliminarBloqueo();
 
-  if (isLoading) {
-    return (
-      <p>
-        Cargando bloqueos...
-      </p>
-    );
+    if (isLoading) {
+    return <BloqueosSkeleton />;
   }
 
   if (!bloqueos.length) {
@@ -42,7 +40,7 @@ export const ListaBloqueos = () => {
         Bloqueos activos
       </h2>
 
-      {bloqueos.map((b: any) => {
+      {bloqueos.map((b: Bloqueo) => {
 
         const esDiaCompleto =
           b.hora_inicio === "00:00:00" &&
