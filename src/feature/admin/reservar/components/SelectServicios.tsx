@@ -1,4 +1,6 @@
+import type { Servicio } from "../../servicios/types/services.types";
 import { useServiciosEstilista } from "../hooks/useServiciosEstilista";
+import { ServiciosSkeleton } from "./ServiciosSkeleton";
 
 interface Props {
   estilistaId: number | null;
@@ -23,13 +25,13 @@ export const SelectServicios = ({
     return null;
   }
 
-  if (isLoading) {
-    return <p>Cargando servicios...</p>;
+   if (isLoading) {
+    return <ServiciosSkeleton />;
   }
 
   return (
     <div className="srv-cards">
-      {servicios.map((s: any) => (
+      {servicios.map((s: Servicio) => (
         <div
           key={s.id}
           className={`srv-card ${servicioId === s.id ? "selected" : ""}`}

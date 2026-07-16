@@ -29,11 +29,12 @@ import {
 import {
   useDesasignarServicio
 } from "../mutations/useDesasignarServicio";
+import type { Estilista } from "../../estilistas/types/estilistas.types";
 
 interface Props {
-  estilistas: any[];
+  estilistas: Estilista[];
   estilistaId: number | null;
-  setEstilistaId: (val: any) => void;
+  setEstilistaId: (id: number | null) => void;
 }
 
 export const ServiciosAdmin =

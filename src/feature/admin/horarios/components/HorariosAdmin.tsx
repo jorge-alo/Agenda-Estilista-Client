@@ -9,14 +9,15 @@ import { useHorarios } from "../hooks/useHorarios";
 import { useCrearHorario } from "../mutations/useCrearHorario";
 
 import { useToggleHorario } from "../mutations/useToggleHorario";
+import type { Estilista } from "../../estilistas/types/estilistas.types";
 
 interface Props {
-  estilistas: any[];
+  estilistas: Estilista[];
 
   estilistaId: number | null;
 
   setEstilistaId:
-    (val: any) => void;
+    (id: any) => void;
 }
 
 export const HorariosAdmin =

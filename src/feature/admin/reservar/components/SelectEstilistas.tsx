@@ -1,8 +1,9 @@
+import type { Estilista } from "../../estilistas/types/estilistas.types"
 
 interface props {
-  estilistas: any[]
+  estilistas: Estilista[]
   estilistaId: number | null
-  setEstilistaId: (val: any) => void
+  setEstilistaId: (id: number | null) => void
 }
 export const SelectEstilistas = ({ estilistas, estilistaId, setEstilistaId }: props) => {
 

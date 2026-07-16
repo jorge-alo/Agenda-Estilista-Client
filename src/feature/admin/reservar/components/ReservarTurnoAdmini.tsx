@@ -8,11 +8,12 @@ import { SelectServicios } from "./SelectServicios";
 import { SelectFormCliente } from "./SelectFormClient";
 import { useReservarTurnoAdmin } from "../mutations/useReservarTurnoAdmin";
 import { useDisponibilidadAdmin } from "../hooks/useDisponibilidadAdmin";
+import type { Estilista } from "../../estilistas/types/estilistas.types";
 
 interface props {
-    estilistas: any[]
+    estilistas: Estilista[]
     estilistaId: number | null
-    setEstilistaId: (val: any) => void
+    setEstilistaId: (id: number | null) => void
 }
 
 export const ReservarTurnoAdmin = ({ estilistas, estilistaId, setEstilistaId }: props) => {
