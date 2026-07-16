@@ -1,3 +1,4 @@
+import type { Estilista } from "../../estilistas/types/estilistas.types";
 import "../styles/bloqueos.css";
 
 import {
@@ -5,7 +6,7 @@ import {
 } from "./BloqueosForm";
 
 interface Props {
-  estilistas: any[];
+  estilistas: Estilista[];
 }
 
 export const BloqueosAdmin = ({

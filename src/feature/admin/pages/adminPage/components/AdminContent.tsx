@@ -10,17 +10,13 @@ import { BloqueosAdmin }from "../../../bloqueos/components/BloqueosAdmin";
 import { ConfiguracionPage }from "../../../configuracion/page/ConfiguracionPage";
 import { WhatsAppStatus }from "../../../whatsapp/components/whatsappStatus";
 import { HorariosAdmin } from "../../../horarios/components/HorariosAdmin";
+import type { Estilista } from "../../../estilistas/types/estilistas.types";
 
 interface Props {
   tabActiva: string;
-
-  estilistas: any[];
-
+  estilistas: Estilista[];
   estilistaId: number | null;
-
-  setEstilistaId:
-    (id: number | null) => void;
-
+  setEstilistaId: (id: number | null) => void;
   localId: string;
 }
 

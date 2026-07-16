@@ -1,9 +1,10 @@
 import { useState }
 from "react";
 import { useCrearBloqueo } from "../mutations/useCrearBloqueos";
+import type { Estilista } from "../../estilistas/types/estilistas.types";
 
 interface Props {
-  estilistas: any[];
+  estilistas: Estilista[];
 }
 
 export const BloqueosForm =
