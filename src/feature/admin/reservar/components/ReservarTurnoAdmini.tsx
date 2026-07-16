@@ -26,7 +26,7 @@ export const ReservarTurnoAdmin = ({ estilistas, estilistaId, setEstilistaId }: 
 
     const {
         data: disponibles = [],
-        
+        isLoading: loadingDisponibles,
     } = useDisponibilidadAdmin({
         fecha,
         estilistaId,
@@ -87,6 +87,7 @@ export const ReservarTurnoAdmin = ({ estilistas, estilistaId, setEstilistaId }: 
                 telefono={telefono}
                 fecha={fecha}
                 disponibles={disponibles}
+                loadingDisponibles={loadingDisponibles}
                 setNombre={setNombre}
                 setTelefono={setTelefono}
                 setFecha={setFecha}

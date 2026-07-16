@@ -1,4 +1,5 @@
 import { SelectHorarios } from "./SelectHorarios"
+import { SelectHorariosSkeleton } from "./SelectHorarioSkeleton"
 
 
 
@@ -7,6 +8,7 @@ interface props {
     telefono: string
     fecha: string
     disponibles: string[]
+    loadingDisponibles: boolean
     setNombre: (val: string) => void
     setTelefono: (val: string) => void
     setFecha: (val: string) => void
@@ -18,6 +20,7 @@ export const SelectFormCliente = ({
     telefono,
     fecha,
     disponibles,
+    loadingDisponibles,
     setNombre,
     setTelefono,
     setFecha,
@@ -37,7 +40,11 @@ export const SelectFormCliente = ({
             {servicioId && (
                 <div className="rp-step">
                     <p className="rp-step-label">Horario disponible</p>
-                    <SelectHorarios disponibles={disponibles} onSelect={reservar} />
+                    {loadingDisponibles ? (
+                        <SelectHorariosSkeleton />
+                    ) : (
+                        <SelectHorarios disponibles={disponibles} onSelect={reservar} />
+                    )}
                 </div>
             )}
         </div>

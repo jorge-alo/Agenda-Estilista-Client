@@ -1,4 +1,9 @@
-export const SelectHorarios = ({ disponibles, onSelect }: any) => {
+interface Props {
+  disponibles: string[];
+  onSelect: (hora: string) => void;
+}
+
+export const SelectHorarios = ({ disponibles, onSelect }: Props) => {
   if (disponibles.length === 0) {
     return <p>No hay horarios disponibles</p>;
   }
