@@ -1,30 +1,11 @@
-import { useEffect, useState } from "react";
-
-
-
-import type { Cliente }
-  from "../types/clientes.types";
+import { useQuery } from "@tanstack/react-query";
 import { clientesService } from "../services/clientes.services";
+import { queryKeys } from "../../../../shared/lib/queryKeys";
+ // ajustá el path real
 
 export const useClientes = () => {
-
-  const [clientes, setClientes] =
-    useState<Cliente[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  useEffect(() => {
-
-    clientesService
-      .getAll()
-      .then(setClientes)
-      .finally(() => setLoading(false));
-
-  }, []);
-
-  return {
-    clientes,
-    loading
-  };
+  return useQuery({
+    queryKey: queryKeys.clientes.all,
+    queryFn: clientesService.getAll,
+  });
 };

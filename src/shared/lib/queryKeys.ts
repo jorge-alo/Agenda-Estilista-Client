@@ -108,4 +108,9 @@ whatsapp: {
 
 },
 
+ // 🆕 nuevo
+  clientes: {
+    all: ["clientes"],
+  },
+
 };

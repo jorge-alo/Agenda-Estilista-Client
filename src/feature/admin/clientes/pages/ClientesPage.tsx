@@ -1,41 +1,25 @@
-import { useClientes }
-  from "../hooks/useClientes";
-
-import { ClientesTable }
-  from "../components/ClientesTable";
-
+import { useClientes } from "../hooks/useClientes";
+import { ClientesTable } from "../components/ClientesTable";
+import { ClientesSkeleton } from "../components/ClientesSkeleton";
 import "../styles/clientes.css";
 
 export const ClientesPage = () => {
-
-  const {
-    clientes,
-    loading
-  } = useClientes();
-
-  if (loading) {
-    return <p>Cargando clientes...</p>;
-  }
+  const { data: clientes = [], isLoading, isError } = useClientes();
 
   return (
-
     <div className="clientes-page">
-
       <div className="clientes-header">
-
         <h1>Clientes</h1>
-
-        <p>
-          Historial y frecuencia
-          de clientes
-        </p>
-
+        <p>Historial y frecuencia de clientes</p>
       </div>
 
-      <ClientesTable
-        clientes={clientes}
-      />
-
+      {isError ? (
+        <p>Error al cargar clientes</p>
+      ) : isLoading ? (
+        <ClientesSkeleton />
+      ) : (
+        <ClientesTable clientes={clientes} />
+      )}
     </div>
   );
 };
