@@ -10,6 +10,7 @@ import { useCancelarTurno } from "../mutations/useCancelarTurno";
 import { useCompletarTurno } from "../mutations/useCompletarTurno";
 import { useServicios } from "../hooks/useServicio.ts";
 import { getDiasDeSemana } from "../helpers/getSemanaDias.ts";
+import { AgendaSkeleton } from "./AgendaSkeleton.tsx";
 
 interface Props {
   estilistas: any[];
@@ -99,7 +100,7 @@ export const AgendaLista = ({ estilistas }: Props) => {
 
       {vista === "lista" && (
         loading ? (
-          <p className="agenda-empty">Cargando...</p>
+           <AgendaSkeleton />
         ) : (
           <div>
             <div className="agenda-filtro">

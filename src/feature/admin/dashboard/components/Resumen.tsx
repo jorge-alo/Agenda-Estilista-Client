@@ -6,6 +6,7 @@ import "../styles/dashboard.css";
 import { PorEstilista } from "./PorEstilista";
 import { HistorialClientes } from "./HistorialCliente";
 import { ReporteMensual } from "./ReporteMensual";
+import { DashboardSkeleton } from "./DashboardSkeleton";
 
 export const Resumen = () => {
 
@@ -23,7 +24,7 @@ export const Resumen = () => {
 
     if (isLoading) {
         return (
-            <p>Cargando dashboard...</p>
+            <DashboardSkeleton />
         );
     }
 
