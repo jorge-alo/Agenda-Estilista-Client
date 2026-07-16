@@ -1,8 +1,8 @@
 import { useEffect, useState }
-from "react";
+  from "react";
 
 import { useNavigate }
-from "react-router-dom";
+  from "react-router-dom";
 
 import "./styles/AdminPage.css";
 import { useEstilistas } from "../../estilistas/hooks/useEstilistas";
@@ -25,6 +25,7 @@ export const AdminPage = () => {
 
   const {
     data: estilistas = [],
+    isLoading: loadingEstilistas,
   } = useEstilistas();
 
   const {
@@ -55,6 +56,10 @@ export const AdminPage = () => {
 
       navigate("/login");
     };
+
+  if (loadingEstilistas) {
+    return <p>Cargando...</p>; // o un spinner/skeleton simple acá
+  }
 
   return (
 
