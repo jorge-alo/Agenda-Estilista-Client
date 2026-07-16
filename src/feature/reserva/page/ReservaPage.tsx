@@ -39,6 +39,7 @@ export const ReservaPage = () => {
   // DISPONIBILIDAD
   const {
     data: disponibilidadData,
+    isLoading: loadingDisponibilidad,
   } = useDisponibilidadQuery({
     slug: slug || "",
     fecha,
@@ -199,6 +200,7 @@ export const ReservaPage = () => {
         <FormCliente
           control={control}
           disponibles={disponibles}
+          loadingDisponibles={loadingDisponibilidad}
           errors={errors}
           reservar={reservar}
           servicioId={servicioId}

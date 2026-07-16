@@ -2,11 +2,13 @@ import { Controller, type Control, type FieldErrors } from "react-hook-form";
 import type { ReservaFormData } from "../schemas/reserva.schema";
 import { Horarios } from "./Horarios";
 import "../styles/FormCliente.css";
+import { HorariosSkeleton } from "./HorariosSkeleton";
 
 interface Props {
   control: Control<ReservaFormData>; // 👈 Agregado
   errors: FieldErrors<ReservaFormData>;
   disponibles: string[];
+  loadingDisponibles: boolean;
   reservar: (val: string) => void;
   servicioId: number | null;
   fecha: string;
@@ -17,6 +19,7 @@ export const FormCliente = ({
   control, // 👈 Recibimos el control
   errors,
   disponibles,
+  loadingDisponibles,
   reservar,
   servicioId,
   fecha,
@@ -71,7 +74,11 @@ export const FormCliente = ({
       {servicioId && (
         <div className="rp-step">
           <p className="rp-step-label">Horario disponible</p>
-          <Horarios disponibles={disponibles} onSelect={reservar} />
+           {loadingDisponibles ? (
+            <HorariosSkeleton />
+          ) : (
+            <Horarios disponibles={disponibles} onSelect={reservar} />
+          )}
         </div>
       )}
     </div>
