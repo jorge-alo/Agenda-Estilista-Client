@@ -1,5 +1,6 @@
 
 import { ConfiguracionForm } from "../components/ConfiguracionForm";
+import { ConfiguracionSkeleton } from "../components/ConfiguracionSkeleton";
 import {
   useConfiguracion
 } from "../hooks/useConfiguracion";
@@ -14,14 +15,12 @@ export const ConfiguracionPage =
   } = useConfiguracion();
 
   if (isLoading) {
-    return <p>Cargando...</p>;
+     return <ConfiguracionSkeleton />;
   }
 
   if (isError || !config) {
     return (
-      <p>
-        Error cargando configuración
-      </p>
+        <p className="config-error">Error cargando configuración</p>
     );
   }
 
