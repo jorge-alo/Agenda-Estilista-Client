@@ -3,6 +3,7 @@ import "../styles/Servicios.css";
 import { useServiciosQuery }
 from "../queries/useServiciosQuery";
 import type { Servicio } from "../types/reserva.types";
+import { ServiciosSkeleton } from "./ServiciosSkeleton";
 
 
 
@@ -47,11 +48,7 @@ export const Servicios = ({
   }
 
   if (isLoading) {
-    return (
-      <p>
-        Cargando servicios...
-      </p>
-    );
+    return <ServiciosSkeleton />;
   }
 
   if (isError) {

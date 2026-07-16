@@ -6,6 +6,7 @@ from "../queries/useEstilistasQuery";
 import type {
   Estilista
 } from "../types/reserva.types";
+import { EstilistasSkeleton } from "./EstilistasSkeleton";
 
 interface Props {
   slug: string;
@@ -42,12 +43,8 @@ export const Estilistas = ({
       .slice(0, 2);
   };
 
-  if (isLoading) {
-    return (
-      <p>
-        Cargando estilistas...
-      </p>
-    );
+    if (isLoading) {
+    return <EstilistasSkeleton />;
   }
 
   if (isError) {

@@ -1,5 +1,5 @@
 
-import { Skeleton } from "../../components/ui/Skeleton";
+import { Skeleton } from "../../../../shared/ui/Skeleton";
 import "../styles/dashboard.css";
 
 export const DashboardSkeleton = () => {
