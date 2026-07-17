@@ -11,6 +11,7 @@ import { ConfiguracionPage }from "../../../configuracion/page/ConfiguracionPage"
 import { WhatsAppStatus }from "../../../whatsapp/components/whatsappStatus";
 import { HorariosAdmin } from "../../../horarios/components/HorariosAdmin";
 import type { Estilista } from "../../../estilistas/types/estilistas.types";
+import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
 
 interface Props {
   tabActiva: string;
@@ -20,77 +21,66 @@ interface Props {
   localId: string;
 }
 
-export const AdminContent =
-({
-  tabActiva,
-  estilistas,
-  estilistaId,
-  setEstilistaId,
-  localId,
-}: Props) => {
-
+export const AdminContent = ({ tabActiva, estilistas, estilistaId, setEstilistaId, localId }: Props) => {
   return (
-
     <div className="admin-content">
-
       {tabActiva === "dashboard" && (
-        <Resumen />
+        <ErrorBoundary key="dashboard"><Resumen /></ErrorBoundary>
       )}
 
       {tabActiva === "agenda" && (
-        <AgendaLista
-          estilistas={estilistas}
-        />
+        <ErrorBoundary key="agenda"><AgendaLista estilistas={estilistas} /></ErrorBoundary>
       )}
 
       {tabActiva === "reservar" && (
-        <ReservarTurnoAdmin
-          estilistaId={estilistaId}
-          setEstilistaId={setEstilistaId}
-          estilistas={estilistas}
-        />
+        <ErrorBoundary key="reservar">
+          <ReservarTurnoAdmin
+            estilistaId={estilistaId}
+            setEstilistaId={setEstilistaId}
+            estilistas={estilistas}
+          />
+        </ErrorBoundary>
       )}
 
       {tabActiva === "clientes" && (
-        <ClientesPage />
+        <ErrorBoundary key="clientes"><ClientesPage /></ErrorBoundary>
       )}
 
       {tabActiva === "estilistas" && (
-        <EstilistasAdmin />
+        <ErrorBoundary key="estilistas"><EstilistasAdmin /></ErrorBoundary>
       )}
 
       {tabActiva === "servicios" && (
-        <ServiciosAdmin
-          estilistaId={estilistaId}
-          setEstilistaId={setEstilistaId}
-          estilistas={estilistas}
-        />
+        <ErrorBoundary key="servicios">
+          <ServiciosAdmin
+            estilistaId={estilistaId}
+            setEstilistaId={setEstilistaId}
+            estilistas={estilistas}
+          />
+        </ErrorBoundary>
       )}
 
       {tabActiva === "horarios" && (
-        <HorariosAdmin
-          estilistaId={estilistaId}
-          setEstilistaId={setEstilistaId}
-          estilistas={estilistas}
-        />
+        <ErrorBoundary key="horarios">
+          <HorariosAdmin
+            estilistaId={estilistaId}
+            setEstilistaId={setEstilistaId}
+            estilistas={estilistas}
+          />
+        </ErrorBoundary>
       )}
 
       {tabActiva === "bloqueos" && (
-        <BloqueosAdmin
-          estilistas={estilistas}
-        />
+        <ErrorBoundary key="bloqueos"><BloqueosAdmin estilistas={estilistas} /></ErrorBoundary>
       )}
 
       {tabActiva === "configuracion" && (
-        <ConfiguracionPage />
+        <ErrorBoundary key="configuracion"><ConfiguracionPage /></ErrorBoundary>
       )}
 
       {tabActiva === "whatsapp" && (
-        <WhatsAppStatus
-          localId={localId}
-        />
+        <ErrorBoundary key="whatsapp"><WhatsAppStatus localId={localId} /></ErrorBoundary>
       )}
-
     </div>
   );
 };

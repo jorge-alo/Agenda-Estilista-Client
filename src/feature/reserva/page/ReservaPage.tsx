@@ -10,6 +10,7 @@ import { useInfoLocal } from "../queries/useInfoLocalQuery";
 import { useReservaForm } from "../hooks/useReservaForm";
 import { getFechaLocal } from "../../../shared/helpers/date.helpers";
 import { toast } from "sonner";
+import { ErrorBoundary } from "../../../shared/ui/ErrorBoundary";
 
 export const ReservaPage = () => {
 
@@ -164,50 +165,51 @@ export const ReservaPage = () => {
               )}
           </div>
         )}
+      <ErrorBoundary>
+        <div className="rp-body">
 
-      <div className="rp-body">
-
-        <div className="rp-step" key="estilista-step">
-
-          <p className="rp-step-label">
-            Estilista
-          </p>
-
-          <Estilistas
-            slug={slug}
-            estilistaId={estilistaId}
-            setEstilistaId={setEstilistaId}
-          />
-        </div>
-
-        {estilistaId && (
-
-          <div className="rp-step" key="servicio-step">
+          <div className="rp-step" key="estilista-step">
 
             <p className="rp-step-label">
-              Servicio
+              Estilista
             </p>
 
-            <Servicios
+            <Estilistas
+              slug={slug}
               estilistaId={estilistaId}
-              servicioId={servicioId}
-              setServicioId={setServicioId}
-              setServicio={setServicio}
+              setEstilistaId={setEstilistaId}
             />
           </div>
-        )}
 
-        <FormCliente
-          control={control}
-          disponibles={disponibles}
-          loadingDisponibles={loadingDisponibilidad}
-          errors={errors}
-          reservar={reservar}
-          servicioId={servicioId}
-          fecha={fecha}
-          onFechaChange={setFecha}
-        />
-      </div>
+          {estilistaId && (
+
+            <div className="rp-step" key="servicio-step">
+
+              <p className="rp-step-label">
+                Servicio
+              </p>
+
+              <Servicios
+                estilistaId={estilistaId}
+                servicioId={servicioId}
+                setServicioId={setServicioId}
+                setServicio={setServicio}
+              />
+            </div>
+          )}
+
+          <FormCliente
+            control={control}
+            disponibles={disponibles}
+            loadingDisponibles={loadingDisponibilidad}
+            errors={errors}
+            reservar={reservar}
+            servicioId={servicioId}
+            fecha={fecha}
+            onFechaChange={setFecha}
+          />
+        </div>
+      </ErrorBoundary>
     </div>
   );
 };

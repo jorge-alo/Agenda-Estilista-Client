@@ -29,6 +29,9 @@ export const Estilistas = ({
     isError,
   } = useEstilistasQuery(slug);
 
+  // 🚧 SOLO PARA TESTEAR EL ERROR BOUNDARY — BORRAR DESPUÉS
+  throw new Error("Test error boundary");
+
   // función para sacar iniciales
 
   const iniciales = (
