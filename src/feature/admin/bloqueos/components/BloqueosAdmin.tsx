@@ -13,6 +13,7 @@ export const BloqueosAdmin = ({
   estilistas
 }: Props) => {
 
+  throw new Error("test")
   return (
 
     <div className="bloqueos-container">
