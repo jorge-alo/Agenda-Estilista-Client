@@ -11,6 +11,7 @@ import { useLogoutMutation } from "./mutations/useLogoutMutation";
 import { AdminHeader } from "./components/AdminHeader";
 import { AdminTabs } from "./components/AdminTabs";
 import { AdminContent } from "./components/AdminContent";
+import { AdminPageSkeleton } from "./components/AdminPageSkeleton";
 
 export const AdminPage = () => {
 
@@ -58,8 +59,8 @@ export const AdminPage = () => {
     };
 
   if (loadingEstilistas) {
-    return <p>Cargando...</p>; // o un spinner/skeleton simple acá
-  }
+  return <AdminPageSkeleton />;
+}
 
   return (
 
