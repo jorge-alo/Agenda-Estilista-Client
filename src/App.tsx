@@ -6,6 +6,7 @@ import { LoginPage } from './feature/admin/pages/LoginPage';
 import { ProtectedRoute } from './feature/admin/components/ProtectedRoute';
 import { NotFoundPage } from './feature/reserva/components/NotFoundPage';
 import { SuperAdminPage } from './feature/superadmin/superAdminPage';
+import { ResetPasswordPage } from './feature/admin/pages/ResetPasswordPage';
 
 export const App = () => {
   return (
@@ -22,6 +23,7 @@ export const App = () => {
           </ProtectedRoute>
         } />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/:slug" element={<ReservaPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
