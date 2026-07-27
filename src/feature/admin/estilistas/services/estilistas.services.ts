@@ -2,7 +2,8 @@ import { fetchWithAuth } from "../../../../shared/lib/fetchWithAuth";
 
 import type {
     Estilista,
-    CrearEstilistaDTO
+    CrearEstilistaDTO,
+    ActualizarEstilistaDTO
 } from "../types/estilistas.types";
 
 const API_URL =
@@ -51,4 +52,22 @@ export const estilistasService = {
 
             return data;
         },
+    actualizar: async ({ id, nombre }: ActualizarEstilistaDTO) => {
+        const res = await fetchWithAuth(`${API_URL}/api/estilistas/admin/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({ nombre }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error actualizando estilista");
+        return data;
+    },
+
+    eliminar: async (id: number) => {
+        const res = await fetchWithAuth(`${API_URL}/api/estilistas/admin/${id}`, {
+            method: "DELETE",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error eliminando estilista");
+        return data;
+    },
 };

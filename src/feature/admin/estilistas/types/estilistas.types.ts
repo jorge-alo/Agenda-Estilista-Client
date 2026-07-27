@@ -6,3 +6,8 @@ export interface Estilista {
 export interface CrearEstilistaDTO {
   nombre: string;
 }
+
+export interface ActualizarEstilistaDTO {
+  id: number;
+  nombre: string;
+}
