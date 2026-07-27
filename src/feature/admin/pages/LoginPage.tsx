@@ -9,6 +9,9 @@ export const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+     const [showForgot, setShowForgot] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [forgotMessage, setForgotMessage] = useState("");
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.SyntheticEvent) => {
@@ -53,6 +56,80 @@ export const LoginPage = () => {
         }
     };
 
+     const handleForgotPassword = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        setError("");
+        setForgotMessage("");
+
+        if (!forgotEmail) {
+            setError("Ingresa tu correo electrónico");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: forgotEmail }),
+            });
+
+            const data = await res.json();
+            
+            if (!res.ok) {
+                setError(data.error || "Error al procesar la solicitud");
+                return;
+            }
+
+            setForgotMessage("Si el correo está registrado, recibirás un enlace de recuperación.");
+            setForgotEmail("");
+        } catch {
+            setError("Error de conexión");
+        }
+    };
+
+
+   if (showForgot) {
+        return (
+            <div className={styles.container}>
+                <form onSubmit={handleForgotPassword} className={styles.card}>
+                    <h1 className={styles.title}>Recuperar contraseña</h1>
+                    {error && <p className={styles.error}>{error}</p>}
+                    {forgotMessage && <p className={styles.success}>{forgotMessage}</p>}
+                    
+                    <p className={styles.subtitle}>
+                        Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                    </p>
+
+                    <div className={styles.inputGroup}>
+                        <input
+                            className={styles.input}
+                            type="email"
+                            placeholder="Email"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                        />
+                    </div>
+
+                    <button className={styles.button} type="submit">
+                        Enviar enlace
+                    </button>
+
+                    <button 
+                        type="button" 
+                        className={styles.linkButton}
+                        onClick={() => {
+                            setShowForgot(false);
+                            setError("");
+                            setForgotMessage("");
+                        }}
+                    >
+                        ← Volver al inicio de sesión
+                    </button>
+                </form>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.container}>
             <form onSubmit={handleLogin} className={styles.card}>
@@ -63,6 +140,7 @@ export const LoginPage = () => {
                 <div className={styles.inputGroup}>
                     <input
                         className={styles.input}
+                        type="email"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -79,7 +157,17 @@ export const LoginPage = () => {
                     />
                 </div>
 
-                <button className={styles.button}>
+                <div className={styles.forgotContainer}>
+                    <button 
+                        type="button" 
+                        className={styles.forgotLink}
+                        onClick={() => setShowForgot(true)}
+                    >
+                        ¿Olvidaste tu contraseña?
+                    </button>
+                </div>
+
+                <button className={styles.button} type="submit">
                     Entrar
                 </button>
             </form>
