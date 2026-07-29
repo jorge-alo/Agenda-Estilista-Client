@@ -1,55 +1,45 @@
 import { useState } from "react";
-import { getAuthHeaders } from "../../auth/auth.helpers";
+import { useCrearLocal } from "../mutations/useCrearLocal";
+import { crearLocalSchema, type CrearLocalInput } from "../schema/superadmin.schema";
 
-const API_URL = import.meta.env.VITE_API_URL;
 
 interface Props {
   onClose: () => void;
-  onSuccess: () => void;
 }
 
-export const CrearLocalModal = ({ onClose, onSuccess }: Props) => {
-  const [form, setForm] = useState({
+export const CrearLocalModal = ({ onClose }: Props) => {
+  const [form, setForm] = useState<CrearLocalInput>({
     email: "",
     password: "",
     nombreLocal: "",
     telefono: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  
+  const crearMutation = useCrearLocal();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError(""); // Limpiar error al escribir
   };
 
-  const handleSubmit = async () => {
-    if (!form.email || !form.password || !form.nombreLocal) {
-      setError("Email, contraseña y nombre del local son obligatorios");
+  const handleSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // ✅ Validación con Zod
+    const validationResult = crearLocalSchema.safeParse(form);
+    if (!validationResult.success) {
+      setError(validationResult.error.issues[0].message);
       return;
     }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`${API_URL}/api/superadmin/register`, {
-        method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Error al crear el local");
-        return;
-      }
-      onSuccess();
-      onClose();
-    } catch (error) {
-      setError("Error de conexión");
-    } finally {
-      setLoading(false);
-    }
+
+    // ✅ Delegar a la mutación
+    await crearMutation.mutateAsync(validationResult.data, {
+      onSuccess: () => {
+        onClose(); // Cierra el modal al tener éxito
+      },
+    });
   };
 
   return (
@@ -57,7 +47,7 @@ export const CrearLocalModal = ({ onClose, onSuccess }: Props) => {
       <div className="sa-modal" onClick={(e) => e.stopPropagation()}>
         <h2 className="sa-modal-title">Nuevo local</h2>
 
-        <div className="sa-form">
+        <form onSubmit={handleSubmit} className="sa-form">
           <div className="sa-field">
             <label>Nombre del local</label>
             <input
@@ -65,6 +55,7 @@ export const CrearLocalModal = ({ onClose, onSuccess }: Props) => {
               value={form.nombreLocal}
               onChange={handleChange}
               placeholder="Ej: Estudio Valentina"
+              disabled={crearMutation.isPending}
             />
           </div>
           <div className="sa-field">
@@ -75,6 +66,7 @@ export const CrearLocalModal = ({ onClose, onSuccess }: Props) => {
               value={form.email}
               onChange={handleChange}
               placeholder="admin@ejemplo.com"
+              disabled={crearMutation.isPending}
             />
           </div>
           <div className="sa-field">
@@ -85,6 +77,7 @@ export const CrearLocalModal = ({ onClose, onSuccess }: Props) => {
               value={form.password}
               onChange={handleChange}
               placeholder="Mínimo 6 caracteres"
+              disabled={crearMutation.isPending}
             />
           </div>
           <div className="sa-field">
@@ -94,20 +87,30 @@ export const CrearLocalModal = ({ onClose, onSuccess }: Props) => {
               value={form.telefono}
               onChange={handleChange}
               placeholder="+54 11 1234-5678"
+              disabled={crearMutation.isPending}
             />
           </div>
 
           {error && <p className="sa-error">{error}</p>}
 
           <div className="sa-modal-acciones">
-            <button className="sa-btn-primary" onClick={handleSubmit} disabled={loading}>
-              {loading ? "Creando..." : "Crear local"}
+            <button 
+              className="sa-btn-primary" 
+              type="submit" 
+              disabled={crearMutation.isPending}
+            >
+              {crearMutation.isPending ? "Creando..." : "Crear local"}
             </button>
-            <button className="sa-btn" onClick={onClose}>
+            <button 
+              className="sa-btn" 
+              type="button" 
+              onClick={onClose}
+              disabled={crearMutation.isPending}
+            >
               Cancelar
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

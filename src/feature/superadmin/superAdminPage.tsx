@@ -1,53 +1,35 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuthHeaders } from "../auth/auth.helpers";
 import { LocalesLista } from "./components/LocalesLista";
 import { CrearLocalModal } from "./components/CrearLocalModal";
-import "./superAdminPage.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import "./superAdminPage.css";
+import { useLocales } from "./hooks/useLocales";
 
 export const SuperAdminPage = () => {
-  const [locales, setLocales] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const navigate = useNavigate();
-
-  const cargarLocales = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/superadmin/locales`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.status === 401 || res.status === 403) {
-        navigate("/login");
-        return;
-      }
-      const data = await res.json();
-      setLocales(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando locales:", error);
-      setLocales([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    cargarLocales();
-  }, []);
+  
+  // ✅ React Query reemplaza useEffect + useState + fetch
+  const { data: locales = [], isLoading, isError } = useLocales();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  if (isError) {
+    // Si falla la autenticación (401/403), el interceptor de fetchWithAuth 
+    // debería manejarlo, pero por seguridad:
+    localStorage.removeItem("token");
+    navigate("/login");
+    return null;
+  }
+
   return (
     <div>
       {modalAbierto && (
-        <CrearLocalModal
-          onClose={() => setModalAbierto(false)}
-          onSuccess={cargarLocales}
-        />
+        <CrearLocalModal onClose={() => setModalAbierto(false)} />
       )}
 
       <div className="sa-header">
@@ -68,13 +50,10 @@ export const SuperAdminPage = () => {
           </button>
         </div>
 
-        {loading ? (
-          <p className="sa-empty">Cargando...</p>
+        {isLoading ? (
+          <p className="sa-empty">Cargando locales...</p>
         ) : (
-          <LocalesLista
-            locales={locales}
-            onRefresh={cargarLocales}
-          />
+          <LocalesLista locales={locales} />
         )}
       </div>
     </div>

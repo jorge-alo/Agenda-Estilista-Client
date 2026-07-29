@@ -112,5 +112,8 @@ whatsapp: {
   clientes: {
     all: ["clientes"],
   },
+    superadmin: {
+    all: ["superadmin", "locales"],
+  },
 
 };
