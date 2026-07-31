@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchWithAuth } from '../../../shared/lib/fetchWithAuth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,7 +12,7 @@ export const PagoExitosoPage = () => {
   useEffect(() => {
     if (turnoId) {
       // Obtener información del turno para mostrar al cliente
-      fetchWithAuth(`${API_URL}/api/public/turno/${turnoId}`)
+       fetch(`${API_URL}/api/public/turno/${turnoId}`)
         .then(res => res.json())
         .then(data => setTurnoInfo(data))
         .catch(err => console.error('Error cargando turno:', err));
