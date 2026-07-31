@@ -18,7 +18,6 @@ export const ReservaPage = () => {
   const {
     reset,
     handleSubmit,
-    getValues,
     control,
     formState: { errors }
   } = useReservaForm();
@@ -55,47 +54,36 @@ export const ReservaPage = () => {
     return <p>Local no encontrado</p>;
   }
 
-  const reservar = (hora: string) =>
+   const reservar = (hora: string) =>
     handleSubmit(
       async (formData) => {
-
         try {
+          const data = await reservarMutation.mutateAsync({
+            slug,
+            fecha,
+            hora,
+            estilista_id: estilistaId,
+            servicio_id: servicioId,
+            cliente_nombre: formData.nombre,
+            cliente_telefono: formData.telefono,
+          });
 
-          const data =
-            await reservarMutation.mutateAsync({
-              slug,
-              fecha,
-              hora,
+          // ✅ NUEVO: Si el backend nos devuelve un link de pago, redirigimos al cliente
+          if (data.mpLink) {
+            toast.success("¡Turno pre-reservado! Redirigiendo al pago de la seña...");
+            
+            // Pequeña pausa para que el usuario lea el toast
+            setTimeout(() => {
+              window.location.href = data.mpLink;
+            }, 1500);
+            return; // Salimos de la función, no ejecutamos el WhatsApp aún
+          }
 
-              estilista_id:
-                estilistaId,
+          // Flujo normal (sin pago online)
+          const mensaje = `💈 Nuevo turno\n\n📅 Fecha: ${fecha}\n⏰ Hora: ${hora}\n💇 Servicio: ${servicio}\n👤 Cliente: ${formData.nombre}\n📞 Teléfono: ${formData.telefono}`;
+          const url = `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
 
-              servicio_id:
-                servicioId,
-
-              cliente_nombre:
-                formData.nombre,
-
-              cliente_telefono:
-                formData.telefono,
-            });
-
-          const mensaje =
-            `💈 Nuevo turno
-
-📅 Fecha: ${fecha}
-⏰ Hora: ${hora}
-💇 Servicio: ${servicio}
-👤 Cliente: ${formData.nombre}
-📞 Teléfono: ${formData.telefono}`;
-
-          const url =
-            `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
-
-          alert(
-            "Turno reservado con éxito. Te redirigimos a WhatsApp..."
-          );
-          console.log("🧹 Reseteando formulario...");
+          toast.success("Turno reservado con éxito. Te redirigimos a WhatsApp...");
           reset();
           setFecha(getFechaLocal());
           setServicioId(null);
@@ -103,15 +91,13 @@ export const ReservaPage = () => {
 
           window.open(url, "_blank");
 
-        } catch (error) {
-
+        } catch (error: any) {
           console.error(error);
+          toast.error(error.message || "Error al reservar el turno");
         }
-
       },
       (formErrors) => {
-        console.log("❌ Validación falló:", formErrors); // 👈 nuevo
-        console.log("📋 Valores internos de RHF:", getValues());
+        console.log("❌ Validación falló:", formErrors);
         toast.error("Completá tu nombre y teléfono antes de reservar");
       }
     )();

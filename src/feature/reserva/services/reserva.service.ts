@@ -79,8 +79,9 @@ export const reservaService = {
       }
     );
 
-    if (!res.ok) {
-      throw new Error("Error reservando turno");
+     if (!res.ok) {
+      const errorData = await res.json(); // ✅ CAMBIO 1: Leemos el error que envía el backend
+      throw new Error(errorData.error || "Error reservando turno"); // ✅ CAMBIO 2: Mostramos ese error
     }
 
     return res.json();
