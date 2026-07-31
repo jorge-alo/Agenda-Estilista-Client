@@ -73,3 +73,147 @@
   color: #e53935;
   font-family: var(--font-sans);
 }
+
+/* Sección de Mercado Pago */
+.config-mp-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 2px solid var(--color-border);
+}
+
+.config-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 16px;
+}
+
+.config-mp-desc {
+  font-size: 14px;
+  color: var(--color-text-soft);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.config-mp-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.config-mp-status.success {
+  background: rgba(92, 184, 92, 0.1);
+  border: 1px solid var(--color-success);
+}
+
+.config-mp-status.warning {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid var(--color-warning);
+}
+
+.config-mp-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.config-mp-status strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text);
+}
+
+.config-mp-token {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+.config-mp-token code {
+  background: var(--color-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+}
+
+.config-mp-text {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+.config-mp-form {
+  margin-bottom: 20px;
+}
+
+.config-mp-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.config-mp-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: "Courier New", monospace;
+  margin-bottom: 12px;
+}
+
+.config-mp-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.config-mp-tutorial {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.config-mp-tutorial summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.config-mp-tutorial ol {
+  padding-left: 20px;
+  line-height: 1.8;
+  font-size: 14px;
+  color: var(--color-text-soft);
+}
+
+.config-mp-tutorial a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.config-mp-tutorial a:hover {
+  text-decoration: underline;
+}
+
+.config-mp-notice {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(201, 169, 110, 0.1);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.config-loading {
+  text-align: center;
+  color: var(--color-text-hint);
+  padding: 20px;
+}
