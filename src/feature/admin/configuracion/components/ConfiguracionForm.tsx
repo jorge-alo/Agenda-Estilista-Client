@@ -12,21 +12,31 @@ interface Props {
     descripcion: string;
     horario_apertura: string;
     horario_cierre: string;
+     requiere_sena?: boolean; 
   };
 }
 
 export const ConfiguracionForm = ({ inicial }: Props) => {
-  const [form, setForm] = useState(inicial);
+    const [form, setForm] = useState({
+    ...inicial,
+    requiere_sena: inicial.requiere_sena ?? true,
+  });
   const [mpToken, setMpToken] = useState("");
   
   const updateMutation = useUpdateConfiguracion();
   const mpMutation = useConfigurarMP();
   const { data: estadoMP, isLoading: loadingMP } = useEstadoMP();
 
-  const handleChange = (
+    const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
+    setForm({ 
+      ...form, 
+      [name]: type === "checkbox" ? checked : value 
+    });
   };
 
   const handleSubmit = async () => {

@@ -217,3 +217,49 @@
   color: var(--color-text-hint);
   padding: 20px;
 }
+
+/* ── Checkbox de Seña ── */
+.config-checkbox-wrapper {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--color-bg, #f9f9f9);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-md, 8px);
+}
+
+.config-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.config-checkbox {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--color-primary, #c9a96e);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.config-checkbox-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-checkbox-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text, #333);
+}
+
+.config-checkbox-desc {
+  font-size: 13px;
+  color: var(--color-text-soft, #666);
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
