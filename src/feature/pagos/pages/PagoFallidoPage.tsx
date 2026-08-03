@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export const PagoFallidoPage = () => {
-  
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
- 
+  const slug = searchParams.get('slug');
+
 
   return (
     <div style={{
@@ -87,7 +88,7 @@ export const PagoFallidoPage = () => {
             Intentar de nuevo
           </button>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(slug ? `/${slug}` : '/')} // ✅ Redirige al local correcto
             style={{
               flex: 1,
               background: 'var(--color-primary)',

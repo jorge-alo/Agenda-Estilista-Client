@@ -1,8 +1,10 @@
-import {  useNavigate } from 'react-router-dom';
+import {  useNavigate, useSearchParams } from 'react-router-dom';
 
 export const PagoPendientePage = () => {
   
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+   const slug = searchParams.get('slug');
   
 
   return (
@@ -86,21 +88,21 @@ export const PagoPendientePage = () => {
         </p>
 
         <button
-          onClick={() => navigate('/')}
-          style={{
-            background: 'var(--color-primary)',
-            color: 'var(--color-white)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            padding: '14px 32px',
-            fontSize: '15px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            width: '100%'
-          }}
-        >
-          Volver al inicio
-        </button>
+      onClick={() => navigate(slug ? `/${slug}` : '/')} // ✅ Redirige al local correcto
+      style={{
+        background: 'var(--color-primary)',
+        color: 'var(--color-white)',
+        border: 'none',
+        borderRadius: 'var(--radius-sm)',
+        padding: '14px 32px',
+        fontSize: '15px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        width: '100%'
+      }}
+    >
+      Volver al inicio
+    </button>
       </div>
     </div>
   );
