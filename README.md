@@ -150,4 +150,4 @@ Las contribuciones son bienvenidas. Por favor, abre un *Issue* primero para disc
 
 ---
 
-Desarrollado con 💛 y mucho ☕ por **Jorge Altamirano**
+Desarrollado con 💛 y mucho ☕ por **Jorge Altamirano**  
