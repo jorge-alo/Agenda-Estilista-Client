@@ -101,6 +101,28 @@ export const ConfiguracionForm = ({ inicial }: Props) => {
         </div>
       </div>
 
+       <div className="config-field config-checkbox-wrapper">
+        <label className="config-checkbox-label">
+          <input
+            type="checkbox"
+            name="requiere_sena"
+            checked={form.requiere_sena}
+            onChange={handleChange}
+            className="config-checkbox"
+          />
+          <div className="config-checkbox-content">
+            <span className="config-checkbox-title">
+              Solicitar seña del 30% al reservar
+            </span>
+            <span className="config-checkbox-desc">
+              {form.requiere_sena 
+                ? "Activado: El cliente deberá pagar una seña para confirmar el turno. El horario quedará bloqueado hasta que pague."
+                : "Desactivado: El turno se confirmará inmediatamente al reservar, sin paso por caja."}
+            </span>
+          </div>
+        </label>
+      </div>
+
       <button
         className="config-btn"
         onClick={handleSubmit}
