@@ -36,6 +36,8 @@ export const ReservaPage = () => {
     data: infoLocal, error
   } = useInfoLocal(slug || "");
 
+  console.log("valor de error", error);
+
   // ✅ NUEVO: Si el error es por suscripción vencida, mostramos esta pantalla
   if (error?.message === "LOCAL_SUSCRIPCION_VENCIDA") {
     return (
