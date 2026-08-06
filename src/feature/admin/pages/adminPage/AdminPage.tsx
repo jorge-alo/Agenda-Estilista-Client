@@ -16,6 +16,7 @@ import { useSuscripcion } from "./hooks/useSuscripcion";
 
 export const AdminPage = () => {
 
+  const { pagarMutation } = useSuscripcion();
   const navigate =
     useNavigate();
 
@@ -100,7 +101,7 @@ export const AdminPage = () => {
 
         {/* Reutilizamos la lógica de pago, pero de forma aislada */}
         <button
-          onClick={() => {/* Aquí llamas a la mutación de pago, o rediriges a una ruta de pago */ }}
+          onClick={() => pagarMutation.mutate()}
           style={{
             background: '#dc2626',
             color: 'white',
