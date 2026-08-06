@@ -33,8 +33,33 @@ export const ReservaPage = () => {
 
   // INFO LOCAL
   const {
-    data: infoLocal,
+    data: infoLocal, error
   } = useInfoLocal(slug || "");
+
+  // ✅ NUEVO: Si el error es por suscripción vencida, mostramos esta pantalla
+  if (error?.message === "LOCAL_SUSCRIPCION_VENCIDA") {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--color-bg)',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔒</div>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '16px' }}>
+            Agenda temporalmente no disponible
+          </h1>
+          <p style={{ color: 'var(--color-text-soft)', maxWidth: '400px', margin: '0 auto' }}>
+            Este negocio está actualizando su cuenta. Por favor, intenta reservar más tarde o contacta al local por otros medios.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // DISPONIBILIDAD
   const {
@@ -54,7 +79,7 @@ export const ReservaPage = () => {
     return <p>Local no encontrado</p>;
   }
 
-   const reservar = (hora: string) =>
+  const reservar = (hora: string) =>
     handleSubmit(
       async (formData) => {
         try {
@@ -71,7 +96,7 @@ export const ReservaPage = () => {
           // ✅ NUEVO: Si el backend nos devuelve un link de pago, redirigimos al cliente
           if (data.mpLink) {
             toast.success("¡Turno pre-reservado! Redirigiendo al pago de la seña...");
-            
+
             // Pequeña pausa para que el usuario lea el toast
             setTimeout(() => {
               window.location.href = data.mpLink;
