@@ -13,8 +13,8 @@ import { toast } from "sonner";
 import { ErrorBoundary } from "../../../shared/ui/ErrorBoundary";
 
 export const ReservaPage = () => {
-
   const { slug } = useParams();
+  
   const {
     reset,
     handleSubmit,
@@ -28,36 +28,37 @@ export const ReservaPage = () => {
   const [servicio, setServicio] = useState("");
   const reservarMutation = useReservarTurno();
 
-  //const fecha = watch("fecha") || getFechaLocal();
+  // 1. OBTENER INFO DEL LOCAL
+  const { data: infoLocal, error, isLoading } = useInfoLocal(slug || "");
 
-
-  // INFO LOCAL
-  const {
-    data: infoLocal, error
-  } = useInfoLocal(slug || "");
-
-    console.log("🚨 DEBUG FRONTEND COMPONENT - ERROR OBJECT:", error);
-  console.log("🚨 DEBUG FRONTEND COMPONENT - ERROR MESSAGE:", error?.message);
-
-  // ✅ NUEVO: Si el error es por suscripción vencida, mostramos esta pantalla
+  // 2. ✅ BLOQUEO TOTAL: Si hay error de suscripción, renderizamos SOLO esto y salimos.
   if (error?.message === "LOCAL_SUSCRIPCION_VENCIDA") {
-     console.log("✅ DEBUG FRONTEND: ¡CONDICIÓN CUMPLIDA! Renderizando pantalla de bloqueo.");
     return (
       <div style={{
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--color-bg)',
+        background: '#f9fafb', // Gris muy claro para asegurar visibilidad
         padding: '20px',
         textAlign: 'center'
       }}>
         <div>
           <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔒</div>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '16px' }}>
+          <h1 style={{ 
+            fontFamily: 'var(--font-serif, serif)', 
+            fontSize: '24px', 
+            marginBottom: '16px', 
+            color: '#111827' // Negro suave, siempre visible
+          }}>
             Agenda temporalmente no disponible
           </h1>
-          <p style={{ color: 'var(--color-text-soft)', maxWidth: '400px', margin: '0 auto' }}>
+          <p style={{ 
+            color: '#6b7280', // Gris medio, siempre visible
+            maxWidth: '400px', 
+            margin: '0 auto', 
+            lineHeight: '1.5' 
+          }}>
             Este negocio está actualizando su cuenta. Por favor, intenta reservar más tarde o contacta al local por otros medios.
           </p>
         </div>
@@ -65,7 +66,11 @@ export const ReservaPage = () => {
     );
   }
 
-  // DISPONIBILIDAD
+  // 3. Si está cargando o no hay slug, mostramos loaders o mensajes simples
+  if (!slug) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Local no encontrado</p>;
+  if (isLoading) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Cargando información del local...</p>;
+
+  // 4. DISPONIBILIDAD (Solo se ejecuta si NO hay error de suscripción)
   const {
     data: disponibilidadData,
     isLoading: loadingDisponibilidad,
@@ -76,12 +81,7 @@ export const ReservaPage = () => {
     servicioId,
   });
 
-  const disponibles =
-    disponibilidadData?.disponibles || [];
-
-  if (!slug) {
-    return <p>Local no encontrado</p>;
-  }
+  const disponibles = disponibilidadData?.disponibles || [];
 
   const reservar = (hora: string) =>
     handleSubmit(
@@ -97,18 +97,14 @@ export const ReservaPage = () => {
             cliente_telefono: formData.telefono,
           });
 
-          // ✅ NUEVO: Si el backend nos devuelve un link de pago, redirigimos al cliente
           if (data.mpLink) {
             toast.success("¡Turno pre-reservado! Redirigiendo al pago de la seña...");
-
-            // Pequeña pausa para que el usuario lea el toast
             setTimeout(() => {
               window.location.href = data.mpLink;
             }, 1500);
-            return; // Salimos de la función, no ejecutamos el WhatsApp aún
+            return;
           }
 
-          // Flujo normal (sin pago online)
           const mensaje = `💈 Nuevo turno\n\n📅 Fecha: ${fecha}\n⏰ Hora: ${hora}\n💇 Servicio: ${servicio}\n👤 Cliente: ${formData.nombre}\n📞 Teléfono: ${formData.telefono}`;
           const url = `https://wa.me/${data.telefono}?text=${encodeURIComponent(mensaje)}`;
 
@@ -119,7 +115,6 @@ export const ReservaPage = () => {
           setEstilistaId(null);
 
           window.open(url, "_blank");
-
         } catch (error: any) {
           console.error(error);
           toast.error(error.message || "Error al reservar el turno");
@@ -131,85 +126,38 @@ export const ReservaPage = () => {
       }
     )();
 
+  // 5. RENDERIZADO NORMAL (Solo si todo está bien)
   return (
-    <div>
-
+    <div className="reserva-page-container">
       <div className="rp-hero">
-
-        <p className="rp-hero-tag">
-          Reserva tu turno
-        </p>
-
-        <h1 className="rp-hero-title">
-          {infoLocal?.nombreLocal || "Cargando..."}
-        </h1>
-
-        <p className="rp-hero-sub">
-          Elegí tu estilista, servicio y horario
-        </p>
-
+        <p className="rp-hero-tag">Reserva tu turno</p>
+        <h1 className="rp-hero-title">{infoLocal?.nombreLocal || "Cargando..."}</h1>
+        <p className="rp-hero-sub">Elegí tu estilista, servicio y horario</p>
       </div>
 
-      {(infoLocal?.descripcion ||
-        infoLocal?.direccion ||
-        infoLocal?.horario_apertura) && (
+      {(infoLocal?.descripcion || infoLocal?.direccion || infoLocal?.horario_apertura) && (
+        <div className="rp-info-local">
+          {infoLocal?.descripcion && <p className="rp-info-desc">{infoLocal.descripcion}</p>}
+          {infoLocal?.direccion && <p className="rp-info-item">📍 {infoLocal.direccion}</p>}
+          {infoLocal?.horario_apertura && infoLocal?.horario_cierre && (
+            <p className="rp-info-item">
+              🕐 {infoLocal.horario_apertura.slice(0, 5)} - {infoLocal.horario_cierre.slice(0, 5)}
+            </p>
+          )}
+        </div>
+      )}
 
-          <div className="rp-info-local">
-
-            {infoLocal?.descripcion && (
-              <p className="rp-info-desc">
-                {infoLocal.descripcion}
-              </p>
-            )}
-
-            {infoLocal?.direccion && (
-              <p className="rp-info-item">
-                📍 {infoLocal.direccion}
-              </p>
-            )}
-
-            {infoLocal?.horario_apertura &&
-              infoLocal?.horario_cierre && (
-
-                <p className="rp-info-item">
-                  🕐{" "}
-                  {infoLocal.horario_apertura.slice(0, 5)}
-                  {" - "}
-                  {infoLocal.horario_cierre.slice(0, 5)}
-                </p>
-              )}
-          </div>
-        )}
       <ErrorBoundary>
         <div className="rp-body">
-
           <div className="rp-step" key="estilista-step">
-
-            <p className="rp-step-label">
-              Estilista
-            </p>
-
-            <Estilistas
-              slug={slug}
-              estilistaId={estilistaId}
-              setEstilistaId={setEstilistaId}
-            />
+            <p className="rp-step-label">Estilista</p>
+            <Estilistas slug={slug} estilistaId={estilistaId} setEstilistaId={setEstilistaId} />
           </div>
 
           {estilistaId && (
-
             <div className="rp-step" key="servicio-step">
-
-              <p className="rp-step-label">
-                Servicio
-              </p>
-
-              <Servicios
-                estilistaId={estilistaId}
-                servicioId={servicioId}
-                setServicioId={setServicioId}
-                setServicio={setServicio}
-              />
+              <p className="rp-step-label">Servicio</p>
+              <Servicios estilistaId={estilistaId} servicioId={servicioId} setServicioId={setServicioId} setServicio={setServicio} />
             </div>
           )}
 
