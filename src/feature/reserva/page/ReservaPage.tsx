@@ -14,7 +14,7 @@ import { ErrorBoundary } from "../../../shared/ui/ErrorBoundary";
 
 export const ReservaPage = () => {
   const { slug } = useParams();
-  
+
   const {
     reset,
     handleSubmit,
@@ -31,46 +31,8 @@ export const ReservaPage = () => {
   // 1. OBTENER INFO DEL LOCAL
   const { data: infoLocal, error, isLoading } = useInfoLocal(slug || "");
 
-  // 2. ✅ BLOQUEO TOTAL: Si hay error de suscripción, renderizamos SOLO esto y salimos.
-  if (error?.message === "LOCAL_SUSCRIPCION_VENCIDA") {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#f9fafb', // Gris muy claro para asegurar visibilidad
-        padding: '20px',
-        textAlign: 'center'
-      }}>
-        <div>
-          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔒</div>
-          <h1 style={{ 
-            fontFamily: 'var(--font-serif, serif)', 
-            fontSize: '24px', 
-            marginBottom: '16px', 
-            color: '#111827' // Negro suave, siempre visible
-          }}>
-            Agenda temporalmente no disponible
-          </h1>
-          <p style={{ 
-            color: '#6b7280', // Gris medio, siempre visible
-            maxWidth: '400px', 
-            margin: '0 auto', 
-            lineHeight: '1.5' 
-          }}>
-            Este negocio está actualizando su cuenta. Por favor, intenta reservar más tarde o contacta al local por otros medios.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. Si está cargando o no hay slug, mostramos loaders o mensajes simples
-  if (!slug) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Local no encontrado</p>;
-  if (isLoading) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Cargando información del local...</p>;
-
-  // 4. DISPONIBILIDAD (Solo se ejecuta si NO hay error de suscripción)
+  // ✅ FIX: este hook ahora se llama SIEMPRE, antes de cualquier return.
+  // Así el orden y la cantidad de hooks es igual en todos los renders.
   const {
     data: disponibilidadData,
     isLoading: loadingDisponibilidad,
@@ -82,6 +44,46 @@ export const ReservaPage = () => {
   });
 
   const disponibles = disponibilidadData?.disponibles || [];
+
+  // 2. ✅ BLOQUEO TOTAL: recién ACÁ, después de haber llamado todos los hooks,
+  // podemos cortar el render condicionalmente.
+  if (error?.message === "LOCAL_SUSCRIPCION_VENCIDA") {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f9fafb',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔒</div>
+          <h1 style={{
+            fontFamily: 'var(--font-serif, serif)',
+            fontSize: '24px',
+            marginBottom: '16px',
+            color: '#111827'
+          }}>
+            Agenda temporalmente no disponible
+          </h1>
+          <p style={{
+            color: '#6b7280',
+            maxWidth: '400px',
+            margin: '0 auto',
+            lineHeight: '1.5'
+          }}>
+            Este negocio está actualizando su cuenta. Por favor, intenta reservar más tarde o contacta al local por otros medios.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Si está cargando o no hay slug, mostramos loaders o mensajes simples
+  if (!slug) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Local no encontrado</p>;
+  if (isLoading) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Cargando información del local...</p>;
 
   const reservar = (hora: string) =>
     handleSubmit(
@@ -126,7 +128,7 @@ export const ReservaPage = () => {
       }
     )();
 
-  // 5. RENDERIZADO NORMAL (Solo si todo está bien)
+  // 4. RENDERIZADO NORMAL (Solo si todo está bien)
   return (
     <div className="reserva-page-container">
       <div className="rp-hero">
