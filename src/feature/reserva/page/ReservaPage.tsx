@@ -36,10 +36,12 @@ export const ReservaPage = () => {
     data: infoLocal, error
   } = useInfoLocal(slug || "");
 
-  console.log("valor de error", error);
+    console.log("🚨 DEBUG FRONTEND COMPONENT - ERROR OBJECT:", error);
+  console.log("🚨 DEBUG FRONTEND COMPONENT - ERROR MESSAGE:", error?.message);
 
   // ✅ NUEVO: Si el error es por suscripción vencida, mostramos esta pantalla
   if (error?.message === "LOCAL_SUSCRIPCION_VENCIDA") {
+     console.log("✅ DEBUG FRONTEND: ¡CONDICIÓN CUMPLIDA! Renderizando pantalla de bloqueo.");
     return (
       <div style={{
         minHeight: '100vh',

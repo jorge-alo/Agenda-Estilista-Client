@@ -57,9 +57,12 @@ export const reservaService = {
       `${API_URL}/api/turnos/disponibilidad?slug=${slug}`
     );
 
+    console.log("🔍 DEBUG FRONTEND SERVICE - STATUS DE LA RESPUESTA:", res.status);
+
      if (!res.ok) {
     // ✅ NUEVO: Leemos el JSON del error para obtener el mensaje real del backend
     const errorData = await res.json().catch(() => ({}));
+     console.log("🚨 DEBUG FRONTEND SERVICE - DATOS DEL ERROR:", errorData);
     throw new Error(errorData.error || "Error cargando local");
   }
 
