@@ -10,7 +10,7 @@ export const useSuscripcion = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["suscripcion-local"],
     queryFn: async () => {
-      const res = await fetchWithAuth(`${API_URL}/api/locales/mi-suscripcion`);
+      const res = await fetchWithAuth(`${API_URL}/api/suscripcion/estado`);
       return res.json();
     },
   });
@@ -18,7 +18,7 @@ export const useSuscripcion = () => {
   // Mutación para generar el link de pago
   const pagarMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetchWithAuth(`${API_URL}/api/locales/pagar-suscripcion`, {
+      const res = await fetchWithAuth(`${API_URL}/api/suscripcion/pagar`, {
         method: "POST",
       });
       if (!res.ok) throw new Error("Error al generar el pago");
