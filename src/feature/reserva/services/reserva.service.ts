@@ -57,9 +57,11 @@ export const reservaService = {
       `${API_URL}/api/turnos/disponibilidad?slug=${slug}`
     );
 
-    if (!res.ok) {
-      throw new Error("Error cargando local");
-    }
+     if (!res.ok) {
+    // ✅ NUEVO: Leemos el JSON del error para obtener el mensaje real del backend
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Error cargando local");
+  }
 
     return res.json();
   },
