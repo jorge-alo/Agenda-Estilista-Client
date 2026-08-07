@@ -9,6 +9,8 @@ export const ClientesTable = ({
   clientes
 }: Props) => {
 
+  console.log("🔍 DATOS DE CLIENTES:", clientes);
+
   return (
 
     <table className="clientes-table">
