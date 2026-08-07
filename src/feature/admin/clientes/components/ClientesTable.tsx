@@ -41,16 +41,12 @@ export const ClientesTable = ({
 
             <td>
               {cliente.ultima_visita
-                ? (() => {
-                  try {
-                    const fecha = new Date(cliente.ultima_visita + "T00:00:00");
-                    return isNaN(fecha.getTime())
-                      ? "Fecha inválida"
-                      : fecha.toLocaleDateString('es-AR');
-                  } catch {
-                    return "Sin visitas";
-                  }
-                })()
+                ? new Date(cliente.ultima_visita).toLocaleDateString('es-AR', {
+                  timeZone: 'UTC',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                })
                 : "Sin visitas"}
             </td>
 
