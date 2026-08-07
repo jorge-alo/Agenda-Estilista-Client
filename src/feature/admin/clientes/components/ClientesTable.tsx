@@ -35,9 +35,13 @@ export const ClientesTable = ({
 
             <td>{cliente.total_turnos}</td>
 
-            <td>{cliente.ultimo_servicio}</td>
+            <td>{cliente.ultimo_servicio || "-"}</td>
 
-            <td>{cliente.ultima_visita}</td>
+             <td>
+              {cliente.ultima_visita 
+                ? new Date(cliente.ultima_visita).toLocaleDateString('es-AR') 
+                : "Sin visitas"}
+            </td>
 
           </tr>
 
