@@ -37,9 +37,9 @@ export const ClientesTable = ({
 
             <td>{cliente.ultimo_servicio || "-"}</td>
 
-             <td>
+              <td>
               {cliente.ultima_visita 
-                ? new Date(cliente.ultima_visita).toLocaleDateString('es-AR') 
+                ? new Date(cliente.ultima_visita + "T00:00:00").toLocaleDateString('es-AR') 
                 : "Sin visitas"}
             </td>
 
