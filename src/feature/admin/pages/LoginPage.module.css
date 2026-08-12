@@ -16,9 +16,11 @@
 }
 
 .title {
-  font-family: var(--font-serif);
-  font-size: 28px;
-  margin-bottom: 25px;
+  font-family: var(--font-serif, 'Cormorant Garamond', serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text, #1A1A1A);
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
@@ -115,4 +117,29 @@
     font-size: 14px;
     margin-bottom: 16px;
     text-align: center;
+}
+
+/* Logo Section */
+.logoSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border, #E8E3D8);
+}
+
+.logoImage {
+  width: 200px;
+  height: auto;
+  margin-bottom: 0.75rem;
+}
+
+.logoSubtitle {
+  font-family: var(--font-serif, 'Cormorant Garamond', serif);
+  font-size: 1rem;
+  color: var(--color-text-soft, #888888);
+  text-align: center;
+  margin: 0;
+  font-style: italic;
 }

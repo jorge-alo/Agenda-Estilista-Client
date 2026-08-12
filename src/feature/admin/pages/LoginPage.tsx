@@ -75,11 +75,24 @@ export const LoginPage = () => {
     setForgotEmail("");
   };
 
+  // 👇 LOGO COMPARTIDO para ambas vistas
+  const LogoSection = ({ subtitle }: { subtitle: string }) => (
+    <div className={styles.logoSection}>
+      <img 
+        src="/logo-agendaok.png" 
+        alt="AgendaOK" 
+        className={styles.logoImage}
+      />
+      <p className={styles.logoSubtitle}>{subtitle}</p>
+    </div>
+  );
+
   if (showForgot) {
     return (
       <div className={styles.container}>
         <form onSubmit={handleForgotPassword} className={styles.card}>
-          <h1 className={styles.title}>Recuperar contraseña</h1>
+          <LogoSection subtitle="Te enviaremos un enlace para restablecer tu contraseña" />
+          <h2 className={styles.title}>Recuperar contraseña</h2>
           
           {error && <p className={styles.error}>{error}</p>}
           
@@ -122,7 +135,8 @@ export const LoginPage = () => {
   return (
     <div className={styles.container}>
       <form onSubmit={handleLogin} className={styles.card}>
-        <h1 className={styles.title}>Iniciar sesión</h1>
+        <LogoSection subtitle="Gestión inteligente para tu negocio" />
+        <h2 className={styles.title}>Iniciar sesión</h2>
 
         {error && <p className={styles.error}>{error}</p>}
 
