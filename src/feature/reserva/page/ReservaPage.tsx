@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Estilistas } from "../components/Estilistas";
 import { FormCliente } from "../components/FormCliente";
@@ -44,6 +44,19 @@ export const ReservaPage = () => {
   });
 
   const disponibles = disponibilidadData?.disponibles || [];
+
+   useEffect(() => {
+    if (infoLocal?.nombreLocal) {
+      document.title = `${infoLocal.nombreLocal} | AgendaOK`;
+    } else if (slug) {
+      // Mientras carga el local, mostramos el slug formateado
+      const slugFormateado = slug
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      document.title = `${slugFormateado} | AgendaOK`;
+    }
+  }, [infoLocal?.nombreLocal, slug]);
 
   // 2. ✅ BLOQUEO TOTAL: recién ACÁ, después de haber llamado todos los hooks,
   // podemos cortar el render condicionalmente.

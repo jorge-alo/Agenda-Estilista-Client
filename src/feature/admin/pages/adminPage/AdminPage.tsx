@@ -14,6 +14,19 @@ import { AdminContent } from "./components/AdminContent";
 import { AdminPageSkeleton } from "./components/AdminPageSkeleton";
 import { useSuscripcion } from "./hooks/useSuscripcion";
 
+const NOMBRES_TABS: Record<string, string> = {
+  dashboard: "Dashboard",
+  agenda: "Agenda",
+  reservar: "Reservar",
+  clientes: "Clientes",
+  estilistas: "Estilistas",
+  servicios: "Servicios",
+  horarios: "Horarios",
+  bloqueos: "Bloqueos",
+  configuracion: "Configuración",
+  whatsapp: "WhatsApp",
+};
+
 export const AdminPage = () => {
 
   const { pagarMutation } = useSuscripcion();
@@ -42,18 +55,43 @@ export const AdminPage = () => {
   // ✅ Obtener datos de suscripción
   const { data: suscripcion, isLoading: loadingSuscripcion } = useSuscripcion();
 
+  // ✅ CALCULAR SI ESTÁ VENCIDO (lo hacemos acá para poder usarlo en el useEffect)
+  let diasRestantes = 999;
+  if (suscripcion?.suscripcion_vencimiento) {
+    const hoy = new Date();
+    const vencimiento = new Date(suscripcion.suscripcion_vencimiento);
+    const diferenciaTiempo = vencimiento.getTime() - hoy.getTime();
+    diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 3600 * 24));
+  }
+
+  const estaVencido = diasRestantes <= 0 || suscripcion?.suscripcion_estado === 'vencido';
+
+  // ✅ TÍTULO DINÁMICO DE LA PESTAÑA (un solo useEffect para TODOS los casos)
   useEffect(() => {
-
-    if (isError) {
-
-      localStorage.removeItem(
-        "token"
-      );
-
-      navigate("/login");
+    // Caso 1: Suscripción vencida
+    if (estaVencido) {
+      document.title = 'Suscripción Vencida | AgendaOK';
+      return;
     }
 
-  }, [isError]);
+    // Caso 2: Normal (con o sin nombre de local)
+    const nombreTab = NOMBRES_TABS[tabActiva] || tabActiva;
+    const nombreLocal = data?.nombreLocal;
+
+    if (nombreLocal) {
+      document.title = `${nombreTab} | ${nombreLocal} | AgendaOK`;
+    } else {
+      document.title = `${nombreTab} | AgendaOK`;
+    }
+  }, [tabActiva, data?.nombreLocal, estaVencido]);
+
+  // ✅ UN SOLO useEffect para manejar el error de login (eliminamos el duplicado)
+  useEffect(() => {
+    if (isError) {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  }, [isError, navigate]);
 
   const handleLogout =
     () => {
@@ -67,18 +105,8 @@ export const AdminPage = () => {
     return <AdminPageSkeleton />;
   }
 
-  // ✅ CALCULAR DÍAS RESTANTES PARA BLOQUEO TOTAL
-  let diasRestantes = 999;
-  if (suscripcion?.suscripcion_vencimiento) {
-    const hoy = new Date();
-    const vencimiento = new Date(suscripcion.suscripcion_vencimiento);
-    const diferenciaTiempo = vencimiento.getTime() - hoy.getTime();
-    diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 3600 * 24));
-  }
-
-  const estaVencido = diasRestantes <= 0 || suscripcion?.suscripcion_estado === 'vencido';
-
   // ✅ SI ESTÁ VENCIDO, MOSTRAR SOLO LA PANTALLA DE PAGO (BLOQUEO TOTAL)
+  // ❌ YA NO hay useEffect acá adentro (eso rompía las reglas de los hooks)
   if (estaVencido) {
     return (
       <div style={{
@@ -87,7 +115,7 @@ export const AdminPage = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#fef2f2', // Rojo muy suave
+        background: '#fef2f2',
         padding: '20px',
         textAlign: 'center'
       }}>
@@ -99,7 +127,6 @@ export const AdminPage = () => {
           Tu período de prueba o suscripción ha finalizado. Para seguir gestionando tu agenda, clientes y turnos, es necesario renovar tu plan.
         </p>
 
-        {/* Reutilizamos la lógica de pago, pero de forma aislada */}
         <button
           onClick={() => pagarMutation.mutate()}
           style={{
