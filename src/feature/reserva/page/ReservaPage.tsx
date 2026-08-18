@@ -165,7 +165,7 @@ export const ReservaPage = () => {
       <ErrorBoundary>
         <div className="rp-body">
           <div className="rp-step" key="estilista-step">
-            <p className="rp-step-label">Profecionales</p>
+            <p className="rp-step-label">Profesionales</p>
             <Estilistas slug={slug} estilistaId={estilistaId} setEstilistaId={setEstilistaId} />
           </div>
 
