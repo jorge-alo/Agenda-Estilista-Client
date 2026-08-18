@@ -147,7 +147,7 @@ export const ReservaPage = () => {
       <div className="rp-hero">
         <p className="rp-hero-tag">Reserva tu turno</p>
         <h1 className="rp-hero-title">{infoLocal?.nombreLocal || "Cargando..."}</h1>
-        <p className="rp-hero-sub">Elegí tu estilista, servicio y horario</p>
+        <p className="rp-hero-sub">Elegí profesional, servicio y horario</p>
       </div>
 
       {(infoLocal?.descripcion || infoLocal?.direccion || infoLocal?.horario_apertura) && (
