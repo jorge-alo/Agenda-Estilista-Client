@@ -3,6 +3,7 @@ import type { ReservaFormData } from "../schemas/reserva.schema";
 import { Horarios } from "./Horarios";
 import "../styles/FormCliente.css";
 import { HorariosSkeleton } from "./HorariosSkeleton";
+import { getFechaLocal } from "../../../shared/helpers/date.helpers";
 
 interface Props {
   control: Control<ReservaFormData>; // 👈 Agregado
@@ -67,6 +68,7 @@ export const FormCliente = ({
           className="fc-input"
           type="date"
           value={fecha}
+          min={getFechaLocal()} 
           onChange={(e) => onFechaChange(e.target.value)}
         />
       </div>
