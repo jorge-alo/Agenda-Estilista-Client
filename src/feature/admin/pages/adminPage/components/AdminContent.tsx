@@ -13,6 +13,7 @@ import { HorariosAdmin } from "../../../horarios/components/HorariosAdmin";
 import type { Estilista } from "../../../estilistas/types/estilistas.types";
 import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
 import { BUSINESS_TYPE, type BusinessType } from "../types/adminPage.types";
+import { PetAgenda } from "../../../petAgenda/components/PetAgenda";
 
 interface Props {
   tabActiva: string;
@@ -35,10 +36,7 @@ export const AdminContent = ({ tabActiva, businessType, estilistas, estilistaId,
           {businessType === BUSINESS_TYPE.BEAUTY ? (
             <AgendaLista estilistas={estilistas} />
           ) : (
-            <section aria-labelledby="agenda-pet-title" role="status">
-              <h2 id="agenda-pet-title">Agenda PET</h2>
-              <p>La agenda PET estará disponible próximamente.</p>
-            </section>
+            <PetAgenda />
           )}
         </ErrorBoundary>
       )}
