@@ -13,6 +13,7 @@ import { AdminTabs } from "./components/AdminTabs";
 import { AdminContent } from "./components/AdminContent";
 import { AdminPageSkeleton } from "./components/AdminPageSkeleton";
 import { useSuscripcion } from "./hooks/useSuscripcion";
+import { BUSINESS_TYPE, isBusinessType } from "./types/adminPage.types";
 
 const NOMBRES_TABS: Record<string, string> = {
   dashboard: "Dashboard",
@@ -40,14 +41,15 @@ export const AdminPage = () => {
     useState<number | null>(null);
 
   const {
-    data: estilistas = [],
-    isLoading: loadingEstilistas,
-  } = useEstilistas();
+    data,
+    isError: isAdminMeError,
+    isLoading: loadingAdminMe,
+  } = useAdminMe();
 
   const {
-    data,
-    isError,
-  } = useAdminMe();
+    data: estilistas = [],
+    isLoading: loadingEstilistas,
+  } = useEstilistas(data?.businessType === BUSINESS_TYPE.BEAUTY);
 
   const { logout } =
     useLogoutMutation();
@@ -87,11 +89,11 @@ export const AdminPage = () => {
 
   // ✅ UN SOLO useEffect para manejar el error de login (eliminamos el duplicado)
   useEffect(() => {
-    if (isError) {
+    if (isAdminMeError) {
       localStorage.removeItem("token");
       navigate("/login");
     }
-  }, [isError, navigate]);
+  }, [isAdminMeError, navigate]);
 
   const handleLogout =
     () => {
@@ -101,8 +103,16 @@ export const AdminPage = () => {
       navigate("/login");
     };
 
-  if (loadingEstilistas || loadingSuscripcion) {
+  if (loadingAdminMe || loadingSuscripcion || (data?.businessType === BUSINESS_TYPE.BEAUTY && loadingEstilistas)) {
     return <AdminPageSkeleton />;
+  }
+
+  if (isAdminMeError || !data) {
+    return <div role="alert">No se pudo cargar el contexto del local.</div>;
+  }
+
+  if (!isBusinessType(data.businessType)) {
+    return <div role="alert">El local no tiene un tipo de negocio válido.</div>;
   }
 
   // ✅ SI ESTÁ VENCIDO, MOSTRAR SOLO LA PANTALLA DE PAGO (BLOQUEO TOTAL)
@@ -179,6 +189,7 @@ export const AdminPage = () => {
 
       <AdminContent
         tabActiva={tabActiva}
+        businessType={data.businessType}
         estilistas={estilistas}
         estilistaId={estilistaId}
         setEstilistaId={setEstilistaId}

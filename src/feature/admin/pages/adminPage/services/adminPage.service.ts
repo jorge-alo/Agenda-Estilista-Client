@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "../../../../../shared/lib/fetchWithAuth";
+import type { AdminMeResponse } from "../types/adminPage.types";
 
 
 const API_URL =
@@ -6,7 +7,7 @@ const API_URL =
 
 export const adminPageService = {
 
-  me: async () => {
+  me: async (): Promise<AdminMeResponse> => {
 
     const res =
       await fetchWithAuth(
@@ -19,6 +20,6 @@ export const adminPageService = {
       );
     }
 
-    return res.json();
+    return res.json() as Promise<AdminMeResponse>;
   },
 };

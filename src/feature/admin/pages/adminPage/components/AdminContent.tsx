@@ -12,16 +12,18 @@ import { WhatsAppStatus }from "../../../whatsapp/components/whatsappStatus";
 import { HorariosAdmin } from "../../../horarios/components/HorariosAdmin";
 import type { Estilista } from "../../../estilistas/types/estilistas.types";
 import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
+import { BUSINESS_TYPE, type BusinessType } from "../types/adminPage.types";
 
 interface Props {
   tabActiva: string;
+  businessType: BusinessType;
   estilistas: Estilista[];
   estilistaId: number | null;
   setEstilistaId: (id: number | null) => void;
   localId: string;
 }
 
-export const AdminContent = ({ tabActiva, estilistas, estilistaId, setEstilistaId, localId }: Props) => {
+export const AdminContent = ({ tabActiva, businessType, estilistas, estilistaId, setEstilistaId, localId }: Props) => {
   return (
     <div className="admin-content">
       {tabActiva === "dashboard" && (
@@ -29,7 +31,16 @@ export const AdminContent = ({ tabActiva, estilistas, estilistaId, setEstilistaI
       )}
 
       {tabActiva === "agenda" && (
-        <ErrorBoundary key="agenda"><AgendaLista estilistas={estilistas} /></ErrorBoundary>
+        <ErrorBoundary key={`agenda-${businessType}`}>
+          {businessType === BUSINESS_TYPE.BEAUTY ? (
+            <AgendaLista estilistas={estilistas} />
+          ) : (
+            <section aria-labelledby="agenda-pet-title" role="status">
+              <h2 id="agenda-pet-title">Agenda PET</h2>
+              <p>La agenda PET estará disponible próximamente.</p>
+            </section>
+          )}
+        </ErrorBoundary>
       )}
 
       {tabActiva === "reservar" && (

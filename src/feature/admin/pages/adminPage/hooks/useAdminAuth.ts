@@ -29,11 +29,11 @@ export const useAdminAuth =
       .then((data) => {
 
         setLocalNombre(
-          data.nombreLocal
+          data.nombreLocal ?? ""
         );
 
         setLocalId(
-          String(data.localId)
+          data.localId == null ? "" : String(data.localId)
         );
       })
 
@@ -45,7 +45,7 @@ export const useAdminAuth =
         navigate("/login");
       });
 
-  }, []);
+  }, [navigate]);
 
   return {
     localNombre,
