@@ -29,6 +29,11 @@ export const queryKeys = {
     rango: (desde: string, hasta: string) => ["pet-turnos", "rango", desde, hasta] as const,
   },
 
+  petTurnoDisponibilidad: {
+    all: ["pet-turno-disponibilidad"] as const,
+    turnoFecha: (turnoId: number, fecha: string) => ["pet-turno-disponibilidad", turnoId, fecha] as const,
+  },
+
   dashboard: {
 
     all: ["dashboard"],

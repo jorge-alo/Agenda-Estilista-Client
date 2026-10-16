@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { usePetTurnoActions } from "../hooks/usePetTurnoActions";
 import { usePetTurnos } from "../hooks/usePetTurnos";
+import { ReprogramarPetTurnoModal } from "./ReprogramarPetTurnoModal";
 import type { TurnoPet } from "../types/petTurno.types";
 import "../styles/petAgenda.css";
 
@@ -67,11 +68,13 @@ function PetTurnCard({
   turno,
   onCancelar,
   onCompletar,
+  onReprogramar,
   pending,
 }: {
   turno: TurnoPet;
   onCancelar: (id: number) => void;
   onCompletar: (id: number) => void;
+  onReprogramar: (turno: TurnoPet) => void;
   pending: boolean;
 }) {
   const active = turno.estado === "activo";
@@ -115,7 +118,7 @@ function PetTurnCard({
 
       {active && (
         <footer className="pet-turno__actions">
-          <button type="button" disabled title="La reprogramación desde Agenda PET estará disponible próximamente">
+          <button type="button" disabled={pending} onClick={() => onReprogramar(turno)}>
             Reprogramar
           </button>
           <button type="button" disabled={pending} onClick={() => onCancelar(turno.id)}>
@@ -133,6 +136,7 @@ function PetTurnCard({
 export function PetAgenda() {
   const [mode, setMode] = useState<ModoAgenda>("semana");
   const [focusDate, setFocusDate] = useState(() => fechaLocalKey(new Date()));
+  const [turnoParaReprogramar, setTurnoParaReprogramar] = useState<TurnoPet | null>(null);
   const week = useMemo(() => rangoSemana(focusDate), [focusDate]);
   const query = mode === "dia"
     ? { fecha: focusDate }
@@ -148,6 +152,7 @@ export function PetAgenda() {
   const turnoProps = {
     onCancelar: (id: number) => cancelar.mutate(id),
     onCompletar: (id: number) => completar.mutate(id),
+    onReprogramar: (turno: TurnoPet) => setTurnoParaReprogramar(turno),
     pending: cancelar.isPending || completar.isPending,
   };
 
@@ -217,6 +222,13 @@ export function PetAgenda() {
             );
           })}
         </div>
+      )}
+      {turnoParaReprogramar && (
+        <ReprogramarPetTurnoModal
+          turno={turnoParaReprogramar}
+          onClose={() => setTurnoParaReprogramar(null)}
+          onSuccess={() => setTurnoParaReprogramar(null)}
+        />
       )}
     </section>
   );
