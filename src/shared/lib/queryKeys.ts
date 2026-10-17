@@ -1,5 +1,9 @@
 export const queryKeys = {
 
+  publicLocal: {
+    context: (slug: string) => ["public-local", slug] as const,
+  },
+
   turnos: {
 
     all: ["turnos"],
