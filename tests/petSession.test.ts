@@ -11,10 +11,16 @@ import {
   type StoredPetSession,
 } from "../src/feature/publicPet/session/petSessionStorage.ts";
 import { runOnceByKey } from "../src/feature/publicPet/session/singleFlight.ts";
+import { getPetLandingMode, runPetRequestOnce } from "../src/feature/publicPet/session/publicPetRequestUi.ts";
 import {
   consumePetMagicLinkOnce,
   logoutPetSession,
+  PetSessionApiError,
+  petAccessRequestErrorMessage,
+  PET_ACCESS_REQUEST_SUCCESS_MESSAGE,
+  requestPetAccessLink,
   restorePetSessionOnce,
+  validatePetAccessPhone,
 } from "../src/feature/publicPet/session/publicPetSession.service.ts";
 
 class MemoryStorage implements Storage {
@@ -253,4 +259,86 @@ test("logout: respuesta 204 elimina storage del slug y mantiene aisladas otras s
     assert.equal(storage.getItem(petSessionStorageKey("local-a")), null);
     assert.notEqual(storage.getItem(petSessionStorageKey("local-b")), null);
   });
+});
+
+test("request de acceso: valida solo forma básica y conserva teléfonos sin canonicalizar", () => {
+  assert.equal(validatePetAccessPhone(""), "required");
+  assert.equal(validatePetAccessPhone("   "), "required");
+  assert.equal(validatePetAccessPhone("1".repeat(51)), "too-long");
+  assert.equal(validatePetAccessPhone("texto no canonicalizable"), null, "el backend decide canonicalización");
+  assert.equal(validatePetAccessPhone(" 011 15 1234-5678 "), null);
+});
+
+test("landing PET: sesión autenticada reemplaza los formularios; no autenticada conserva primera visita y Ya soy cliente", () => {
+  assert.equal(getPetLandingMode("authenticated"), "authenticated");
+  assert.equal(getPetLandingMode("loading"), "loading");
+  assert.equal(getPetLandingMode("logging-out"), "loading");
+  assert.equal(getPetLandingMode("error"), "error");
+  assert.equal(getPetLandingMode("unauthenticated"), "first-visit");
+  assert.equal(getPetLandingMode("invalid-link"), "first-visit");
+});
+
+test("request de acceso: doble submit mientras pending ejecuta solo una operación", async () => {
+  const gate = { current: false };
+  let calls = 0;
+  let release!: () => void;
+  const operation = () => {
+    calls++;
+    return new Promise<void>(resolve => { release = resolve; });
+  };
+  const first = runPetRequestOnce(gate, operation);
+  const second = await runPetRequestOnce(gate, operation);
+  assert.equal(second, false);
+  assert.equal(calls, 1);
+  release();
+  assert.equal(await first, true);
+  assert.equal(gate.current, false);
+});
+
+test("request de acceso: slug correcto, body exacto solo telefono, sin Bearer y 202 sin inspeccionar resultado", async t => {
+  const phone = " 011 15 1234-5678 ";
+  const requests: Array<{ url: string; init?: RequestInit }> = [];
+  let responseBody = "";
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+    requests.push({ url: String(input), init });
+    return new Response(responseBody, { status: 202, headers: { "Content-Type": "application/json" } });
+  });
+  responseBody = JSON.stringify({ ok: true });
+  assert.equal(await requestPetAccessLink("local/a", phone), undefined);
+  responseBody = JSON.stringify({ ok: true, sent: false, eligible: false, clienteId: 42 });
+  assert.equal(await requestPetAccessLink("local/a", phone), undefined);
+  assert.equal(requests.length, 2);
+  for (const request of requests) {
+    assert.equal(request.url, "/api/pet/public/local%2Fa/session/request");
+    assert.equal(request.init?.method, "POST");
+    assert.deepEqual(request.init?.headers, { "Content-Type": "application/json" });
+    assert.deepEqual(JSON.parse(String(request.init?.body)), { telefono: phone });
+    assert.equal(request.init?.cache, "no-store");
+  }
+  assert.equal(PET_ACCESS_REQUEST_SUCCESS_MESSAGE,
+    "Si encontramos una cuenta habilitada con ese número, te enviamos un enlace por WhatsApp.");
+});
+
+test("request de acceso: 429, 404, 500 y red solo producen errores genéricos", async t => {
+  const statuses = [429, 404, 500];
+  for (const status of statuses) {
+    t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify({
+      error: status === 404 ? "PET_LOCAL_NOT_FOUND" : "SECRET_RESPONSE_SENTINEL",
+      telefono: "SECRET_PHONE_SENTINEL",
+    }), { status }));
+    let error: unknown;
+    try { await requestPetAccessLink("local", "1123456789"); } catch (caught) { error = caught; }
+    assert.ok(error instanceof PetSessionApiError);
+    assert.equal(petAccessRequestErrorMessage(error), status === 429
+      ? "Hay demasiados intentos. Probá nuevamente más tarde."
+      : status === 404
+        ? "Este local no está disponible."
+        : "No pudimos procesar la solicitud en este momento. Intentá nuevamente más tarde.");
+    t.mock.restoreAll();
+  }
+  t.mock.method(globalThis, "fetch", async () => { throw new Error("SECRET_NETWORK_SENTINEL"); });
+  let networkError: unknown;
+  try { await requestPetAccessLink("local", "1123456789"); } catch (caught) { networkError = caught; }
+  assert.ok(networkError instanceof PetSessionApiError);
+  assert.equal(petAccessRequestErrorMessage(networkError), "No pudimos procesar la solicitud en este momento. Intentá nuevamente más tarde.");
 });

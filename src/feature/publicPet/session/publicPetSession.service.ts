@@ -26,11 +26,43 @@ export class PetSessionApiError extends Error {
   }
 }
 
+export type PetAccessPhoneValidation = "required" | "too-long" | null;
+export const PET_ACCESS_REQUEST_SUCCESS_MESSAGE = "Si encontramos una cuenta habilitada con ese número, te enviamos un enlace por WhatsApp.";
+
+export function petAccessRequestErrorMessage(error: unknown): string {
+  if (error instanceof PetSessionApiError && error.status === 429) {
+    return "Hay demasiados intentos. Probá nuevamente más tarde.";
+  }
+  if (error instanceof PetSessionApiError && error.status === 404) return "Este local no está disponible.";
+  return "No pudimos procesar la solicitud en este momento. Intentá nuevamente más tarde.";
+}
+
+export function validatePetAccessPhone(value: unknown): PetAccessPhoneValidation {
+  if (typeof value !== "string" || value.trim().length === 0) return "required";
+  if (value.length > 50) return "too-long";
+  return null;
+}
+
 const restoreFlights = new Map<string, Promise<PetSessionFlowResult>>();
 const consumeFlights = new Map<string, Promise<PetSessionFlowResult>>();
 
 function sessionPath(slug: string, endpoint: "consume" | "me" | "logout"): string {
   return `${API_URL}/api/pet/public/${encodeURIComponent(slug)}/session/${endpoint}`;
+}
+
+export async function requestPetAccessLink(slug: string, telefono: string): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/api/pet/public/${encodeURIComponent(slug)}/session/request`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telefono }),
+      cache: "no-store",
+    });
+  } catch { throw new PetSessionApiError(0); }
+  if (response.status !== 202) throw new PetSessionApiError(response.status);
+  // The API intentionally returns the same 202 body for all phone outcomes.
+  // Do not inspect or infer any recipient state from it.
 }
 
 async function errorFrom(response: Response): Promise<PetSessionApiError> {

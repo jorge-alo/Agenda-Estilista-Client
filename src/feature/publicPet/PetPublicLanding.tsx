@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { PetFirstVisitForm } from "./components/PetFirstVisitForm";
 import { PetSessionPanel } from "./components/PetSessionPanel";
+import { PetExistingClientAccess } from "./components/PetExistingClientAccess";
 import { usePetSession } from "./hooks/usePetSession";
+import { getPetLandingMode } from "./session/publicPetRequestUi";
 import "./styles/publicPet.css";
 
 interface Props {
@@ -11,15 +13,16 @@ interface Props {
 
 export function PetPublicLanding({ nombreLocal, slug }: Props) {
   const session = usePetSession(slug);
+  const landingMode = getPetLandingMode(session.state.status);
   useEffect(() => {
     document.title = `${nombreLocal} | AgendaOK`;
   }, [nombreLocal]);
 
-  if (session.state.status === "loading" || session.state.status === "logging-out") {
+  if (landingMode === "loading") {
     return <main className="pet-public-page" aria-busy="true"><p className="pet-session-loading" role="status">Validando sesión…</p></main>;
   }
 
-  if (session.state.status === "authenticated") {
+  if (landingMode === "authenticated" && session.state.status === "authenticated") {
     return (
       <main className="pet-public-page">
         <header className="pet-public-hero">
@@ -34,7 +37,7 @@ export function PetPublicLanding({ nombreLocal, slug }: Props) {
     );
   }
 
-  if (session.state.status === "error") {
+  if (landingMode === "error") {
     return (
       <main className="pet-public-page">
         <header className="pet-public-hero"><p className="pet-public-eyebrow">Peluquería canina</p><h1>{nombreLocal}</h1></header>
@@ -62,9 +65,7 @@ export function PetPublicLanding({ nombreLocal, slug }: Props) {
 
         <PetFirstVisitForm slug={slug} />
 
-        <p className="pet-existing-client-note">
-          Si ya sos cliente del local, comunicate por el canal habitual para coordinar tu turno.
-        </p>
+        <PetExistingClientAccess slug={slug} />
       </div>
     </main>
   );

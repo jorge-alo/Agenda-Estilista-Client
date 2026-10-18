@@ -52,8 +52,7 @@
   font-weight: 500;
 }
 
-.pet-public-intro p,
-.pet-existing-client-note {
+.pet-public-intro p {
   color: var(--color-text-soft);
   font-size: 14px;
   line-height: 1.6;
@@ -173,11 +172,64 @@
   opacity: 0.7;
 }
 
-.pet-existing-client-note {
+.pet-existing-client {
   margin-top: 24px;
   padding-top: 18px;
   border-top: 1px solid var(--color-border);
-  font-size: 13px;
+  display: grid;
+  gap: 12px;
+}
+
+.pet-existing-client h2 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.pet-existing-client-toggle,
+.pet-existing-client-cancel {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  background: var(--color-white);
+  color: var(--color-text);
+  font: 500 14px var(--font-sans);
+  cursor: pointer;
+}
+
+.pet-existing-client-toggle:focus-visible,
+.pet-existing-client-cancel:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.pet-access-request-form {
+  display: grid;
+  gap: 14px;
+}
+
+.pet-access-request-form > p:first-child,
+.pet-access-request-success p {
+  color: var(--color-text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pet-access-request-success {
+  display: grid;
+  gap: 14px;
+}
+
+.pet-existing-client-cancel {
+  background: transparent;
+}
+
+.pet-existing-client-toggle:disabled,
+.pet-existing-client-cancel:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .pet-request-success {
