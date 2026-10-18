@@ -216,6 +216,77 @@
   line-height: 1.6;
 }
 
+.pet-session-loading {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 48px 20px;
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+.pet-session-card,
+.pet-session-message {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 520px);
+  margin: 24px auto;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+}
+
+.pet-session-card h2 {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.pet-session-list {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+  color: var(--color-text);
+}
+
+.pet-session-muted,
+.pet-session-message,
+.pet-session-back {
+  color: var(--color-text-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pet-session-logout {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  background: var(--color-dark);
+  color: var(--color-primary-soft);
+  font: 500 14px var(--font-sans);
+  cursor: pointer;
+}
+
+.pet-session-logout:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.pet-session-back {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pet-session-back a {
+  color: inherit;
+}
+
+.pet-session-error {
+  margin-top: 24px;
+  text-align: center;
+}
+
 @media (min-width: 480px) {
   .pet-public-hero {
     padding-block: 48px 40px;

@@ -10,6 +10,7 @@ import { ResetPasswordPage } from './feature/admin/pages/ResetPasswordPage';
 import { PagoExitosoPage } from './feature/pagos/pages/PagoExitosoPage';
 import { PagoFallidoPage } from './feature/pagos/pages/PagoFallidoPage';
 import { PagoPendientePage } from './feature/pagos/pages/PagoPendientePage';
+import { PetAccessPage } from './feature/publicPet/pages/PetAccessPage';
 
 export const App = () => {
   return (
@@ -27,6 +28,7 @@ export const App = () => {
         } />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/:slug/acceso" element={<PetAccessPage />} />
         <Route path="/:slug" element={<PublicLocalPage />} />
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/pago-exitoso" element={<PagoExitosoPage />} />
