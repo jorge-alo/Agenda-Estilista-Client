@@ -1,4 +1,7 @@
 import { isCanonicalPetToken, readPetSession, removePetSession, writePetSession, type StoredPetSession } from "./petSessionStorage.ts";
+import {
+  activatePetSessionScope, clearPetSessionScope, invalidateCurrentPetSession, isCurrentPetSessionScope, releasePetSessionScope,
+} from "./petSessionScope.ts";
 import { runOnceByKey } from "./singleFlight.ts";
 
 const API_URL = import.meta.env?.VITE_API_URL ?? "";
@@ -9,10 +12,16 @@ export interface PetPublicProfile {
 }
 
 export type PetSessionFlowResult =
-  | { status: "authenticated"; session: StoredPetSession; profile: PetPublicProfile }
+  | { status: "authenticated"; session: StoredPetSession; profile: PetPublicProfile; sessionScope: string }
   | { status: "unauthenticated" }
   | { status: "invalid-link" }
   | { status: "local-unavailable" }
+  | { status: "error" };
+
+export type PetProfileRefreshResult =
+  | { status: "refreshed"; profile: PetPublicProfile }
+  | { status: "unauthorized" }
+  | { status: "stale" }
   | { status: "error" };
 
 export class PetSessionApiError extends Error {
@@ -149,9 +158,12 @@ export function consumePetMagicLinkOnce(slug: string, challenge: string): Promis
       // Only a session returned by successful consume is persisted; the challenge is never stored.
       writePetSession(slug, session);
       const profile = await getMe(slug, session);
-      return { status: "authenticated", session, profile };
+      return { status: "authenticated", session, profile, sessionScope: activatePetSessionScope(slug) };
     } catch (error) {
-      if (error instanceof PetSessionApiError && error.status === 401) removePetSession(slug);
+      if (error instanceof PetSessionApiError && error.status === 401) {
+        removePetSession(slug);
+        clearPetSessionScope(slug);
+      }
       return resultFromError(error, "consume");
     }
   });
@@ -160,16 +172,46 @@ export function consumePetMagicLinkOnce(slug: string, challenge: string): Promis
 export function restorePetSessionOnce(slug: string): Promise<PetSessionFlowResult> {
   return runOnceByKey(restoreFlights, slug, async () => {
     const session = readPetSession(slug);
-    if (!session) return { status: "unauthenticated" };
+    if (!session) {
+      clearPetSessionScope(slug);
+      return { status: "unauthenticated" };
+    }
     try {
       const profile = await getMe(slug, session);
-      return { status: "authenticated", session, profile };
+      return { status: "authenticated", session, profile, sessionScope: activatePetSessionScope(slug) };
     } catch (error) {
       if (error instanceof PetSessionApiError && error.status === 401) {
         removePetSession(slug);
+        clearPetSessionScope(slug);
         return { status: "unauthenticated" };
       }
       return resultFromError(error, "restore");
+    }
+  });
+}
+
+const refreshFlights = new Map<string, Promise<PetProfileRefreshResult>>();
+
+/** Keeps the current authority visible while refreshing; only a scoped 401 removes the local session. */
+export function refreshPetSessionProfileOnce(slug: string, sessionScope: string): Promise<PetProfileRefreshResult> {
+  return runOnceByKey(refreshFlights, `${slug}\u0000${sessionScope}`, async () => {
+    if (!isCurrentPetSessionScope(slug, sessionScope)) return { status: "stale" };
+    const session = readPetSession(slug);
+    if (!session) {
+      releasePetSessionScope(slug, sessionScope);
+      return { status: "unauthorized" };
+    }
+    try {
+      const profile = await getMe(slug, session);
+      if (!isCurrentPetSessionScope(slug, sessionScope)) return { status: "stale" };
+      return { status: "refreshed", profile };
+    } catch (error) {
+      if (!isCurrentPetSessionScope(slug, sessionScope)) return { status: "stale" };
+      if (error instanceof PetSessionApiError && error.status === 401) {
+        invalidateCurrentPetSession(slug, sessionScope);
+        return { status: "unauthorized" };
+      }
+      return { status: "error" };
     }
   });
 }

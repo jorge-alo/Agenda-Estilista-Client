@@ -39,7 +39,7 @@ export function PublicLocalPage() {
   }
 
   if (data.businessType === BUSINESS_TYPE.BEAUTY) return <ReservaPage />;
-  if (data.businessType === BUSINESS_TYPE.PET_GROOMING) return <PetPublicLanding nombreLocal={data.nombre} slug={slug} />;
+  if (data.businessType === BUSINESS_TYPE.PET_GROOMING) return <PetPublicLanding key={slug} nombreLocal={data.nombre} slug={slug} />;
 
   return <PublicContextMessage title="Este local no está disponible." />;
 }

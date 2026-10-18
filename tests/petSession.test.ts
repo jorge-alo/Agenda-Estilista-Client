@@ -11,13 +11,29 @@ import {
   type StoredPetSession,
 } from "../src/feature/publicPet/session/petSessionStorage.ts";
 import { runOnceByKey } from "../src/feature/publicPet/session/singleFlight.ts";
-import { getPetLandingMode, runPetRequestOnce } from "../src/feature/publicPet/session/publicPetRequestUi.ts";
+import {
+  canStartPetLogout,
+  getPetLandingMode,
+  petAccessRedirectPath,
+  PET_SESSION_EXPIRED_MESSAGE,
+  runPetRequestOnce,
+} from "../src/feature/publicPet/session/publicPetRequestUi.ts";
+import {
+  activatePetSessionScope,
+  clearPetSessionScope,
+  currentPetSessionScope,
+  invalidateCurrentPetSession,
+  isCurrentPetSessionScope,
+  releasePetSessionScope,
+} from "../src/feature/publicPet/session/petSessionScope.ts";
+import { petSessionUiStateAfterRefresh, type PetSessionUiState } from "../src/feature/publicPet/session/petSessionUiState.ts";
 import {
   consumePetMagicLinkOnce,
   logoutPetSession,
   PetSessionApiError,
   petAccessRequestErrorMessage,
   PET_ACCESS_REQUEST_SUCCESS_MESSAGE,
+  refreshPetSessionProfileOnce,
   requestPetAccessLink,
   restorePetSessionOnce,
   validatePetAccessPhone,
@@ -341,4 +357,214 @@ test("request de acceso: 429, 404, 500 y red solo producen errores genéricos", 
   try { await requestPetAccessLink("local", "1123456789"); } catch (caught) { networkError = caught; }
   assert.ok(networkError instanceof PetSessionApiError);
   assert.equal(petAccessRequestErrorMessage(networkError), "No pudimos procesar la solicitud en este momento. Intentá nuevamente más tarde.");
+});
+
+test("scope: restore simultáneo comparte scope y una instancia nueva genera otro scope", async t => {
+  const storage = new MemoryStorage();
+  const session = futureSession();
+  storage.setItem(petSessionStorageKey("scope-stable"), JSON.stringify(session));
+  let meCalls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    meCalls++;
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+  });
+  await withTestStorage(storage, async () => {
+    const first = restorePetSessionOnce("scope-stable");
+    const replay = restorePetSessionOnce("scope-stable");
+    assert.equal(first, replay, "StrictMode comparte el mismo flight");
+    const [a, b] = await Promise.all([first, replay]);
+    assert.equal(a.status, "authenticated");
+    if (a.status !== "authenticated" || b.status !== "authenticated") return;
+    assert.equal(a.sessionScope, b.sessionScope, "la instancia restaurada mantiene su scope");
+    assert.ok(!a.sessionScope.includes(session.token), "el scope no se deriva del Bearer");
+    assert.equal(currentPetSessionScope("scope-stable"), a.sessionScope);
+
+    const again = await restorePetSessionOnce("scope-stable");
+    assert.equal(again.status, "authenticated");
+    if (again.status !== "authenticated") return;
+    assert.notEqual(again.sessionScope, a.sessionScope, "una instancia nueva no reutiliza el scope anterior");
+    assert.equal(currentPetSessionScope("scope-stable"), again.sessionScope);
+    assert.equal(isCurrentPetSessionScope("scope-stable", a.sessionScope), false);
+    assert.equal(meCalls, 2, "un /me por flight, sin doble restore destructivo");
+
+    const persisted = JSON.parse(storage.value(petSessionStorageKey("scope-stable")));
+    assert.deepEqual(Object.keys(persisted).sort(), ["expiresAt", "token"], "el reload no restaura draft/scope persistidos");
+    assert.equal(storage.length, 1);
+  });
+  clearPetSessionScope("scope-stable");
+});
+
+test("scope: consume no deriva del challenge ni del token y no se persiste", async t => {
+  const storage = new MemoryStorage();
+  const challenge = token();
+  const session = futureSession();
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    if (String(input).endsWith("/session/consume")) {
+      return new Response(JSON.stringify({ sessionToken: session.token, expiresAt: session.expiresAt }), { status: 201 });
+    }
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+  });
+  await withTestStorage(storage, async () => {
+    const result = await consumePetMagicLinkOnce("scope-consume", challenge);
+    assert.equal(result.status, "authenticated");
+    if (result.status !== "authenticated") return;
+    assert.notEqual(result.sessionScope, result.session.token);
+    assert.ok(!result.sessionScope.includes(result.session.token));
+    assert.ok(!result.sessionScope.includes(challenge));
+    const raw = storage.value(petSessionStorageKey("scope-consume"));
+    assert.deepEqual(Object.keys(JSON.parse(raw)).sort(), ["expiresAt", "token"]);
+    assert.equal(raw.includes(result.sessionScope), false, "el scope es solo memoria");
+    assert.equal(raw.includes(challenge), false);
+  });
+  clearPetSessionScope("scope-consume");
+});
+
+test("401 scoped: invalida solo si slug+scope siguen vigentes y nunca toca auth admin", () => {
+  const storage = new MemoryStorage();
+  let adminReads = 0;
+  const original = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      sessionStorage: storage,
+      get localStorage() { adminReads++; throw new Error("ADMIN_STORAGE_MUST_NOT_BE_READ"); },
+    },
+  });
+  try {
+    const a = futureSession();
+    const b = futureSession();
+    storage.setItem(petSessionStorageKey("scope-invalid-a"), JSON.stringify(a));
+    storage.setItem(petSessionStorageKey("scope-invalid-b"), JSON.stringify(b));
+    activatePetSessionScope("scope-invalid-a", "scope-a-1");
+    activatePetSessionScope("scope-invalid-b", "scope-b-1");
+
+    assert.equal(invalidateCurrentPetSession("scope-invalid-a", "scope-a-1"), true);
+    assert.equal(storage.getItem(petSessionStorageKey("scope-invalid-a")), null);
+    assert.equal(isCurrentPetSessionScope("scope-invalid-a", "scope-a-1"), false);
+
+    // Late 401 from the replaced instance: ignored, the new authority stays intact.
+    activatePetSessionScope("scope-invalid-a", "scope-a-2");
+    storage.setItem(petSessionStorageKey("scope-invalid-a"), JSON.stringify(a));
+    assert.equal(invalidateCurrentPetSession("scope-invalid-a", "scope-a-1"), false);
+    assert.notEqual(storage.getItem(petSessionStorageKey("scope-invalid-a")), null);
+    assert.ok(isCurrentPetSessionScope("scope-invalid-a", "scope-a-2"));
+
+    // Wrong slug is ignored even if the scope string matches.
+    assert.equal(invalidateCurrentPetSession("scope-invalid-b", "scope-a-2"), false);
+    assert.notEqual(storage.getItem(petSessionStorageKey("scope-invalid-b")), null);
+    assert.equal(currentPetSessionScope("scope-invalid-b"), "scope-b-1");
+    assert.equal(adminReads, 0, "una expiración PET nunca lee/borra auth admin");
+  } finally {
+    if (original) Object.defineProperty(globalThis, "window", original);
+    else delete (globalThis as { window?: unknown }).window;
+    clearPetSessionScope("scope-invalid-a");
+    clearPetSessionScope("scope-invalid-b");
+  }
+});
+
+test("refresh /me: dedupe, reemplaza profile al éxito, conserva al error y 401 invalida scoped", async t => {
+  const storage = new MemoryStorage();
+  const session = futureSession();
+  storage.setItem(petSessionStorageKey("scope-refresh"), JSON.stringify(session));
+  let mode: "ok" | "error" | "unauthorized" = "ok";
+  let profileResponse: { cliente: { nombre: string }; mascotas: Array<{ id: number; nombre: string }> } =
+    { cliente: { nombre: "Ana" }, mascotas: [] };
+  let meCalls = 0;
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+    meCalls++;
+    assert.equal(String(input), "/api/pet/public/scope-refresh/session/me");
+    assert.deepEqual(init?.headers, { Authorization: `Bearer ${session.token}` });
+    if (mode === "error") throw new Error("network sentinel");
+    if (mode === "unauthorized") return new Response(JSON.stringify({ error: "PET_SESSION_INVALID" }), { status: 401 });
+    return new Response(JSON.stringify(profileResponse), { status: 200 });
+  });
+  await withTestStorage(storage, async () => {
+    const restored = await restorePetSessionOnce("scope-refresh");
+    assert.equal(restored.status, "authenticated");
+    if (restored.status !== "authenticated") return;
+    const scope = restored.sessionScope;
+    const authenticatedState: PetSessionUiState = restored;
+
+    profileResponse = { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }] };
+    const first = refreshPetSessionProfileOnce("scope-refresh", scope);
+    const replay = refreshPetSessionProfileOnce("scope-refresh", scope);
+    assert.equal(first, replay, "StrictMode no duplica el refresh");
+    assert.notEqual(storage.getItem(petSessionStorageKey("scope-refresh")), null, "mientras carga no se borra nada");
+    assert.ok(isCurrentPetSessionScope("scope-refresh", scope));
+    const refreshed = await first;
+    assert.deepEqual(refreshed, {
+      status: "refreshed",
+      profile: { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }] },
+    });
+    const afterRefresh = petSessionUiStateAfterRefresh(authenticatedState, refreshed);
+    assert.equal(afterRefresh.status, "authenticated");
+    if (afterRefresh.status === "authenticated") {
+      assert.deepEqual(afterRefresh.profile.mascotas, [{ id: 3, nombre: "Milo" }]);
+    }
+
+    mode = "error";
+    const failed = await refreshPetSessionProfileOnce("scope-refresh", scope);
+    assert.deepEqual(failed, { status: "error" });
+    assert.deepEqual(petSessionUiStateAfterRefresh(afterRefresh, failed), afterRefresh, "conserva el profile anterior");
+    assert.notEqual(storage.getItem(petSessionStorageKey("scope-refresh")), null);
+
+    mode = "ok";
+    profileResponse = { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }, { id: 4, nombre: "Luna" }] };
+    const retried = await refreshPetSessionProfileOnce("scope-refresh", scope);
+    assert.equal(retried.status, "refreshed", "el error previo permite reintentar");
+
+    mode = "unauthorized";
+    const denied = await refreshPetSessionProfileOnce("scope-refresh", scope);
+    assert.deepEqual(denied, { status: "unauthorized" });
+    assert.equal(storage.getItem(petSessionStorageKey("scope-refresh")), null);
+    assert.equal(isCurrentPetSessionScope("scope-refresh", scope), false);
+    assert.deepEqual(petSessionUiStateAfterRefresh(afterRefresh, denied), { status: "expired" });
+
+    const callsBefore = meCalls;
+    assert.deepEqual(await refreshPetSessionProfileOnce("scope-refresh", scope), { status: "stale" });
+    assert.equal(meCalls, callsBefore, "un scope viejo no dispara requests");
+    assert.equal(meCalls, 5);
+  });
+});
+
+test("logout: libera solo el scope saliente y un 401 tardío queda ignorado", async t => {
+  const storage = new MemoryStorage();
+  const session = futureSession();
+  storage.setItem(petSessionStorageKey("scope-logout"), JSON.stringify(session));
+  storage.setItem(petSessionStorageKey("scope-logout-b"), JSON.stringify(futureSession()));
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    if (String(input).endsWith("/session/logout")) return new Response(null, { status: 204 });
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+  });
+  await withTestStorage(storage, async () => {
+    const restored = await restorePetSessionOnce("scope-logout");
+    assert.equal(restored.status, "authenticated");
+    if (restored.status !== "authenticated") return;
+    await logoutPetSession("scope-logout", restored.session.token);
+    assert.equal(releasePetSessionScope("scope-logout", restored.sessionScope), true);
+    assert.equal(invalidateCurrentPetSession("scope-logout", restored.sessionScope), false,
+      "un 401 tardío ya no invalida nada");
+    assert.equal(storage.getItem(petSessionStorageKey("scope-logout")), null);
+    assert.notEqual(storage.getItem(petSessionStorageKey("scope-logout-b")), null);
+
+    activatePetSessionScope("scope-logout-b", "scope-b-current");
+    assert.equal(releasePetSessionScope("scope-logout", "scope-b-current"), false, "no libera otro slug");
+    assert.equal(currentPetSessionScope("scope-logout-b"), "scope-b-current");
+  });
+  clearPetSessionScope("scope-logout-b");
+});
+
+test("acceso y vencimiento: destino canónico, logout solo autenticado y aviso conceptual", () => {
+  assert.equal(petAccessRedirectPath("authenticated", "local/a"), "/local%2Fa");
+  assert.ok(!String(petAccessRedirectPath("authenticated", "local/a")).includes("#"));
+  assert.ok(!String(petAccessRedirectPath("authenticated", "local/a")).includes("token"));
+  for (const status of ["unauthenticated", "invalid-link", "local-unavailable", "error", "loading"]) {
+    assert.equal(petAccessRedirectPath(status, "local/a"), null);
+  }
+  assert.equal(canStartPetLogout(false, "authenticated"), true);
+  assert.equal(canStartPetLogout(true, "authenticated"), false, "submitting impide iniciar logout");
+  assert.equal(canStartPetLogout(false, "logging-out"), false);
+  assert.equal(canStartPetLogout(false, "unauthenticated"), false);
+  assert.equal(getPetLandingMode("expired"), "first-visit");
+  assert.equal(PET_SESSION_EXPIRED_MESSAGE, "Tu sesión venció. Volvé a ingresar para reservar.");
 });

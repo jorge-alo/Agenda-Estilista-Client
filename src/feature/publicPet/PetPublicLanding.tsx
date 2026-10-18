@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { PetFirstVisitForm } from "./components/PetFirstVisitForm";
-import { PetSessionPanel } from "./components/PetSessionPanel";
+import { PetBookingFlow } from "./components/PetBookingFlow";
 import { PetExistingClientAccess } from "./components/PetExistingClientAccess";
 import { usePetSession } from "./hooks/usePetSession";
-import { getPetLandingMode } from "./session/publicPetRequestUi";
+import { getPetLandingMode, PET_SESSION_EXPIRED_MESSAGE } from "./session/publicPetRequestUi";
 import "./styles/publicPet.css";
 
 interface Props {
@@ -28,10 +28,18 @@ export function PetPublicLanding({ nombreLocal, slug }: Props) {
         <header className="pet-public-hero">
           <p className="pet-public-eyebrow">Peluquería canina</p>
           <h1>{nombreLocal}</h1>
-          <p className="pet-public-subtitle">Tu espacio y tus mascotas</p>
+          <p className="pet-public-subtitle">Reservá y gestioná los turnos de tus mascotas</p>
         </header>
         <div className="pet-public-content">
-          <PetSessionPanel profile={session.state.profile} onLogout={() => void session.logout()} />
+          <PetBookingFlow
+            slug={slug}
+            token={session.state.session.token}
+            sessionScope={session.state.sessionScope}
+            profile={session.state.profile}
+            status={session.state.status}
+            onLogout={() => void session.logout()}
+            onSessionInvalid={session.handleSessionInvalid}
+          />
         </div>
       </main>
     );
@@ -58,6 +66,12 @@ export function PetPublicLanding({ nombreLocal, slug }: Props) {
       </header>
 
       <div className="pet-public-content">
+        {session.state.status === "expired" && (
+          <section className="pet-session-message" role="status">
+            <p>{PET_SESSION_EXPIRED_MESSAGE}</p>
+          </section>
+        )}
+
         <section className="pet-public-intro">
           <h2>Conocé nuestro espacio</h2>
           <p>La primera visita se coordina con el local. Completá tus datos y los de tu mascota, y se pondrán en contacto con vos.</p>
