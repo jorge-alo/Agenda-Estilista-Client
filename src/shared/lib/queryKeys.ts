@@ -4,6 +4,15 @@ export const queryKeys = {
     context: (slug: string) => ["public-local", slug] as const,
   },
 
+  petBooking: {
+    scope: (slug: string, sessionScope: string) => ["pet-public-booking", slug, sessionScope] as const,
+    options: (slug: string, sessionScope: string, mascotaId: number | null) =>
+      ["pet-public-booking", slug, sessionScope, "options", mascotaId] as const,
+    availability: (slug: string, sessionScope: string, mascotaId: number | null, servicioId: number | null, extraIds: readonly number[], fecha: string) =>
+      ["pet-public-booking", slug, sessionScope, "availability", mascotaId, servicioId, [...extraIds].sort((a, b) => a - b), fecha] as const,
+    creation: (slug: string, sessionScope: string) => ["pet-public-booking", slug, sessionScope, "create"] as const,
+  },
+
   turnos: {
 
     all: ["turnos"],
