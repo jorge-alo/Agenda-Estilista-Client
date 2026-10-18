@@ -24,6 +24,21 @@ import {
   type PetBookingDraft,
   type PetBookingState,
 } from "../src/feature/publicPet/booking/publicPetBookingState.ts";
+import {
+  PET_BOOKING_EMPTY_MASCOTAS,
+  PET_BOOKING_EMPTY_SERVICES,
+  PET_BOOKING_EMPTY_SLOTS,
+  PET_BOOKING_OPTIONS_ERROR,
+  PET_BOOKING_PRICE_NOTE,
+  PET_BOOKING_SLOTS_LOADING,
+  PET_BOOKING_SUBMITTING,
+  petBookingDisplayedDurationMinutes,
+  petBookingDurationLabel,
+  petBookingEstimatedDurationMinutes,
+  petBookingExtraLabel,
+  petBookingSlotLabel,
+  petBookingSlotsView,
+} from "../src/feature/publicPet/booking/publicPetBookingView.ts";
 import type {
   PetAvailabilityInput,
   PetAvailability,
@@ -1034,4 +1049,42 @@ test("orquestación no accede a storage y reconecta tras limpieza de suscripció
     if (original) Object.defineProperty(globalThis, "window", original);
     else delete (globalThis as { window?: unknown }).window;
   }
+});
+
+test("view: textos aprobados, labels de extra/slot y duración", () => {
+  assert.equal(PET_BOOKING_PRICE_NOTE, "El valor final se confirma en el local.");
+  assert.equal(PET_BOOKING_EMPTY_MASCOTAS, "No tenés mascotas habilitadas para reservar online.");
+  assert.equal(PET_BOOKING_EMPTY_SERVICES, "No hay servicios habilitados para esta mascota.");
+  assert.equal(PET_BOOKING_EMPTY_SLOTS, "No hay horarios disponibles para esta fecha.");
+  assert.equal(PET_BOOKING_OPTIONS_ERROR, "No pudimos cargar la información. Intentá nuevamente.");
+  assert.equal(PET_BOOKING_SLOTS_LOADING, "Buscando horarios disponibles…");
+  assert.equal(PET_BOOKING_SUBMITTING, "Confirmando turno…");
+  assert.equal(petBookingExtraLabel({ nombre: "Corte de uñas", duracionExtraMinutos: 15 }), "Corte de uñas (+15 min)");
+  assert.equal(petBookingSlotLabel({ horaInicio: "10:00", horaFin: "12:00" }), "10:00 – 12:00");
+  assert.equal(petBookingDurationLabel(90), "90 min");
+  assert.equal(petBookingDurationLabel(null), null);
+});
+
+test("view: duración estimada servicio+extras y disponibilidad manda cuando existe", () => {
+  const servicio = { id: 2, nombre: "Baño y corte", duracionMinutos: 90 };
+  const extras = [
+    { id: 3, nombre: "Corte de uñas", duracionExtraMinutos: 15 },
+    { id: 5, nombre: "Baño antipulgas", duracionExtraMinutos: 30 },
+  ];
+  assert.equal(petBookingEstimatedDurationMinutes(servicio, extras), 135);
+  assert.equal(petBookingEstimatedDurationMinutes(servicio, []), 90);
+  assert.equal(petBookingEstimatedDurationMinutes(null, extras), null);
+  assert.equal(petBookingDisplayedDurationMinutes({ fecha: "2026-10-25", duracionMinutos: 120, slots: [] }, servicio, extras), 120);
+  assert.equal(petBookingDisplayedDurationMinutes(undefined, servicio, extras), 135);
+  assert.equal(petBookingDisplayedDurationMinutes(undefined, null, extras), null);
+});
+
+test("view: estado de slots prioriza carga y distingue vacío de error", () => {
+  const slot = { horaInicio: "10:00", horaFin: "12:00" };
+  assert.equal(petBookingSlotsView({ isFetching: true, isError: false, slots: [slot] }), "loading");
+  assert.equal(petBookingSlotsView({ isFetching: true, isError: true, slots: null }), "loading");
+  assert.equal(petBookingSlotsView({ isFetching: false, isError: true, slots: null }), "error");
+  assert.equal(petBookingSlotsView({ isFetching: false, isError: false, slots: null }), "loading");
+  assert.equal(petBookingSlotsView({ isFetching: false, isError: false, slots: [] }), "empty");
+  assert.equal(petBookingSlotsView({ isFetching: false, isError: false, slots: [slot] }), "ready");
 });

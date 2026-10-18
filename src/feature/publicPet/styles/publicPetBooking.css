@@ -1,0 +1,320 @@
+.pet-booking-card {
+  display: grid;
+  gap: 20px;
+  width: min(100%, 520px);
+  margin: 24px auto;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+}
+
+.pet-booking-card h2 {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.pet-booking-empty {
+  justify-items: center;
+  text-align: center;
+}
+
+.pet-booking-empty p {
+  color: var(--color-text-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pet-booking-section {
+  display: grid;
+  gap: 12px;
+}
+
+.pet-booking-section h3 {
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.pet-booking-group {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  border: 0;
+  padding: 0;
+}
+
+.pet-booking-group[disabled] {
+  opacity: 0.65;
+}
+
+.pet-booking-group legend {
+  width: 100%;
+  margin-bottom: 4px;
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.pet-booking-options {
+  display: grid;
+  gap: 8px;
+}
+
+.pet-booking-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.pet-booking-option:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 60%, var(--color-border));
+}
+
+.pet-booking-option[data-selected="true"] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.pet-booking-option input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--color-primary);
+}
+
+.pet-booking-option input:disabled {
+  cursor: not-allowed;
+}
+
+.pet-booking-option input:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pet-booking-option-text {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.pet-booking-option-name {
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.pet-booking-option[data-selected="true"] .pet-booking-option-name {
+  font-weight: 600;
+}
+
+.pet-booking-option-meta {
+  color: var(--color-text-soft);
+  font-size: 13px;
+}
+
+.pet-booking-date {
+  display: grid;
+  gap: 7px;
+}
+
+.pet-booking-date label {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.pet-booking-date input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 11px 12px;
+  background: var(--color-white);
+  color: var(--color-text);
+  font: 400 16px var(--font-sans);
+}
+
+.pet-booking-date input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+.pet-booking-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.pet-booking-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.pet-booking-slot:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 60%, var(--color-border));
+}
+
+.pet-booking-slot[data-selected="true"] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+  background: var(--color-primary-light);
+  font-weight: 600;
+}
+
+.pet-booking-slot input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  accent-color: var(--color-primary);
+}
+
+.pet-booking-slot input:disabled {
+  cursor: not-allowed;
+}
+
+.pet-booking-slot input:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pet-booking-status,
+.pet-booking-duration,
+.pet-booking-price {
+  color: var(--color-text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pet-booking-notice {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pet-booking-error {
+  display: grid;
+  gap: 10px;
+}
+
+.pet-booking-error p {
+  color: var(--color-error);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pet-booking-retry {
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  background: var(--color-white);
+  color: var(--color-text);
+  font: 500 14px var(--font-sans);
+  cursor: pointer;
+}
+
+.pet-booking-retry:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pet-booking-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.pet-booking-summary > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pet-booking-summary dt {
+  color: var(--color-text-soft);
+  font-size: 14px;
+}
+
+.pet-booking-summary dd {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.pet-booking-confirm {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  background: var(--color-dark);
+  color: var(--color-primary-soft);
+  font: 500 15px var(--font-sans);
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.pet-booking-confirm:hover:not(:disabled) {
+  background: var(--color-dark-soft);
+}
+
+.pet-booking-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pet-booking-confirm:focus-visible,
+.pet-booking-retry:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.pet-booking-success {
+  justify-items: stretch;
+}
+
+.pet-booking-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 480px) {
+  .pet-booking-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
