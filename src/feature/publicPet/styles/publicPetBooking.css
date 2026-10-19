@@ -209,12 +209,20 @@
 }
 
 .pet-booking-notice {
+  width: min(100%, 520px);
+  margin: 24px auto 0;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   background: var(--color-primary-light);
   color: var(--color-text);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.pet-booking-notice:focus,
+.pet-booking-empty p:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .pet-booking-error {

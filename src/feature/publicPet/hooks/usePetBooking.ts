@@ -1,23 +1,28 @@
 import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { PetPublicProfile } from "../session/publicPetSession.service.ts";
+import type { PetProfileRefreshResult, PetPublicProfile } from "../session/publicPetSession.service.ts";
 import { createPetBookingController } from "../booking/publicPetBookingController.ts";
 import type { PetBookingScope, ScopedPetBookingContext } from "../booking/publicPetBookingQueries.ts";
 
 interface UsePetBookingInput extends ScopedPetBookingContext {
   profile: PetPublicProfile;
   onSessionInvalid?: (scope: PetBookingScope) => void;
+  refreshProfile?: () => Promise<PetProfileRefreshResult>;
 }
 
 /** F.4 supplies a stable non-secret sessionScope; never derive it from/persist it with the Bearer. */
-export function usePetBooking({ slug, token, sessionScope, profile, onSessionInvalid }: UsePetBookingInput) {
+export function usePetBooking({ slug, token, sessionScope, profile, onSessionInvalid, refreshProfile }: UsePetBookingInput) {
   const client = useQueryClient();
   const controller = useMemo(() => createPetBookingController(client, { slug, token, sessionScope }),
     [client, slug, token, sessionScope]);
   useLayoutEffect(() => {
     controller.setOnSessionInvalid(onSessionInvalid);
-    return () => { controller.setOnSessionInvalid(undefined); };
-  }, [controller, onSessionInvalid]);
+    controller.setRefreshProfile(refreshProfile);
+    return () => {
+      controller.setOnSessionInvalid(undefined);
+      controller.setRefreshProfile(undefined);
+    };
+  }, [controller, onSessionInvalid, refreshProfile]);
   useLayoutEffect(() => () => { controller.suspend(); }, [controller]);
   useLayoutEffect(() => { controller.setProfile(profile); }, [controller, profile]);
   const snapshot = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);

@@ -13,6 +13,12 @@ export const PET_BOOKING_EMPTY_SERVICES = "No hay servicios habilitados para est
 export const PET_BOOKING_SLOTS_LOADING = "Buscando horarios disponibles…";
 export const PET_BOOKING_EMPTY_SLOTS = "No hay horarios disponibles para esta fecha.";
 export const PET_BOOKING_SUBMITTING = "Confirmando turno…";
+export const PET_BOOKING_PET_CHANGED_MESSAGE = "La información de tus mascotas cambió. Revisá la selección.";
+export const PET_BOOKING_SERVICE_CHANGED_MESSAGE = "La configuración del servicio cambió. Revisá tu selección.";
+export const PET_BOOKING_EXTRA_CHANGED_MESSAGE = "La configuración de algunos extras cambió. Revisá tu selección.";
+export const PET_BOOKING_INVALID_MESSAGE = "Revisá la selección e intentá nuevamente.";
+export const PET_BOOKING_TOO_MANY_MESSAGE = "Demasiados intentos. Esperá un momento y volvé a intentar.";
+export const PET_BOOKING_CREATE_UNKNOWN_MESSAGE = "No pudimos confirmar el resultado de la reserva. Intentá nuevamente más tarde.";
 
 export type PetBookingOptionsView = "idle" | "loading" | "error" | "ready";
 export type PetBookingSlotsView = "loading" | "error" | "empty" | "ready";

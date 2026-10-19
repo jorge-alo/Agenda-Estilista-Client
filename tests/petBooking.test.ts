@@ -25,13 +25,19 @@ import {
   type PetBookingState,
 } from "../src/feature/publicPet/booking/publicPetBookingState.ts";
 import {
+  PET_BOOKING_CREATE_UNKNOWN_MESSAGE,
   PET_BOOKING_EMPTY_MASCOTAS,
   PET_BOOKING_EMPTY_SERVICES,
   PET_BOOKING_EMPTY_SLOTS,
+  PET_BOOKING_EXTRA_CHANGED_MESSAGE,
+  PET_BOOKING_INVALID_MESSAGE,
   PET_BOOKING_OPTIONS_ERROR,
+  PET_BOOKING_PET_CHANGED_MESSAGE,
   PET_BOOKING_PRICE_NOTE,
+  PET_BOOKING_SERVICE_CHANGED_MESSAGE,
   PET_BOOKING_SLOTS_LOADING,
   PET_BOOKING_SUBMITTING,
+  PET_BOOKING_TOO_MANY_MESSAGE,
   petBookingDisplayedDurationMinutes,
   petBookingDurationLabel,
   petBookingEstimatedDurationMinutes,
@@ -39,6 +45,7 @@ import {
   petBookingSlotLabel,
   petBookingSlotsView,
 } from "../src/feature/publicPet/booking/publicPetBookingView.ts";
+import { PET_BOOKING_UNAVAILABLE_MESSAGE } from "../src/feature/publicPet/session/publicPetRequestUi.ts";
 import type {
   PetAvailabilityInput,
   PetAvailability,
@@ -879,16 +886,35 @@ test("401 tardío de scope A no emite invalidación ni afecta a scope B", async 
 });
 
 for (const code of ["PET_MASCOTA_UNAVAILABLE", "PET_SERVICE_UNAVAILABLE", "PET_EXTRA_UNAVAILABLE"] as const) {
-  test(`404 ${code}: queda diferenciable sin refetch /me ni logout`, async t => {
+  test(`404 ${code}: recovery acotado sin /me espurio ni logout`, async t => {
     const client = testClient(t);
     let requests = 0;
+    let refreshes = 0;
     t.mock.method(globalThis, "fetch", async () => { requests++; return response({ error: code }, 404); });
-    const controller = testController(t, client);
-    await waitBooking(controller, value => value.options.isError);
-    assert.ok(controller.getSnapshot().options.error instanceof PublicPetHttpError);
-    assert.equal((controller.getSnapshot().options.error as PublicPetHttpError).code, code);
-    assert.notEqual(petBookingErrorKind(controller.getSnapshot().options.error), "other");
-    assert.equal(requests, 1);
+    const controller = createPetBookingController(client, scopedContext);
+    t.after(() => controller.dispose());
+    controller.setRefreshProfile(async () => { refreshes++; return { status: "error" }; });
+    controller.setProfile({ mascotas: [{ id: 1, nombre: "Rocky" }] });
+    const unsubscribe = controller.subscribe(() => {});
+    t.after(() => unsubscribe());
+
+    const errored = await waitBooking(controller, value => value.options.isError);
+    const first = errored.options.error;
+    assert.ok(first instanceof PublicPetHttpError);
+    assert.equal(first.code, code);
+    assert.notEqual(petBookingErrorKind(first), "other");
+    await nextTick();
+    await nextTick();
+    if (code === "PET_MASCOTA_UNAVAILABLE") {
+      assert.equal(refreshes, 1, "la mascota stale refresca /me vía F.4");
+      assert.equal(requests, 1, "sin catálogo stale no se refetchean opciones");
+    } else {
+      assert.equal(refreshes, 0, "servicio/extra no tocan /me");
+      assert.equal(requests, 2, "exactamente un refetch de opciones");
+    }
+    await nextTick();
+    await nextTick();
+    assert.equal(requests, code === "PET_MASCOTA_UNAVAILABLE" ? 1 : 2, "sin loop");
     assert.equal(controller.getSnapshot().sessionInvalid, false);
   });
 }
@@ -1087,4 +1113,386 @@ test("view: estado de slots prioriza carga y distingue vacío de error", () => {
   assert.equal(petBookingSlotsView({ isFetching: false, isError: false, slots: null }), "loading");
   assert.equal(petBookingSlotsView({ isFetching: false, isError: false, slots: [] }), "empty");
   assert.equal(petBookingSlotsView({ isFetching: false, isError: false, slots: [slot] }), "ready");
+});
+
+test("copy PET_BOOKING_UNAVAILABLE es idéntico entre booking y primera visita", () => {
+  const state = petBookingReducer(crearEstadoInicialBooking([]), { type: "BOOKING_UNAVAILABLE" });
+  assert.equal(state.avisoRecuperable, PET_BOOKING_UNAVAILABLE_MESSAGE);
+  assert.equal(PET_BOOKING_UNAVAILABLE_MESSAGE, "Las reservas online no están disponibles en este momento.");
+});
+
+test("recovery mascota: un solo refresh /me, aviso y reconciliación cuando desaparece", async t => {
+  const client = testClient(t);
+  let refreshes = 0;
+  let optionsCalls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    optionsCalls++;
+    return response({ error: "PET_MASCOTA_UNAVAILABLE" }, 404);
+  });
+  const controller = createPetBookingController(client, scopedContext);
+  t.after(() => controller.dispose());
+  controller.setRefreshProfile(async () => {
+    refreshes++;
+    return { status: "refreshed", profile: { cliente: { nombre: "Ana" }, mascotas: [] } };
+  });
+  controller.setProfile({ mascotas: [{ id: 1, nombre: "Rocky" }] });
+  const unsubscribe = controller.subscribe(() => {});
+  t.after(() => unsubscribe());
+
+  await waitBooking(controller, value => value.notice === PET_BOOKING_PET_CHANGED_MESSAGE);
+  assert.equal(refreshes, 1);
+  assert.equal(optionsCalls, 1);
+  assert.equal(controller.getSnapshot().state.draft.mascotaId, 1);
+  controller.setProfile({ mascotas: [] });
+  assert.equal(controller.getSnapshot().state.draft.mascotaId, null);
+  assert.equal(controller.getSnapshot().notice, PET_BOOKING_PET_CHANGED_MESSAGE);
+  await nextTick();
+  assert.equal(refreshes, 1, "la recuperación no reintenta /me");
+  assert.equal(optionsCalls, 1);
+  assert.equal(controller.getSnapshot().sessionInvalid, false);
+});
+
+test("recovery mascota: si /me la mantiene, refresca opciones una vez y no deja aviso", async t => {
+  const client = testClient(t);
+  let refreshes = 0;
+  let optionsCalls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    optionsCalls++;
+    return optionsCalls === 1 ? response({ error: "PET_MASCOTA_UNAVAILABLE" }, 404) : response(queryOptionsDto);
+  });
+  const controller = createPetBookingController(client, scopedContext);
+  t.after(() => controller.dispose());
+  controller.setRefreshProfile(async () => {
+    refreshes++;
+    return { status: "refreshed", profile: { cliente: { nombre: "Ana" }, mascotas: [{ id: 1, nombre: "Rocky" }] } };
+  });
+  controller.setProfile({ mascotas: [{ id: 1, nombre: "Rocky" }] });
+  const unsubscribe = controller.subscribe(() => {});
+  t.after(() => unsubscribe());
+
+  await waitBooking(controller, value => value.options.isSuccess);
+  assert.equal(refreshes, 1);
+  assert.equal(optionsCalls, 2);
+  assert.equal(controller.getSnapshot().notice, null);
+});
+
+test("recovery servicio: refetch de opciones, aviso y reconciliación sin reemplazo automático", async t => {
+  const client = testClient(t);
+  let optionsCalls = 0;
+  let availabilityCalls = 0;
+  t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL) => {
+    const path = String(url);
+    if (path.endsWith("/opciones-reserva")) {
+      optionsCalls++;
+      return optionsCalls === 1 ? response(queryOptionsDto)
+        : response({ servicios: [{ id: 7, nombre: "Otro servicio", duracionMinutos: 30 }], extras: queryOptionsDto.extras });
+    }
+    availabilityCalls++;
+    return response({ error: "PET_SERVICE_UNAVAILABLE" }, 404);
+  });
+  const controller = testController(t, client);
+
+  await waitBooking(controller, value => value.options.isSuccess);
+  controller.setServicio(2);
+  controller.toggleExtra(5);
+  controller.toggleExtra(3);
+  controller.setFecha(input.fecha);
+  await waitBooking(controller, value => value.notice === PET_BOOKING_SERVICE_CHANGED_MESSAGE);
+  assert.equal(optionsCalls, 2);
+  assert.equal(availabilityCalls, 2, "reapertura de opciones rehabilita disponibilidad una vez");
+
+  const data = controller.getSnapshot().options.data;
+  assert.ok(data);
+  controller.reconcileOptions(1, data);
+  assert.equal(controller.getSnapshot().state.draft.servicioId, null, "no auto-selecciona otro servicio");
+  assert.equal(controller.getSnapshot().state.draft.slotSeleccionado, null);
+  assert.deepEqual(controller.getSnapshot().state.draft.extraIds, [3, 5], "conserva extras vigentes");
+  assert.equal(controller.getSnapshot().notice, PET_BOOKING_SERVICE_CHANGED_MESSAGE);
+});
+
+test("recovery extras: intersección reconciliada, servicio conservado y un solo refetch", async t => {
+  const client = testClient(t);
+  let optionsCalls = 0;
+  let availabilityCalls = 0;
+  t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL) => {
+    const path = String(url);
+    if (path.endsWith("/opciones-reserva")) {
+      optionsCalls++;
+      return optionsCalls === 1 ? response(queryOptionsDto)
+        : response({ servicios: queryOptionsDto.servicios, extras: [{ id: 3, nombre: "Uñas", duracionExtraMinutos: 15 }] });
+    }
+    availabilityCalls++;
+    return response({ error: "PET_EXTRA_UNAVAILABLE" }, 404);
+  });
+  const controller = testController(t, client);
+
+  await waitBooking(controller, value => value.options.isSuccess);
+  controller.setServicio(2);
+  controller.toggleExtra(5);
+  controller.toggleExtra(3);
+  controller.setFecha(input.fecha);
+  await waitBooking(controller, value => value.notice === PET_BOOKING_EXTRA_CHANGED_MESSAGE);
+  assert.equal(optionsCalls, 2);
+  assert.equal(availabilityCalls, 2, "reapertura de opciones rehabilita disponibilidad una vez");
+
+  const data = controller.getSnapshot().options.data;
+  assert.ok(data);
+  controller.reconcileOptions(1, data);
+  assert.deepEqual(controller.getSnapshot().state.draft.extraIds, [3]);
+  assert.equal(controller.getSnapshot().state.draft.servicioId, 2);
+  assert.equal(controller.getSnapshot().state.draft.slotSeleccionado, null);
+});
+
+for (const code of ["PET_SERVICE_UNAVAILABLE", "PET_EXTRA_UNAVAILABLE"] as const) {
+  test(`creación 404 ${code}: un refetch de opciones, reconciliación y sin segundo POST ni loop`, async t => {
+    const client = testClient(t);
+    const created = deferred<Response>();
+    const posted = deferred<void>();
+    const refreshedOptions = deferred<Response>();
+    const serviceUnavailable = code === "PET_SERVICE_UNAVAILABLE";
+    const message = serviceUnavailable ? PET_BOOKING_SERVICE_CHANGED_MESSAGE : PET_BOOKING_EXTRA_CHANGED_MESSAGE;
+    const updatedOptions: PetBookingOptions = serviceUnavailable
+      ? { servicios: [{ id: 7, nombre: "Otro servicio", duracionMinutos: 30 }], extras: queryOptionsDto.extras }
+      : { servicios: queryOptionsDto.servicios, extras: [queryOptionsDto.extras[0]] };
+    let optionsCalls = 0;
+    let posts = 0;
+    let refreshes = 0;
+    // Only HTTP is mocked: the service, MutationObserver and its rejection are real.
+    t.mock.method(globalThis, "fetch", (url: RequestInfo | URL, init?: RequestInit) => {
+      const path = String(url);
+      if (path.endsWith("/turnos")) {
+        assert.equal(init?.method, "POST");
+        posts++;
+        posted.resolve();
+        return created.promise;
+      }
+      if (path.endsWith("/opciones-reserva")) {
+        assert.equal(init?.method, "GET");
+        optionsCalls++;
+        return optionsCalls === 1 ? Promise.resolve(response(queryOptionsDto)) : refreshedOptions.promise;
+      }
+      assert.ok(path.endsWith("/disponibilidad"));
+      return Promise.resolve(response(availabilityDto));
+    });
+    const controller = testController(t, client);
+    controller.setRefreshProfile(async () => { refreshes++; return { status: "error" }; });
+    await readyToConfirm(controller);
+    const before = controller.getSnapshot().state.draft;
+    assert.equal(optionsCalls, 1);
+
+    const creating = controller.confirmar();
+    await posted.promise;
+    assert.equal(await controller.confirmar(), "ignored", "doble submit bloqueado durante POST");
+    created.resolve(response({ error: code }, 404));
+    assert.equal(await creating, "error");
+    const error = controller.getSnapshot().creation.error;
+    assertPrivateError(error, 404, code);
+    assert.equal(petBookingErrorKind(error), serviceUnavailable ? "service-unavailable" : "extra-unavailable");
+    await nextTick();
+    assert.equal(optionsCalls, 2, "el 404 de creación dispara exactamente un refetch de opciones");
+    assert.equal(controller.getSnapshot().options.isFetching, true);
+    assert.equal(await controller.confirmar(), "ignored", "no reenvía creación durante recovery");
+
+    refreshedOptions.resolve(response(updatedOptions));
+    await waitBooking(controller, value => value.notice === message && !value.options.isFetching);
+    const data = controller.getSnapshot().options.data;
+    assert.ok(data);
+    assert.deepEqual(data, updatedOptions);
+    // PetBookingFlow reconciles the new options through this same action in its effect.
+    assert.ok(before.mascotaId !== null);
+    controller.reconcileOptions(before.mascotaId, data);
+    const recovered = controller.getSnapshot();
+    assert.equal(recovered.state.draft.servicioId, serviceUnavailable ? null : before.servicioId);
+    assert.equal(recovered.state.draft.slotSeleccionado, null);
+    assert.equal(recovered.state.draft.mascotaId, before.mascotaId);
+    assert.equal(recovered.state.draft.fecha, before.fecha);
+    assert.deepEqual(recovered.state.draft.extraIds, serviceUnavailable ? [3, 5] : [3]);
+    assert.equal(recovered.notice, message);
+    assert.equal(recovered.state.success, null);
+    assert.equal(recovered.canConfirm, false);
+    assert.equal(recovered.sessionInvalid, false);
+    assert.equal(await controller.confirmar(), "ignored", "requiere elegir de nuevo un horario válido");
+    await nextTick();
+    await nextTick();
+    assert.equal(optionsCalls, 2, "sin loop después de reconciliar");
+    assert.equal(posts, 1, "sin segundo POST automático");
+    assert.equal(refreshes, 0, "servicio/extra no refrescan /me");
+  });
+}
+
+test("recovery servicio: el segundo fallo detiene la recuperación automática (sin loop)", async t => {
+  const client = testClient(t);
+  let optionsCalls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    optionsCalls++;
+    return response({ error: "PET_SERVICE_UNAVAILABLE" }, 404);
+  });
+  const controller = testController(t, client);
+
+  await waitBooking(controller, value => value.options.isError);
+  await nextTick();
+  await nextTick();
+  assert.equal(optionsCalls, 2, "un único refetch automático");
+  await nextTick();
+  await nextTick();
+  assert.equal(optionsCalls, 2);
+  assert.equal(controller.getSnapshot().notice, null, "sin recuperación: el reintento queda en manos de la UI");
+  assert.equal(controller.getSnapshot().state.draft.mascotaId, 1);
+});
+
+test("recovery fuera de orden: una respuesta vieja de disponibilidad no pisa la selección nueva", async t => {
+  const client = testClient(t);
+  const stale = deferred<Response>();
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL, init?: RequestInit) => {
+    const path = String(url);
+    if (path.endsWith("/opciones-reserva")) return response(queryOptionsDto);
+    calls++;
+    const body = JSON.parse(String(init?.body)) as { fecha: string };
+    if (body.fecha === "2026-10-25") return stale.promise;
+    return response({ ...availabilityDto, fecha: "2026-10-26", slots: [{ horaInicio: "09:00", horaFin: "11:00" }] });
+  });
+  const controller = testController(t, client);
+
+  await waitBooking(controller, value => value.options.isSuccess);
+  controller.setServicio(2);
+  controller.setFecha("2026-10-25");
+  await waitBooking(controller, value => value.availability.isFetching);
+  const staleRefetch = controller.refetchAvailability();
+  controller.setFecha("2026-10-26");
+  stale.resolve(response(availabilityDto));
+  assert.equal(await staleRefetch, undefined);
+
+  await waitBooking(controller, value => value.availability.isSuccess && !value.availability.isFetching);
+  assert.equal(controller.getSnapshot().availability.data?.fecha, "2026-10-26");
+  assert.deepEqual(controller.getSnapshot().availability.data?.slots, [{ horaInicio: "09:00", horaFin: "11:00" }]);
+  assert.equal(calls, 2);
+});
+
+test("slot conflict: la selección queda no confirmable y no hay segundo POST", async t => {
+  const client = testClient(t);
+  let posts = 0;
+  t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL) => {
+    const path = String(url);
+    if (path.endsWith("/turnos")) { posts++; return response({ error: "PET_SLOT_UNAVAILABLE" }, 409); }
+    return response(path.endsWith("/disponibilidad") ? availabilityDto : queryOptionsDto);
+  });
+  const controller = testController(t, client);
+  await readyToConfirm(controller);
+
+  assert.equal(await controller.confirmar(), "error");
+  assert.equal(controller.getSnapshot().canConfirm, false);
+  assert.equal(await controller.confirmar(), "ignored");
+  assert.equal(posts, 1);
+  assert.equal(controller.getSnapshot().state.avisoRecuperable, "Ese horario acaba de dejar de estar disponible.");
+});
+
+test("creación 400 PET_BOOKING_INVALID: aviso específico, draft intacto y sin recovery de catálogo", async t => {
+  const client = testClient(t);
+  let posts = 0;
+  let optionsCalls = 0;
+  let availabilityCalls = 0;
+  t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL) => {
+    const path = String(url);
+    if (path.endsWith("/turnos")) { posts++; return response({ error: "PET_BOOKING_INVALID" }, 400); }
+    if (path.endsWith("/disponibilidad")) { availabilityCalls++; return response(availabilityDto); }
+    optionsCalls++;
+    return response(queryOptionsDto);
+  });
+  const controller = testController(t, client);
+  await readyToConfirm(controller);
+  const before = controller.getSnapshot().state.draft;
+
+  assert.equal(await controller.confirmar(), "error");
+  assert.equal(controller.getSnapshot().notice, PET_BOOKING_INVALID_MESSAGE);
+  assert.deepEqual(controller.getSnapshot().state.draft, before);
+  assert.equal(posts, 1);
+  assert.equal(optionsCalls, 1);
+  assert.equal(availabilityCalls, 1);
+  assert.equal(controller.getSnapshot().sessionInvalid, false);
+});
+
+test("creación 429: aviso sin retry automático ni borrado de draft/sesión", async t => {
+  const client = testClient(t);
+  let posts = 0;
+  t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL) => {
+    const path = String(url);
+    if (path.endsWith("/turnos")) { posts++; return response({ error: "TOO_MANY_REQUESTS" }, 429); }
+    return response(path.endsWith("/disponibilidad") ? availabilityDto : queryOptionsDto);
+  });
+  const controller = testController(t, client);
+  await readyToConfirm(controller);
+  const before = controller.getSnapshot().state.draft;
+
+  assert.equal(await controller.confirmar(), "error");
+  assert.equal(controller.getSnapshot().notice, PET_BOOKING_TOO_MANY_MESSAGE);
+  await nextTick();
+  await nextTick();
+  assert.equal(posts, 1);
+  assert.deepEqual(controller.getSnapshot().state.draft, before);
+  assert.equal(controller.getSnapshot().sessionInvalid, false);
+});
+
+for (const failure of ["red", "500"] as const) {
+  test(`creación con fallo de ${failure}: resultado incierto, un POST y sin replay automático`, async t => {
+    const client = testClient(t);
+    let posts = 0;
+    t.mock.method(globalThis, "fetch", async (url: RequestInfo | URL) => {
+      const path = String(url);
+      if (path.endsWith("/turnos")) {
+        posts++;
+        if (failure === "red") throw new Error("SECRET_NETWORK_SENTINEL");
+        return response({ code: "INTERNAL_SERVER_ERROR" }, 500);
+      }
+      return response(path.endsWith("/disponibilidad") ? availabilityDto : queryOptionsDto);
+    });
+    const controller = testController(t, client);
+    await readyToConfirm(controller);
+    const before = controller.getSnapshot().state.draft;
+
+    assert.equal(await controller.confirmar(), "error");
+    assert.equal(controller.getSnapshot().notice, PET_BOOKING_CREATE_UNKNOWN_MESSAGE);
+    assert.equal(controller.getSnapshot().state.success, null);
+    await nextTick();
+    await nextTick();
+    assert.equal(posts, 1);
+    assert.deepEqual(controller.getSnapshot().state.draft, before);
+    assert.equal(controller.getSnapshot().sessionInvalid, false);
+  });
+}
+
+test("429 en lectura: aviso específico y sin retry automático", async t => {
+  const client = testClient(t);
+  let optionsCalls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    optionsCalls++;
+    return response({ code: "TOO_MANY_REQUESTS" }, 429);
+  });
+  const controller = testController(t, client);
+
+  await waitBooking(controller, value => value.notice === PET_BOOKING_TOO_MANY_MESSAGE);
+  assert.equal(optionsCalls, 1);
+  await nextTick();
+  await nextTick();
+  assert.equal(optionsCalls, 1);
+  assert.equal(controller.getSnapshot().sessionInvalid, false);
+});
+
+test("401: el recovery F.6 no participa ni suma un refresh /me propio", async t => {
+  const client = testClient(t);
+  let refreshes = 0;
+  const invalidations: unknown[] = [];
+  t.mock.method(globalThis, "fetch", async () => response({ error: "PET_SESSION_INVALID" }, 401));
+  const controller = createPetBookingController(client, scopedContext);
+  t.after(() => controller.dispose());
+  controller.setRefreshProfile(async () => { refreshes++; return { status: "unauthorized" }; });
+  controller.setProfile({ mascotas: [{ id: 1, nombre: "Rocky" }] });
+  controller.setOnSessionInvalid(value => invalidations.push(value));
+  const unsubscribe = controller.subscribe(() => {});
+  t.after(() => unsubscribe());
+
+  await waitBooking(controller, value => value.sessionInvalid);
+  assert.equal(refreshes, 0);
+  assert.deepEqual(invalidations, [{ slug: context.slug, sessionScope: scopedContext.sessionScope }]);
+  assert.equal(controller.getSnapshot().notice, null);
 });

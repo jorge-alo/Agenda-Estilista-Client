@@ -28,9 +28,11 @@ export interface CreatePetRequestPayload {
 
 export class PublicPetRequestError extends Error {
   readonly status: number;
+  readonly code: string | null;
 
-  constructor(status: number) {
+  constructor(status: number, code: string | null = null) {
     super("No se pudo crear la solicitud PET");
     this.status = status;
+    this.code = code;
   }
 }

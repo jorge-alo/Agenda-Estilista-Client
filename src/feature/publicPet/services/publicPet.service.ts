@@ -1,8 +1,9 @@
 import type { PetFirstVisitData } from "../schemas/petFirstVisit.schema";
 import type { CreatePetRequestPayload } from "../types/publicPet.types";
-import { PublicPetRequestError } from "../types/publicPet.types";
+import { PublicPetRequestError } from "../types/publicPet.types.ts";
+import { publicPetHttpErrorFromResponse } from "./publicPetHttp.ts";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env?.VITE_API_URL ?? "";
 
 function construirPayload(values: PetFirstVisitData): CreatePetRequestPayload {
   const responsable: CreatePetRequestPayload["responsable"] = {
@@ -29,6 +30,9 @@ export const publicPetService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(construirPayload(values)),
     });
-    if (!response.ok) throw new PublicPetRequestError(response.status);
+    if (!response.ok) {
+      const parsed = await publicPetHttpErrorFromResponse(response);
+      throw new PublicPetRequestError(parsed.status, parsed.code);
+    }
   },
 };

@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreatePetRequest } from "../hooks/useCreatePetRequest";
 import { petFirstVisitSchema, type PetFirstVisitData, type PetFirstVisitInput } from "../schemas/petFirstVisit.schema";
-import { PublicPetRequestError } from "../types/publicPet.types";
+import { petFirstVisitRequestErrorMessage } from "../session/publicPetRequestUi";
 
 interface Props {
   slug: string;
@@ -39,17 +39,7 @@ export function PetFirstVisitForm({ slug }: Props) {
     );
   }
 
-  const globalError = mutation.error instanceof PublicPetRequestError
-    ? mutation.error.status === 400
-      ? "Revisá los datos ingresados."
-      : mutation.error.status === 404
-        ? "Este local no está disponible."
-        : mutation.error.status === 429
-          ? "Se enviaron demasiadas solicitudes. Intentá nuevamente más tarde."
-          : "No pudimos enviar la solicitud. Intentá nuevamente."
-    : mutation.error
-      ? "No pudimos enviar la solicitud. Intentá nuevamente."
-      : null;
+  const globalError = petFirstVisitRequestErrorMessage(mutation.error);
 
   const onSubmit = handleSubmit(values => mutation.mutate(values));
 

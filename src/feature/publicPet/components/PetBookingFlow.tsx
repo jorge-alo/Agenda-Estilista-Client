@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { PetSessionPanel } from "./PetSessionPanel";
 import { PetBookingSelection } from "./PetBookingSelection";
 import { PetBookingSlots } from "./PetBookingSlots";
@@ -15,7 +15,7 @@ import {
   type PetBookingOptionsView,
 } from "../booking/publicPetBookingView";
 import { getFechaLocal } from "../../../shared/helpers/date.helpers";
-import type { PetPublicProfile } from "../session/publicPetSession.service";
+import type { PetProfileRefreshResult, PetPublicProfile } from "../session/publicPetSession.service";
 import type { PetSessionScopeRef } from "../session/petSessionScope";
 import "../styles/publicPetBooking.css";
 
@@ -27,14 +27,25 @@ interface Props {
   status: "authenticated" | "logging-out";
   onLogout: () => void;
   onSessionInvalid: (scope: PetSessionScopeRef) => void;
+  onRefreshProfile: () => Promise<PetProfileRefreshResult>;
 }
 
-export function PetBookingFlow({ slug, token, sessionScope, profile, status, onLogout, onSessionInvalid }: Props) {
-  const booking = usePetBooking({ slug, token, sessionScope, profile, onSessionInvalid });
-  const { draft, options, availability, actions, createdBooking, bookingUnavailable, canConfirm, sessionInvalid, state } = booking;
+export function PetBookingFlow({
+  slug, token, sessionScope, profile, status, onLogout, onSessionInvalid, onRefreshProfile,
+}: Props) {
+  const booking = usePetBooking({
+    slug, token, sessionScope, profile, onSessionInvalid, refreshProfile: onRefreshProfile,
+  });
+  const { draft, options, availability, actions, createdBooking, bookingUnavailable, canConfirm, sessionInvalid, state, notice } = booking;
   const isSubmitting = booking.creation.isPending;
   const mascotas = profile.mascotas;
   const reconcileOptions = actions.reconcileOptions;
+  const recoveryMessage = notice ?? state.avisoRecuperable;
+  const noticeRef = useRef<HTMLParagraphElement | null>(null);
+
+  useEffect(() => {
+    if (recoveryMessage) noticeRef.current?.focus();
+  }, [recoveryMessage]);
 
   useEffect(() => {
     if (draft.mascotaId === null || !options.data) return;
@@ -66,70 +77,74 @@ export function PetBookingFlow({ slug, token, sessionScope, profile, status, onL
         <PetBookingSuccess success={createdBooking} onNewBooking={actions.startNewBooking} />
       ) : sessionInvalid ? null : bookingUnavailable ? (
         <section className="pet-booking-card pet-booking-empty" role="alert">
-          <p>{state.avisoRecuperable}</p>
+          <p ref={noticeRef} tabIndex={-1}>{recoveryMessage}</p>
           <button type="button" className="pet-booking-confirm" onClick={actions.retryBooking}>Volver a intentar</button>
         </section>
-      ) : mascotas.length === 0 ? (
-        <section className="pet-booking-card pet-booking-empty" role="status">
-          <p>{PET_BOOKING_EMPTY_MASCOTAS}</p>
-        </section>
       ) : (
-        <section className="pet-booking-card" aria-label="Reservar turno">
-          <h2>Reservá un turno</h2>
-
-          {state.avisoRecuperable && (
-            <p className="pet-booking-notice" role="status">{state.avisoRecuperable}</p>
+        <>
+          {recoveryMessage && (
+            <p ref={noticeRef} tabIndex={-1} className="pet-booking-notice" role="status">{recoveryMessage}</p>
           )}
 
-          <PetBookingSelection
-            mascotas={mascotas}
-            mascotaId={draft.mascotaId}
-            servicios={options.data?.servicios ?? []}
-            servicioId={draft.servicioId}
-            extras={options.data?.extras ?? []}
-            extraIds={draft.extraIds}
-            fecha={draft.fecha}
-            minFecha={getFechaLocal()}
-            optionsStatus={optionsStatus}
-            locked={isSubmitting}
-            duracionLabel={duracionLabel}
-            onMascota={actions.setMascota}
-            onServicio={actions.setServicio}
-            onToggleExtra={actions.toggleExtra}
-            onFecha={actions.setFecha}
-            onRetryOptions={() => { void actions.refetchOptions(); }}
-          />
+          {mascotas.length === 0 ? (
+            <section className="pet-booking-card pet-booking-empty" role="status">
+              <p>{PET_BOOKING_EMPTY_MASCOTAS}</p>
+            </section>
+          ) : (
+            <section className="pet-booking-card" aria-label="Reservar turno">
+              <h2>Reservá un turno</h2>
 
-          {servicio && selectionKey !== null && options.isSuccess && (
-            <PetBookingSlots
-              view={petBookingSlotsView({
-                isFetching: availability.isFetching,
-                isError: availability.isError,
-                slots: availability.data?.slots ?? null,
-              })}
-              slots={availability.data?.slots ?? []}
-              selectionKey={selectionKey}
-              selected={draft.slotSeleccionado}
-              locked={isSubmitting}
-              onSelect={(slot, key) => actions.setSlot({ horaInicio: slot.horaInicio, horaFin: slot.horaFin, selectionKey: key })}
-              onRetry={() => { void actions.refetchAvailability(); }}
-            />
-          )}
+              <PetBookingSelection
+                mascotas={mascotas}
+                mascotaId={draft.mascotaId}
+                servicios={options.data?.servicios ?? []}
+                servicioId={draft.servicioId}
+                extras={options.data?.extras ?? []}
+                extraIds={draft.extraIds}
+                fecha={draft.fecha}
+                minFecha={getFechaLocal()}
+                optionsStatus={optionsStatus}
+                locked={isSubmitting}
+                duracionLabel={duracionLabel}
+                onMascota={actions.setMascota}
+                onServicio={actions.setServicio}
+                onToggleExtra={actions.toggleExtra}
+                onFecha={actions.setFecha}
+                onRetryOptions={() => { void actions.refetchOptions(); }}
+              />
 
-          {draft.slotSeleccionado && servicio && (
-            <PetBookingReview
-              mascotaNombre={mascotas.find(m => m.id === draft.mascotaId)?.nombre ?? ""}
-              servicioNombre={servicio.nombre}
-              extras={extrasSeleccionados}
-              fecha={draft.fecha}
-              slot={draft.slotSeleccionado}
-              duracionLabel={duracionLabel}
-              canConfirm={canConfirm}
-              isSubmitting={isSubmitting}
-              onConfirm={() => { void actions.confirmar(); }}
-            />
+              {servicio && selectionKey !== null && options.isSuccess && (
+                <PetBookingSlots
+                  view={petBookingSlotsView({
+                    isFetching: availability.isFetching,
+                    isError: availability.isError,
+                    slots: availability.data?.slots ?? null,
+                  })}
+                  slots={availability.data?.slots ?? []}
+                  selectionKey={selectionKey}
+                  selected={draft.slotSeleccionado}
+                  locked={isSubmitting}
+                  onSelect={(slot, key) => actions.setSlot({ horaInicio: slot.horaInicio, horaFin: slot.horaFin, selectionKey: key })}
+                  onRetry={() => { void actions.refetchAvailability(); }}
+                />
+              )}
+
+              {draft.slotSeleccionado && servicio && (
+                <PetBookingReview
+                  mascotaNombre={mascotas.find(m => m.id === draft.mascotaId)?.nombre ?? ""}
+                  servicioNombre={servicio.nombre}
+                  extras={extrasSeleccionados}
+                  fecha={draft.fecha}
+                  slot={draft.slotSeleccionado}
+                  duracionLabel={duracionLabel}
+                  canConfirm={canConfirm}
+                  isSubmitting={isSubmitting}
+                  onConfirm={() => { void actions.confirmar(); }}
+                />
+              )}
+            </section>
           )}
-        </section>
+        </>
       )}
     </>
   );

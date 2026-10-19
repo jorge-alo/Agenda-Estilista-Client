@@ -15,9 +15,14 @@ import {
   canStartPetLogout,
   getPetLandingMode,
   petAccessRedirectPath,
+  petFirstVisitRequestErrorMessage,
+  PET_BOOKING_UNAVAILABLE_MESSAGE,
   PET_SESSION_EXPIRED_MESSAGE,
   runPetRequestOnce,
 } from "../src/feature/publicPet/session/publicPetRequestUi.ts";
+import { publicPetService } from "../src/feature/publicPet/services/publicPet.service.ts";
+import { PublicPetRequestError } from "../src/feature/publicPet/types/publicPet.types.ts";
+import type { PetFirstVisitData } from "../src/feature/publicPet/schemas/petFirstVisit.schema.ts";
 import {
   activatePetSessionScope,
   clearPetSessionScope,
@@ -567,4 +572,58 @@ test("acceso y vencimiento: destino canónico, logout solo autenticado y aviso c
   assert.equal(canStartPetLogout(false, "unauthenticated"), false);
   assert.equal(getPetLandingMode("expired"), "first-visit");
   assert.equal(PET_SESSION_EXPIRED_MESSAGE, "Tu sesión venció. Volvé a ingresar para reservar.");
+});
+
+test("primera visita: 409 PET_BOOKING_UNAVAILABLE conserva solo el código seguro y el copy común", async t => {
+  const values: PetFirstVisitData = {
+    responsableNombre: "Ana",
+    responsableTelefono: "1123456789",
+    responsableTelefonoSecundario: "",
+    mascotaNombre: "Rocky",
+    mascotaRaza: "",
+    mascotaFechaNacimiento: "",
+    mascotaTamano: "",
+    mascotaSexo: "",
+    motivoContacto: "",
+  };
+  let request: { url: string; init?: RequestInit } | undefined;
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify({ error: "PET_BOOKING_UNAVAILABLE", detalle: "SECRET_BODY_SENTINEL" }), { status: 409 });
+  });
+
+  let error: unknown;
+  try { await publicPetService.createRequest("local/a", values); } catch (caught) { error = caught; }
+  assert.ok(error instanceof PublicPetRequestError);
+  assert.equal(error.status, 409);
+  assert.equal(error.code, "PET_BOOKING_UNAVAILABLE");
+  assert.equal(petFirstVisitRequestErrorMessage(error), PET_BOOKING_UNAVAILABLE_MESSAGE);
+  assert.ok(!String(error).includes("SECRET_BODY_SENTINEL"));
+  assert.equal(request?.url, "/api/pet/public/local%2Fa/solicitudes");
+  assert.equal(request?.init?.method, "POST");
+  assert.deepEqual(JSON.parse(String(request?.init?.body)), {
+    responsable: { nombre: "Ana", telefono: "1123456789" },
+    mascota: { nombre: "Rocky" },
+  });
+
+  t.mock.restoreAll();
+  t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify({ error: "PRIVATE_UNKNOWN_CODE" }), { status: 409 }));
+  let unknown: unknown;
+  try { await publicPetService.createRequest("local/a", values); } catch (caught) { unknown = caught; }
+  assert.ok(unknown instanceof PublicPetRequestError);
+  assert.equal(unknown.status, 409);
+  assert.equal(unknown.code, null, "solo códigos allowlisted salen del body");
+  assert.equal(petFirstVisitRequestErrorMessage(unknown), "No pudimos enviar la solicitud. Intentá nuevamente.");
+});
+
+test("primera visita: mapeo de errores conserva 400/404/429 y sanitiza el resto", () => {
+  assert.equal(petFirstVisitRequestErrorMessage(new PublicPetRequestError(400)), "Revisá los datos ingresados.");
+  assert.equal(petFirstVisitRequestErrorMessage(new PublicPetRequestError(404)), "Este local no está disponible.");
+  assert.equal(petFirstVisitRequestErrorMessage(new PublicPetRequestError(429)), "Se enviaron demasiadas solicitudes. Intentá nuevamente más tarde.");
+  assert.equal(petFirstVisitRequestErrorMessage(new PublicPetRequestError(409, "PET_BOOKING_UNAVAILABLE")), PET_BOOKING_UNAVAILABLE_MESSAGE);
+  assert.equal(petFirstVisitRequestErrorMessage(new PublicPetRequestError(409, "PRIVATE_UNKNOWN_CODE")), "No pudimos enviar la solicitud. Intentá nuevamente.");
+  assert.equal(petFirstVisitRequestErrorMessage(new PublicPetRequestError(500)), "No pudimos enviar la solicitud. Intentá nuevamente.");
+  assert.equal(petFirstVisitRequestErrorMessage(new TypeError("network")), "No pudimos enviar la solicitud. Intentá nuevamente.");
+  assert.equal(petFirstVisitRequestErrorMessage(null), null);
+  assert.equal(PET_BOOKING_UNAVAILABLE_MESSAGE, "Las reservas online no están disponibles en este momento.");
 });

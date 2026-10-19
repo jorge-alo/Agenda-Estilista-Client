@@ -39,6 +39,7 @@ export function PetPublicLanding({ nombreLocal, slug }: Props) {
             status={session.state.status}
             onLogout={() => void session.logout()}
             onSessionInvalid={session.handleSessionInvalid}
+            onRefreshProfile={session.refreshProfile}
           />
         </div>
       </main>
