@@ -1,51 +1,32 @@
-const tabs = [
-  "dashboard",
-  "agenda",
-  "reservar",
-  "clientes",
-  "estilistas",
-  "servicios",
-  "horarios",
-  "bloqueos",
-  "configuracion",
-  "whatsapp"
-];
+import { getAdminTabLabel, getAdminTabs } from "../adminTabs";
+import type { AdminTab, BusinessType } from "../types/adminPage.types";
 
 interface Props {
-  tabActiva: string;
-
-  setTabActiva:
-    (tab: string) => void;
+  businessType: BusinessType;
+  tabActiva: AdminTab;
+  setTabActiva: (tab: AdminTab) => void;
 }
 
-export const AdminTabs =
-({
+export const AdminTabs = ({
+  businessType,
   tabActiva,
   setTabActiva,
 }: Props) => {
+  const tabs = getAdminTabs(businessType);
 
   return (
-
-    <div className="admin-tabs">
-
+    <nav className="admin-tabs" aria-label="Secciones del panel">
       {tabs.map((tab) => (
-
-        <div
+        <button
           key={tab}
-          className={`admin-tab ${
-            tabActiva === tab
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            setTabActiva(tab)
-          }
+          type="button"
+          className={`admin-tab ${tabActiva === tab ? "active" : ""}`}
+          aria-current={tabActiva === tab ? "page" : undefined}
+          onClick={() => setTabActiva(tab)}
         >
-          {tab}
-        </div>
-
+          {getAdminTabLabel(tab)}
+        </button>
       ))}
-
-    </div>
+    </nav>
   );
 };

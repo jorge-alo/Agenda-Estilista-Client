@@ -1,24 +1,11 @@
-// components/AdminContent.tsx
-
-import { Resumen } from "../../../dashboard/components/Resumen";
-import { AgendaLista } from "../../../agenda/components/AgendaLista";
-import { ReservarTurnoAdmin }from "../../../reservar/components/ReservarTurnoAdmini";
-import { ClientesPage }from "../../../clientes/pages/ClientesPage";
-import { EstilistasAdmin }from "../../../estilistas/componentes/EstilistasAdmin";
-import { ServiciosAdmin }from "../../../servicios/components/ServiciosAdmin";
-import { BloqueosAdmin }from "../../../bloqueos/components/BloqueosAdmin";
-import { ConfiguracionPage }from "../../../configuracion/page/ConfiguracionPage";
-import { WhatsAppStatus }from "../../../whatsapp/components/whatsappStatus";
-import { HorariosAdmin } from "../../../horarios/components/HorariosAdmin";
 import type { Estilista } from "../../../estilistas/types/estilistas.types";
-import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
 import { BUSINESS_TYPE, type BusinessType } from "../types/adminPage.types";
-import { PetAgenda } from "../../../petAgenda/components/PetAgenda";
-import { PetAdminBookingForm } from "../../../petBooking/components/PetAdminBookingForm";
-import { getAdminBookingVariant } from "../bookingVariant";
+import type { AdminTab } from "../types/adminPage.types";
+import { BeautyAdminContent } from "./BeautyAdminContent";
+import { PetAdminContent } from "./PetAdminContent";
 
 interface Props {
-  tabActiva: string;
+  tabActiva: AdminTab;
   businessType: BusinessType;
   estilistas: Estilista[];
   estilistaId: number | null;
@@ -26,75 +13,26 @@ interface Props {
   localId: string;
 }
 
-export const AdminContent = ({ tabActiva, businessType, estilistas, estilistaId, setEstilistaId, localId }: Props) => {
+export const AdminContent = ({
+  tabActiva,
+  businessType,
+  estilistas,
+  estilistaId,
+  setEstilistaId,
+  localId,
+}: Props) => {
   return (
     <div className="admin-content">
-      {tabActiva === "dashboard" && (
-        <ErrorBoundary key="dashboard"><Resumen /></ErrorBoundary>
-      )}
-
-      {tabActiva === "agenda" && (
-        <ErrorBoundary key={`agenda-${businessType}`}>
-          {businessType === BUSINESS_TYPE.BEAUTY ? (
-            <AgendaLista estilistas={estilistas} />
-          ) : (
-            <PetAgenda />
-          )}
-        </ErrorBoundary>
-      )}
-
-      {tabActiva === "reservar" && (
-        <ErrorBoundary key="reservar">
-          {getAdminBookingVariant(businessType) === "PET" ? (
-            <PetAdminBookingForm />
-          ) : (
-            <ReservarTurnoAdmin
-              estilistaId={estilistaId}
-              setEstilistaId={setEstilistaId}
-              estilistas={estilistas}
-            />
-          )}
-        </ErrorBoundary>
-      )}
-
-      {tabActiva === "clientes" && (
-        <ErrorBoundary key="clientes"><ClientesPage /></ErrorBoundary>
-      )}
-
-      {tabActiva === "estilistas" && (
-        <ErrorBoundary key="estilistas"><EstilistasAdmin /></ErrorBoundary>
-      )}
-
-      {tabActiva === "servicios" && (
-        <ErrorBoundary key="servicios">
-          <ServiciosAdmin
-            estilistaId={estilistaId}
-            setEstilistaId={setEstilistaId}
-            estilistas={estilistas}
-          />
-        </ErrorBoundary>
-      )}
-
-      {tabActiva === "horarios" && (
-        <ErrorBoundary key="horarios">
-          <HorariosAdmin
-            estilistaId={estilistaId}
-            setEstilistaId={setEstilistaId}
-            estilistas={estilistas}
-          />
-        </ErrorBoundary>
-      )}
-
-      {tabActiva === "bloqueos" && (
-        <ErrorBoundary key="bloqueos"><BloqueosAdmin estilistas={estilistas} /></ErrorBoundary>
-      )}
-
-      {tabActiva === "configuracion" && (
-        <ErrorBoundary key="configuracion"><ConfiguracionPage /></ErrorBoundary>
-      )}
-
-      {tabActiva === "whatsapp" && (
-        <ErrorBoundary key="whatsapp"><WhatsAppStatus localId={localId} /></ErrorBoundary>
+      {businessType === BUSINESS_TYPE.PET_GROOMING ? (
+        <PetAdminContent tabActiva={tabActiva} localId={localId} />
+      ) : (
+        <BeautyAdminContent
+          tabActiva={tabActiva}
+          estilistas={estilistas}
+          estilistaId={estilistaId}
+          setEstilistaId={setEstilistaId}
+          localId={localId}
+        />
       )}
     </div>
   );

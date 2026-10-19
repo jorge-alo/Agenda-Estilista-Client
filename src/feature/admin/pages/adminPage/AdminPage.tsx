@@ -14,19 +14,13 @@ import { AdminContent } from "./components/AdminContent";
 import { AdminPageSkeleton } from "./components/AdminPageSkeleton";
 import { useSuscripcion } from "./hooks/useSuscripcion";
 import { BUSINESS_TYPE, isBusinessType } from "./types/adminPage.types";
+import type { AdminTab, BusinessType } from "./types/adminPage.types";
+import { getAdminTabLabel, getInitialAdminTab, reconcileAdminTab } from "./adminTabs";
 
-const NOMBRES_TABS: Record<string, string> = {
-  dashboard: "Dashboard",
-  agenda: "Agenda",
-  reservar: "Reservar",
-  clientes: "Clientes",
-  estilistas: "Estilistas",
-  servicios: "Servicios",
-  horarios: "Horarios",
-  bloqueos: "Bloqueos",
-  configuracion: "Configuración",
-  whatsapp: "WhatsApp",
-};
+interface TabSelection {
+  businessType: BusinessType | null;
+  tab: AdminTab;
+}
 
 export const AdminPage = () => {
 
@@ -34,8 +28,8 @@ export const AdminPage = () => {
   const navigate =
     useNavigate();
 
-  const [tabActiva, setTabActiva] =
-    useState("agenda");
+  const [tabSelection, setTabSelection] =
+    useState<TabSelection>({ businessType: null, tab: "agenda" });
 
   const [estilistaId, setEstilistaId] =
     useState<number | null>(null);
@@ -45,6 +39,19 @@ export const AdminPage = () => {
     isError: isAdminMeError,
     isLoading: loadingAdminMe,
   } = useAdminMe();
+
+  const businessType = data?.businessType ?? null;
+  const validBusinessType = businessType && isBusinessType(businessType)
+    ? businessType
+    : null;
+  const tabActiva = validBusinessType
+    ? tabSelection.businessType === validBusinessType
+      ? reconcileAdminTab(tabSelection.tab, validBusinessType)
+      : getInitialAdminTab(validBusinessType)
+    : tabSelection.tab;
+  const setTabActiva = (tab: AdminTab) => {
+    setTabSelection({ businessType: validBusinessType, tab });
+  };
 
   const {
     data: estilistas = [],
@@ -77,7 +84,7 @@ export const AdminPage = () => {
     }
 
     // Caso 2: Normal (con o sin nombre de local)
-    const nombreTab = NOMBRES_TABS[tabActiva] || tabActiva;
+    const nombreTab = getAdminTabLabel(tabActiva);
     const nombreLocal = data?.nombreLocal;
 
     if (nombreLocal) {
@@ -183,6 +190,7 @@ export const AdminPage = () => {
       />
 
       <AdminTabs
+        businessType={data.businessType}
         tabActiva={tabActiva}
         setTabActiva={setTabActiva}
       />
