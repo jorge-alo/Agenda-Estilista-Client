@@ -53,7 +53,8 @@
 }
 
 .pet-admin-booking__field select,
-.pet-admin-booking__field input {
+.pet-admin-booking__field input,
+.pet-admin-booking__search input {
   box-sizing: border-box;
   width: 100%;
   min-height: 44px;
@@ -69,9 +70,159 @@
 .pet-admin-booking__field input:focus-visible,
 .pet-admin-booking__check input:focus-visible,
 .pet-admin-booking__slot input:focus-visible,
+.pet-admin-booking__search input:focus-visible,
 .pet-admin-booking button:focus-visible {
   outline: 3px solid #88c9b3;
   outline-offset: 2px;
+}
+
+.pet-admin-booking__pet-search {
+  display: grid;
+  gap: .65rem;
+}
+
+.pet-admin-booking__selected-pet {
+  display: grid;
+  gap: .2rem;
+  border: 1px solid #b8d9ca;
+  border-radius: 10px;
+  padding: .75rem .85rem;
+  background: #f2faf6;
+  color: #293c33;
+}
+
+.pet-admin-booking__selected-kicker {
+  color: #5d7167;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.pet-admin-booking__selected-pet strong {
+  font-size: 1.05rem;
+}
+
+.pet-admin-booking__selected-pet > span:not(.pet-admin-booking__selected-kicker) {
+  color: #596b62;
+}
+
+.pet-admin-booking__selected-pet .pet-admin-booking__secondary {
+  justify-self: start;
+  margin-top: .35rem;
+}
+
+.pet-admin-booking__search {
+  position: relative;
+  display: grid;
+  gap: .4rem;
+}
+
+.pet-admin-booking__search label {
+  color: #45574e;
+  font-weight: 600;
+}
+
+.pet-admin-booking__search-hint {
+  margin: 0;
+  color: #8b5b14;
+  font-size: .88rem;
+}
+
+.pet-admin-booking__search-dropdown {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + .35rem);
+  max-height: min(18rem, 45vh);
+  overflow-y: auto;
+  border: 1px solid #cbd7d0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(37, 49, 45, .16);
+}
+
+.pet-admin-booking__search-dropdown.is-above {
+  top: auto;
+  bottom: calc(100% + .35rem);
+}
+
+.pet-admin-booking__search-list {
+  display: grid;
+  margin: 0;
+  padding: .25rem;
+  list-style: none;
+}
+
+.pet-admin-booking__search-option {
+  display: grid;
+  gap: .15rem;
+  border-radius: 7px;
+  padding: .6rem .7rem;
+  color: #293c33;
+  cursor: pointer;
+}
+
+.pet-admin-booking__search-option + .pet-admin-booking__search-option {
+  border-top: 1px solid #edf2ef;
+}
+
+.pet-admin-booking__search-option strong {
+  overflow-wrap: anywhere;
+}
+
+.pet-admin-booking__search-option span {
+  color: #63736b;
+  font-size: .88rem;
+  overflow-wrap: anywhere;
+}
+
+.pet-admin-booking__search-option.is-active,
+.pet-admin-booking__search-option:hover {
+  background: #e7f5ef;
+  color: #12614e;
+}
+
+.pet-admin-booking__search-option.is-active {
+  box-shadow: inset 0 0 0 2px #88c9b3;
+}
+
+.pet-admin-booking__search-status,
+.pet-admin-booking__search-limit {
+  margin: 0;
+  padding: .75rem .8rem;
+  color: #596b62;
+  font-size: .9rem;
+}
+
+.pet-admin-booking__search-status p {
+  margin: 0;
+}
+
+.pet-admin-booking__search-status .pet-admin-booking__secondary {
+  margin-top: .55rem;
+}
+
+.pet-admin-booking__search-limit {
+  border-top: 1px solid #edf2ef;
+  background: #f9fcfa;
+}
+
+.pet-admin-booking__secondary {
+  min-height: 38px;
+  border: 1px solid #cbd7d0;
+  border-radius: 8px;
+  padding: .4rem .7rem;
+  background: #fff;
+  color: #263832;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pet-admin-booking__secondary:disabled {
+  cursor: not-allowed;
+  opacity: .58;
 }
 
 .pet-admin-booking__group:disabled { opacity: .72; }

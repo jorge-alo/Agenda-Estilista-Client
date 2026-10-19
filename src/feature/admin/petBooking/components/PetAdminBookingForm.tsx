@@ -1,5 +1,6 @@
 import { usePetAdminBooking } from "../hooks/usePetAdminBooking.ts";
 import { petAdminBookingIssueMessage, petAdminDateLabel, petAdminSlotLabel } from "../booking/petAdminBookingView.ts";
+import { PetAdminPetSearch } from "./PetAdminPetSearch.tsx";
 import "../styles/petAdminBooking.css";
 
 function Loading({ children }: { children: string }) {
@@ -53,23 +54,19 @@ export function PetAdminBookingForm() {
       }}>
         <fieldset className="pet-admin-booking__group" disabled={disabled}>
           <legend>Mascota</legend>
-          {booking.queries.mascotas.isLoading ? <Loading>Buscando mascotas activas…</Loading>
-            : booking.queries.mascotas.isError ? (
-              <div className="pet-admin-booking__message" role="alert">
-                <p>No pudimos cargar las mascotas. Intentá nuevamente.</p>
-                <button type="button" onClick={() => void actions.refetchMascotas()}>Reintentar</button>
-              </div>
-            ) : booking.mascotas.length === 0 ? (
-              <p className="pet-admin-booking__message">No hay mascotas activas disponibles para reservar.</p>
-            ) : (
-              <label className="pet-admin-booking__field">
-                <span>Elegir mascota</span>
-                <select value={draft.mascotaId ?? ""} onChange={event => actions.setMascota(event.target.value ? Number(event.target.value) : null)}>
-                  <option value="" disabled>Seleccioná una mascota</option>
-                  {booking.mascotas.map(mascota => <option key={mascota.id} value={mascota.id}>{mascota.nombre}</option>)}
-                </select>
-              </label>
-            )}
+          <PetAdminPetSearch
+            disabled={disabled}
+            selectedMascotaId={draft.mascotaId}
+            selectedDetail={booking.selectedPetDetail}
+            searchResults={booking.searchResults}
+            searchLoading={booking.searchLoading}
+            searchFailed={booking.searchError !== null}
+            onActivate={() => actions.setSearchActive(true)}
+            onSearch={actions.setSearchTerm}
+            onClearSearch={actions.clearSearch}
+            onRetry={() => void actions.refetchSearch()}
+            onSelect={actions.setMascota}
+          />
         </fieldset>
 
         {draft.mascotaId !== null && (
@@ -199,7 +196,7 @@ export function PetAdminBookingForm() {
           <section className="pet-admin-booking__review" aria-labelledby="pet-admin-booking-review-title">
             <h2 id="pet-admin-booking-review-title">Resumen del turno</h2>
             <dl className="pet-admin-booking__summary-list">
-              <div><dt>Mascota</dt><dd>{booking.mascotas.find(item => item.id === draft.mascotaId)?.nombre}</dd></div>
+              <div><dt>Mascota</dt><dd>{booking.selectedPetDetail?.nombre}</dd></div>
               <div><dt>Responsable</dt><dd>{booking.responsables.find(item => item.clienteId === draft.clienteId)?.nombre}</dd></div>
               <div><dt>Teléfono</dt><dd>{booking.responsables.find(item => item.clienteId === draft.clienteId)?.telefono}</dd></div>
               <div><dt>Servicio</dt><dd>{booking.servicios.find(item => item.id === draft.servicioId)?.nombre}</dd></div>

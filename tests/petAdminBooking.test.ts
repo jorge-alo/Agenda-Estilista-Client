@@ -50,6 +50,7 @@ function mascotaDto(overrides: Record<string, unknown> = {}) {
   return {
     id: 6059,
     nombre: "Firulais",
+    raza: null,
     activo: 1,
     reserva_online_habilitada: 0,
     ...overrides,
@@ -200,14 +201,21 @@ test("detalle mascota: ID en path, responsables existentes proyectados y signal"
   assert.deepEqual(result, {
     id: 6059,
     nombre: "Firulais",
+    raza: null,
     activo: true,
     reservaOnlineHabilitada: false,
     responsables: [{ clienteId: 7001, nombre: "Ana", telefono: "+541123456789" }],
   });
 });
 
-test("detalle mascota: shape de responsables inválido no se acepta", async t => {
+test("detalle mascota: shape de responsables o raza inválido no se acepta", async t => {
   mockFetch(t, async () => response({ ...mascotaDto(), responsables: [{ id: 7001, nombre: "Ana" }] }));
+  await assert.rejects(petAdminBookingService.obtenerMascota(6059), error => {
+    assert.ok(error instanceof PetAdminBookingApiError);
+    assert.equal(error.status, 200);
+    return true;
+  });
+  mockFetch(t, async () => response({ ...mascotaDto(), raza: 7, responsables: [] }));
   await assert.rejects(petAdminBookingService.obtenerMascota(6059), error => {
     assert.ok(error instanceof PetAdminBookingApiError);
     assert.equal(error.status, 200);
@@ -532,7 +540,7 @@ function adminController(t: TestContext, client = adminClient(t)) {
 function servicesDto() { return configuredServices.map(item => ({ id: item.id, nombre: item.nombre, activo: Number(item.activo), duracion_minutos: item.duracionMinutos })); }
 function extrasDto() { return configuredExtras.map(item => ({ id: item.id, nombre: item.nombre, activo: Number(item.activo), duracion_minutos: item.duracionMinutos })); }
 function detailDto(id = 6059) {
-  return { ...mascotaDto({ id, nombre: id === 6059 ? "Firulais" : "Luna" }),
+  return { ...mascotaDto({ id, nombre: id === 6059 ? "Firulais" : "Luna", raza: id === 6059 ? "Mestizo" : null }),
     responsables: [{ id: id === 6059 ? 7001 : 7002, nombre: "Ana", telefono: responsible.telefono }] };
 }
 function isAdminSearch(url: string) { return new URL(url, "http://localhost").pathname === "/api/pet/admin/mascotas/search"; }
@@ -552,6 +560,7 @@ function defaultAdminResponse(url: string, init?: RequestInit): Response {
 }
 
 async function chooseAdminPet(controller: AdminController) {
+  if (controller.getSnapshot().searchTerm === "") controller.setSearchTerm("fi");
   controller.setSearchActive(true);
   await waitAdmin(controller, value => value.queries.search.isSuccess && !value.queries.search.isFetching);
   controller.setMascota(6059);
@@ -692,6 +701,7 @@ test("admin mascotas remotas: cero o una no autoseleccionan, online=false sigue 
   for (const items of [[], [mascotaSearchDto()]]) {
     mockFetch(t, async (url, init) => isAdminSearch(url) ? response(items) : defaultAdminResponse(url, init));
     const controller = adminController(t);
+    controller.setSearchTerm("fi");
     await waitAdmin(controller, value => value.queries.search.isSuccess);
     assert.equal(controller.getSnapshot().state.draft.mascotaId, null);
     assert.equal(controller.getSnapshot().searchResults.length, items.length);
@@ -737,6 +747,7 @@ test("admin out-of-order: detalle/servicios/extras A se abortan y respuestas tar
     return defaultAdminResponse(url, init);
   });
   const controller = adminController(t);
+  controller.setSearchTerm("fi");
   await waitAdmin(controller, value => value.queries.search.isSuccess);
   controller.setMascota(6059);
   await waitAdmin(controller, () => signals.length === 2);
@@ -1040,8 +1051,10 @@ test("admin search keys/options: trim y limit en namespace propio, sin identidad
   assert.deepEqual(query.queryKey, key);
   assert.equal(query.enabled, true);
   assert.equal(petAdminSearchMascotasQuery("").enabled, false, "inactiva por defecto");
-  assert.equal(petAdminSearchMascotasQuery("  ", 20, true).enabled, true);
+  assert.equal(petAdminSearchMascotasQuery("", 20, true).enabled, false, "vacío no consulta");
+  assert.equal(petAdminSearchMascotasQuery("  ", 20, true).enabled, false, "whitespace no consulta");
   assert.equal(petAdminSearchMascotasQuery(" f ", 20, true).enabled, false);
+  assert.equal(petAdminSearchMascotasQuery(" fi ", 20, true).enabled, true);
   assert.equal(petAdminSearchMascotasQuery("a".repeat(101), 20, true).enabled, false);
   assert.equal(petAdminSearchMascotasQuery("fi", 21, true).enabled, false);
   for (const name of ["token", "localId", "clienteId", "ADMIN_JWT_TEST_SENTINEL"]) {
@@ -1049,7 +1062,7 @@ test("admin search keys/options: trim y limit en namespace propio, sin identidad
   }
 });
 
-test("admin search controller: inactivo no consulta; vacío permitido, 1 carácter bloqueado incluso en refetch, 2+ con signal", async t => {
+test("admin search controller: activar con vacío y 1 carácter no consultan; 2+ busca con signal", async t => {
   const calls: Array<{ q: string | null; signal: AbortSignal | null }> = [];
   mockFetch(t, async (url, init) => {
     assert.ok(isAdminSearch(url));
@@ -1061,24 +1074,26 @@ test("admin search controller: inactivo no consulta; vacío permitido, 1 caráct
   const controller = createPetAdminBookingController(adminClient(t));
   const unsubscribe = controller.subscribe(() => {});
   t.after(() => { unsubscribe(); controller.dispose(); });
-  controller.setSearchTerm("fi");
+  controller.setSearchActive(true);
+  await nextTick(); await nextTick();
+  assert.equal(calls.length, 0, "activar con q vacío no consulta");
   await controller.refetchSearch();
   await nextTick();
-  assert.equal(calls.length, 0);
-  controller.setSearchTerm("");
-  controller.setSearchActive(true);
-  await waitAdmin(controller, value => value.searchResults.length === 1);
-  assert.deepEqual(calls.map(item => item.q), [""]);
+  assert.equal(calls.length, 0, "refetch de q vacío tampoco consulta");
+  assert.deepEqual(controller.getSnapshot().searchResults, []);
+  assert.equal(controller.getSnapshot().searchLoading, false);
   controller.setSearchTerm(" f ");
   await controller.refetchSearch();
   await nextTick();
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 0, "1 carácter no consulta");
   assert.deepEqual(controller.getSnapshot().searchResults, []);
-  assert.equal(controller.getSnapshot().searchLoading, false);
   controller.setSearchTerm(" fi ");
   await waitAdmin(controller, value => value.searchResults.length === 1);
-  assert.deepEqual(calls.map(item => item.q), ["", "fi"]);
-  assert.equal(controller.getSnapshot().searchTerm, "fi");
+  assert.deepEqual(calls.map(item => item.q), ["fi"]);
+  controller.setSearchTerm("fir");
+  await waitAdmin(controller, () => calls.length === 2);
+  assert.deepEqual(calls.map(item => item.q), ["fi", "fir"]);
+  assert.equal(controller.getSnapshot().searchTerm, "fir");
   assert.ok(calls.every(item => item.signal instanceof AbortSignal));
   controller.setSearchActive(false);
   controller.setSearchTerm("luna");
@@ -1120,7 +1135,7 @@ test("admin search A/B: A se aborta, no permite seleccionar resultados viejos y 
   assert.equal(controller.getSnapshot().state.draft.mascotaId, null);
 });
 
-test("admin selección confirmable sobrevive firu→luna→vacío→1 carácter→clearSearch, sin cambiar key ni detalle", async t => {
+test("admin selección confirmable sobrevive firu→fir→vacío→1 carácter→clearSearch, sin cambiar key ni detalle", async t => {
   const calls: string[] = [];
   mockFetch(t, async (url, init) => {
     calls.push(url);
@@ -1137,10 +1152,14 @@ test("admin selección confirmable sobrevive firu→luna→vacío→1 carácter�
   const detail = controller.getSnapshot().selectedPetDetail;
   const key = petAdminSelectionKey(before);
   const detailReads = calls.filter(url => !isAdminSearch(url)).length;
-  for (const term of ["luna", ""]) {
+  for (const term of ["fir", ""]) {
     controller.setSearchTerm(term);
     assert.equal(controller.getSnapshot().canConfirm, true, "búsqueda en curso no es fetch crítico");
-    await waitAdmin(controller, value => value.queries.search.isSuccess && !value.searchLoading);
+    if (term !== "") {
+      await waitAdmin(controller, value => value.queries.search.isSuccess && !value.searchLoading);
+    } else {
+      await nextTick(); await nextTick();
+    }
     assert.ok(!controller.getSnapshot().searchResults.some(item => item.id === 6059));
     assert.deepEqual(controller.getSnapshot().state.draft, before);
     assert.equal(controller.getSnapshot().selectedPetDetail, detail);
@@ -1168,6 +1187,7 @@ test("admin búsqueda de nombres duplicados selecciona por ID y detalle es autor
     return defaultAdminResponse(url, init);
   });
   const controller = adminController(t);
+  controller.setSearchTerm("fi");
   await waitAdmin(controller, value => value.searchResults.length === 2);
   controller.setMascota(6060);
   await waitAdmin(controller, value => value.queries.detail.isFetching);
@@ -1320,7 +1340,11 @@ test("admin recovery mascota: POST stale seguido de detalle 404 sin code limpia 
 });
 
 test("admin startNewBooking limpia búsqueda/cachés propias y no borra keys de otros flujos", async t => {
-  mockFetch(t, async (url, init) => defaultAdminResponse(url, init));
+  let searchReads = 0;
+  mockFetch(t, async (url, init) => {
+    if (isAdminSearch(url)) searchReads++;
+    return defaultAdminResponse(url, init);
+  });
   const client = adminClient(t);
   const foreignKey = queryKeys.turnos.lista(input.fecha);
   const unrelatedSearchKey = queryKeys.petAdminBooking.searchMascotas("ajena", 5);
@@ -1329,8 +1353,11 @@ test("admin startNewBooking limpia búsqueda/cachés propias y no borra keys de 
   const controller = adminController(t, client);
   controller.setSearchTerm("firu");
   await readyAdmin(controller);
+  const searchReadsBeforeStart = searchReads;
   assert.equal(await controller.confirmar(), "created");
   controller.startNewBooking();
+  await nextTick(); await nextTick();
+  assert.equal(searchReads, searchReadsBeforeStart, "startNewBooking no dispara búsqueda");
   assert.deepEqual(controller.getSnapshot().state, petAdminInitialState());
   assert.equal(controller.getSnapshot().searchTerm, "");
   assert.equal(controller.getSnapshot().searchActive, false);
@@ -1348,10 +1375,11 @@ test("admin clearSearch no cancela ni borra una búsqueda compartida con otro ob
   let signal: AbortSignal | undefined;
   mockFetch(t, async (_url, init) => { signal = init?.signal ?? undefined; return pending.promise; });
   const client = adminClient(t);
-  const observer = new QueryObserver(client, petAdminSearchMascotasQuery("", 20, true));
+  const observer = new QueryObserver(client, petAdminSearchMascotasQuery("fi", 20, true));
   const unsubscribe = observer.subscribe(() => {});
   t.after(unsubscribe);
   const controller = adminController(t, client);
+  controller.setSearchTerm("fi");
   await waitAdmin(controller, () => signal !== undefined);
   controller.clearSearch();
   assert.equal(signal?.aborted, false);
@@ -1366,6 +1394,7 @@ test("admin clearSearch cancela su propia búsqueda pendiente; respuesta tardía
   let signal: AbortSignal | undefined;
   mockFetch(t, async (_url, init) => { signal = init?.signal ?? undefined; return pending.promise; });
   const controller = adminController(t);
+  controller.setSearchTerm("fi");
   await waitAdmin(controller, () => signal !== undefined);
   controller.clearSearch();
   assert.equal(signal?.aborted, true);
@@ -1437,6 +1466,11 @@ for (const [status, code] of [[500, null], [404, "UNRECOGNIZED_CODE"]] as const)
 
 const { getAdminBookingVariant } = await import("../src/feature/admin/pages/adminPage/bookingVariant.ts");
 const { petAdminBookingIssueMessage, petAdminDateLabel, petAdminSlotLabel } = await import("../src/feature/admin/petBooking/booking/petAdminBookingView.ts");
+const {
+  PET_ADMIN_SEARCH_DEBOUNCE_MS, PET_ADMIN_SEARCH_EMPTY_MESSAGE, PET_ADMIN_SEARCH_LIMIT_MESSAGE,
+  PET_ADMIN_SEARCH_TOO_SHORT_MESSAGE, petAdminSearchInputState, petAdminSearchNormalizedTerm,
+  petAdminSearchOptions, petAdminSearchRequestTerm, petAdminSearchResultMeta, petAdminSearchSelectedRaza,
+} = await import("../src/feature/admin/petBooking/components/petAdminPetSearchView.ts");
 
 test("AdminContent variant selector: PET_GROOMING usa variante PET y BEAUTY conserva la anterior", () => {
   assert.equal(getAdminBookingVariant(BUSINESS_TYPE.PET_GROOMING), "PET");
@@ -1461,4 +1495,66 @@ test("PET admin view helpers: labels de slot/fecha y copy seguro por código de 
   assert.equal(petAdminBookingIssueMessage({ kind: "creation-unknown", source: "create", status: 500, code: null }),
     "No pudimos confirmar el resultado de la reserva. Revisá la agenda antes de intentarlo nuevamente.");
   assert.equal(petAdminBookingIssueMessage({ kind: "read-error", source: "availability", status: 500, code: null }), null);
+});
+
+test("PET admin búsqueda UI: debounce, trim y mínimos sin disparar el contrato inválido", () => {
+  assert.equal(PET_ADMIN_SEARCH_DEBOUNCE_MS, 300);
+  assert.equal(petAdminSearchNormalizedTerm("  firu  "), "firu");
+  assert.equal(petAdminSearchRequestTerm(""), null);
+  assert.equal(petAdminSearchRequestTerm("   "), null);
+  assert.equal(petAdminSearchRequestTerm(" f "), null);
+  assert.equal(petAdminSearchRequestTerm(" fi "), "fi");
+  assert.equal(petAdminSearchRequestTerm(" fir "), "fir");
+  assert.equal(petAdminSearchRequestTerm("a".repeat(101)), null);
+  assert.equal(petAdminSearchInputState(""), "empty");
+  assert.equal(petAdminSearchInputState("   "), "empty");
+  assert.equal(petAdminSearchInputState(" f "), "too-short");
+  assert.equal(petAdminSearchInputState(" fi "), "ready");
+  assert.equal(PET_ADMIN_SEARCH_TOO_SHORT_MESSAGE, "Escribí al menos 2 caracteres.");
+  assert.equal(PET_ADMIN_SEARCH_EMPTY_MESSAGE, "No encontramos mascotas con esa búsqueda.");
+  assert.equal(PET_ADMIN_SEARCH_LIMIT_MESSAGE, "Hay varios resultados. Refiná la búsqueda para encontrar la mascota.");
+});
+
+test("PET admin búsqueda UI: resultados 0/1/2/3+ responsables, raza opcional y sin teléfonos múltiples", () => {
+  assert.equal(petAdminSearchResultMeta({ raza: "Mestizo", responsables: [] }),
+    "Mestizo · Sin responsable asociado");
+  assert.equal(petAdminSearchResultMeta({ raza: null, responsables: [] }), "Sin responsable asociado");
+  assert.equal(petAdminSearchResultMeta({ raza: "Mestizo", responsables: [
+    { id: 1, nombre: "Juan Pérez", telefono: "11 2345-6789" },
+  ] }), "Juan Pérez · 11 2345-6789 · Mestizo");
+  assert.equal(petAdminSearchResultMeta({ raza: null, responsables: [
+    { id: 1, nombre: "Juan Pérez", telefono: "11 2345-6789" },
+  ] }), "Juan Pérez · 11 2345-6789");
+  assert.equal(petAdminSearchResultMeta({ raza: "Mestizo", responsables: [
+    { id: 1, nombre: "Juan Pérez", telefono: "11 2345-6789" },
+    { id: 2, nombre: "María Gómez", telefono: "11 8765-4321" },
+  ] }), "Juan Pérez · María Gómez · Mestizo");
+  assert.equal(petAdminSearchResultMeta({ raza: "Mestizo", responsables: [
+    { id: 1, nombre: "Juan Pérez", telefono: "11 2345-6789" },
+    { id: 2, nombre: "María Gómez", telefono: "11 8765-4321" },
+    { id: 3, nombre: "Ana Díaz", telefono: "11 1111-2222" },
+  ] }), "Juan Pérez · María Gómez (+1) · Mestizo");
+  assert.equal(petAdminSearchResultMeta({ raza: "  ", responsables: [
+    { id: 1, nombre: "Juan Pérez", telefono: "11 2345-6789" },
+  ] }), "Juan Pérez · 11 2345-6789");
+});
+
+test("PET admin búsqueda UI: nombres duplicados conservan IDs y la tarjeta usa raza del detalle", () => {
+  const options = petAdminSearchOptions([
+    mascotaSearchDto({ id: 6059, nombre: "Firulais", raza: "Mestizo", responsables: [
+      { id: 7001, nombre: "Juan Pérez", telefono: "11 2345-6789" },
+    ] }),
+    mascotaSearchDto({ id: 6060, nombre: "Firulais", raza: "Caniche", responsables: [
+      { id: 7002, nombre: "María Gómez", telefono: "11 8765-4321" },
+    ] }),
+  ]);
+  assert.deepEqual(options.map(option => option.id), [6059, 6060]);
+  assert.deepEqual(options.map(option => option.nombre), ["Firulais", "Firulais"]);
+  assert.deepEqual(options.map(option => option.detalle), [
+    "Juan Pérez · 11 2345-6789 · Mestizo",
+    "María Gómez · 11 8765-4321 · Caniche",
+  ]);
+  assert.equal(petAdminSearchSelectedRaza({ ...pet, raza: " Mestizo " }), "Mestizo");
+  assert.equal(petAdminSearchSelectedRaza({ ...pet, raza: "" }), null);
+  assert.equal(petAdminSearchSelectedRaza(null), null);
 });

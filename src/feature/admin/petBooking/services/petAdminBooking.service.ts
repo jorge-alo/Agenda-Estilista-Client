@@ -101,14 +101,15 @@ function parseResponsable(value: unknown): PetAdminResponsable | null {
 
 function parseMascotaDetail(value: unknown): PetAdminMascotaDetail | null {
   const mascota = parseMascota(value);
-  if (!mascota || !esRegistro(value) || !Array.isArray(value.responsables)) return null;
+  if (!mascota || !esRegistro(value) || !Array.isArray(value.responsables)
+    || (value.raza !== null && typeof value.raza !== "string")) return null;
   const responsables: PetAdminResponsable[] = [];
   for (const item of value.responsables) {
     const responsable = parseResponsable(item);
     if (!responsable) return null;
     responsables.push(responsable);
   }
-  return { ...mascota, responsables };
+  return { ...mascota, raza: value.raza, responsables };
 }
 
 function parseConfigurados(value: unknown): PetAdminServicio[] | PetAdminExtra[] | null {

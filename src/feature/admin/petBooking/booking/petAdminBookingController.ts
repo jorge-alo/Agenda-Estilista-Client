@@ -80,7 +80,7 @@ export function createPetAdminBookingController(client: QueryClient, options: { 
       searchTerm,
       searchActive,
       searchResults: searchOptions().enabled && p.isSuccess && !p.isFetching ? p.data : [],
-      searchLoading: searchOptions().enabled && p.isFetching,
+      searchLoading: searchOptions().enabled === true && p.isFetching,
       searchError: searchOptions().enabled && p.isError ? p.error : null,
       selectedPetDetail: d.isSuccess && d.data && d.data.id === state.draft.mascotaId ? d.data : null,
       responsables: d.data?.id === state.draft.mascotaId ? d.data.responsables : [],

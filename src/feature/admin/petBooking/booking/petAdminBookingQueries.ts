@@ -16,7 +16,7 @@ export function petAdminMascotasQuery(allowReads = true) {
 
 export function petAdminSearchMascotasQuery(q: string, limit = 20, allowReads = false) {
   const term = q.trim();
-  const valid = (term.length === 0 || (term.length >= 2 && term.length <= 100))
+  const valid = term.length >= 2 && term.length <= 100
     && Number.isInteger(limit) && limit >= 1 && limit <= 20;
   return queryOptions({ ...readingPolicy, queryKey: queryKeys.petAdminBooking.searchMascotas(term, limit),
     enabled: allowReads && valid,

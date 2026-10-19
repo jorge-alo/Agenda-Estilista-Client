@@ -23,6 +23,7 @@ export interface PetAdminResponsable {
 }
 
 export interface PetAdminMascotaDetail extends PetAdminMascota {
+  raza: string | null;
   responsables: PetAdminResponsable[];
 }
 
