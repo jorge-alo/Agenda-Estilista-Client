@@ -7,6 +7,7 @@ import type {
   PetAdminExtra,
   PetAdminMascota,
   PetAdminMascotaDetail,
+  PetAdminMascotaSearchResult,
   PetAdminResponsable,
   PetAdminServicio,
 } from "../types/petAdminBooking.types.ts";
@@ -73,6 +74,23 @@ function parseMascotas(value: unknown): PetAdminMascota[] | null {
     mascotas.push(mascota);
   }
   return mascotas;
+}
+
+function parseMascotaSearchResults(value: unknown): PetAdminMascotaSearchResult[] | null {
+  if (!Array.isArray(value)) return null;
+  const results: PetAdminMascotaSearchResult[] = [];
+  for (const item of value) {
+    if (!esRegistro(item) || !idValido(item.id) || typeof item.nombre !== "string"
+      || (item.raza !== null && typeof item.raza !== "string") || !Array.isArray(item.responsables)) return null;
+    const responsables: PetAdminMascotaSearchResult["responsables"] = [];
+    for (const responsable of item.responsables) {
+      if (!esRegistro(responsable) || !idValido(responsable.id)
+        || typeof responsable.nombre !== "string" || typeof responsable.telefono !== "string") return null;
+      responsables.push({ id: responsable.id, nombre: responsable.nombre, telefono: responsable.telefono });
+    }
+    results.push({ id: item.id, nombre: item.nombre, raza: item.raza, responsables });
+  }
+  return results;
 }
 
 function parseResponsable(value: unknown): PetAdminResponsable | null {
@@ -206,6 +224,11 @@ export function ordenarPetAdminExtraIds(extraIds: readonly number[]): number[] {
 export const petAdminBookingService = {
   listarMascotas(options: ReadOptions = {}): Promise<PetAdminMascota[]> {
     return respuestaJson("/mascotas", parseMascotas, options);
+  },
+
+  buscarMascotas(options: ReadOptions & { q?: string; limit?: number } = {}): Promise<PetAdminMascotaSearchResult[]> {
+    const query = new URLSearchParams({ q: options.q ?? "", limit: String(options.limit ?? 20) });
+    return respuestaJson(`/mascotas/search?${query.toString()}`, parseMascotaSearchResults, options);
   },
 
   obtenerMascota(mascotaId: number, options: ReadOptions = {}): Promise<PetAdminMascotaDetail> {

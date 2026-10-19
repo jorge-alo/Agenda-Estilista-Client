@@ -98,6 +98,87 @@ test("mascotas: response inválida produce error de protocolo", async t => {
   });
 });
 
+function mascotaSearchDto(overrides: Record<string, unknown> = {}) {
+  return { id: 6059, nombre: "Firulais", raza: null, responsables: [
+    { id: 7001, nombre: "Ana", telefono: "11 2345-6789" },
+    { id: 7002, nombre: "Juan", telefono: "11 8765-4321" },
+  ], ...overrides };
+}
+
+test("search mascotas: GET exacto con q encoded, limit default 20, JWT, signal y proyección mínima", async t => {
+  const signal = new AbortController().signal;
+  let request: { url: string; init?: RequestInit } | undefined;
+  mockFetch(t, async (url, init) => {
+    request = { url, init };
+    return response([mascotaSearchDto({ local_id: 5532, activo: 1, reserva_online_habilitada: 0,
+      alta_exigencia: 1, observaciones: "internal", fecha_nacimiento: "2021-01-01", created_at: "ignored",
+      responsables: [{ id: 7001, nombre: "Ana", telefono: "11 2345-6789", local_id: 5532, telefono_normalizado: "internal" },
+        { id: 7002, nombre: "Juan", telefono: "11 8765-4321" }] })]);
+  });
+  const q = "Firúláis & +54 %_\\";
+  const result = await petAdminBookingService.buscarMascotas({ q, signal });
+  assert.equal(request?.url, `/api/pet/admin/mascotas/search?${new URLSearchParams({ q, limit: "20" })}`);
+  assert.equal(request?.init?.method, "GET");
+  assert.equal(request?.init?.cache, "no-store");
+  assert.equal(request?.init?.signal, signal);
+  assert.equal(new Headers(request?.init?.headers).get("Authorization"), "Bearer ADMIN_JWT_TEST_SENTINEL");
+  assert.deepEqual(result, [mascotaSearchDto()]);
+});
+
+test("search mascotas: límite explícito, raza string, cero responsables y vacío son válidos", async t => {
+  let url = "";
+  mockFetch(t, async requestUrl => {
+    url = requestUrl;
+    return response([mascotaSearchDto({ raza: "Mestizo", responsables: [] })]);
+  });
+  assert.deepEqual(await petAdminBookingService.buscarMascotas({ q: "Luna", limit: 5 }), [mascotaSearchDto({ raza: "Mestizo", responsables: [] })]);
+  assert.equal(url, "/api/pet/admin/mascotas/search?q=Luna&limit=5");
+  mockFetch(t, async requestUrl => { url = requestUrl; return response([]); });
+  assert.deepEqual(await petAdminBookingService.buscarMascotas(), []);
+  assert.equal(url, "/api/pet/admin/mascotas/search?q=&limit=20");
+});
+
+test("search mascotas: parser estricto rechaza arrays/IDs/raza/responsables inválidos", async t => {
+  for (const payload of [
+    {}, [null], [mascotaSearchDto({ id: "6059" })], [mascotaSearchDto({ id: 0 })],
+    [mascotaSearchDto({ nombre: null })], [mascotaSearchDto({ raza: undefined })], [mascotaSearchDto({ raza: 7 })],
+    [mascotaSearchDto({ responsables: null })], [mascotaSearchDto({ responsables: [{}] })],
+    [mascotaSearchDto({ responsables: [{ id: 7001, nombre: "Ana", telefono: 1123456789 }] })],
+  ]) {
+    mockFetch(t, async () => response(payload));
+    await assert.rejects(petAdminBookingService.buscarMascotas({ q: "firu" }), error => {
+      assert.ok(error instanceof PetAdminBookingApiError);
+      assert.equal(error.status, 200);
+      assert.equal(error.code, null);
+      return true;
+    });
+  }
+});
+
+test("search mascotas: errores HTTP conservan status/code sin copiar datos remotos", async t => {
+  for (const [status, code] of [[400, "PET_MASCOTA_SEARCH_INVALID"], [403, null], [500, null]] as const) {
+    mockFetch(t, async () => response({ error: "REMOTE_INTERNAL_SENTINEL", ...(code ? { code } : {}) }, status));
+    await assert.rejects(petAdminBookingService.buscarMascotas({ q: "fi" }), error => {
+      assert.ok(error instanceof PetAdminBookingApiError);
+      assert.equal(error.status, status);
+      assert.equal(error.code, code);
+      assert.ok(!error.message.includes("REMOTE_INTERNAL_SENTINEL"));
+      return true;
+    });
+  }
+});
+
+test("search mascotas: AbortSignal cancela lectura sin convertir AbortError", async t => {
+  const controller = new AbortController();
+  mockFetch(t, async (_url, init) => new Promise<Response>((_resolve, reject) => {
+    assert.equal(init?.signal, controller.signal);
+    init?.signal?.addEventListener("abort", () => reject(controller.signal.reason), { once: true });
+  }));
+  const pending = petAdminBookingService.buscarMascotas({ q: "firu", signal: controller.signal });
+  controller.abort();
+  await assert.rejects(pending, error => error === controller.signal.reason);
+});
+
 test("lecturas propagan AbortSignal sin convertir AbortError en error HTTP", async t => {
   const controller = new AbortController();
   controller.abort();

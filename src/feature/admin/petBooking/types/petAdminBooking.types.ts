@@ -5,6 +5,17 @@ export interface PetAdminMascota {
   reservaOnlineHabilitada: boolean;
 }
 
+export interface PetAdminMascotaSearchResult {
+  id: number;
+  nombre: string;
+  raza: string | null;
+  responsables: Array<{
+    id: number;
+    nombre: string;
+    telefono: string;
+  }>;
+}
+
 export interface PetAdminResponsable {
   clienteId: number;
   nombre: string;
