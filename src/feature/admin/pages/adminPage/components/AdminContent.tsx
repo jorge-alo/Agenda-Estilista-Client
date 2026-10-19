@@ -14,6 +14,8 @@ import type { Estilista } from "../../../estilistas/types/estilistas.types";
 import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
 import { BUSINESS_TYPE, type BusinessType } from "../types/adminPage.types";
 import { PetAgenda } from "../../../petAgenda/components/PetAgenda";
+import { PetAdminBookingForm } from "../../../petBooking/components/PetAdminBookingForm";
+import { getAdminBookingVariant } from "../bookingVariant";
 
 interface Props {
   tabActiva: string;
@@ -43,11 +45,15 @@ export const AdminContent = ({ tabActiva, businessType, estilistas, estilistaId,
 
       {tabActiva === "reservar" && (
         <ErrorBoundary key="reservar">
-          <ReservarTurnoAdmin
-            estilistaId={estilistaId}
-            setEstilistaId={setEstilistaId}
-            estilistas={estilistas}
-          />
+          {getAdminBookingVariant(businessType) === "PET" ? (
+            <PetAdminBookingForm />
+          ) : (
+            <ReservarTurnoAdmin
+              estilistaId={estilistaId}
+              setEstilistaId={setEstilistaId}
+              estilistas={estilistas}
+            />
+          )}
         </ErrorBoundary>
       )}
 

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createPetAdminBookingController } from "../booking/petAdminBookingController.ts";
+import { petAdminSelectionKey } from "../booking/petAdminBookingState.ts";
 
 export function usePetAdminBooking() {
   const client = useQueryClient();
@@ -17,7 +18,10 @@ export function usePetAdminBooking() {
       setServicio: controller.setServicio,
       toggleExtra: controller.toggleExtra,
       setFecha: controller.setFecha,
-      setSlot: controller.setSlot,
+      setSlot: (slot: { horaInicio: string; horaFin: string }) => controller.setSlot({
+        ...slot,
+        selectionKey: petAdminSelectionKey(controller.getSnapshot().state.draft),
+      }),
       confirmar: controller.confirmar,
       startNewBooking: controller.startNewBooking,
       refetchMascotas: controller.refetchMascotas,

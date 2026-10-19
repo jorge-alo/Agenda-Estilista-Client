@@ -1,0 +1,192 @@
+.pet-admin-booking {
+  display: grid;
+  gap: 1rem;
+  color: #25312d;
+}
+
+.pet-admin-booking__header h1,
+.pet-admin-booking__header p,
+.pet-admin-booking__review h2,
+.pet-admin-booking__success h2 {
+  margin: 0;
+}
+
+.pet-admin-booking__header h1,
+.pet-admin-booking__review h2,
+.pet-admin-booking__success h2 {
+  color: #263832;
+  font-size: 1.2rem;
+}
+
+.pet-admin-booking__header p {
+  margin-top: .3rem;
+  color: #63736b;
+}
+
+.pet-admin-booking__form {
+  display: grid;
+  gap: .85rem;
+}
+
+.pet-admin-booking__group,
+.pet-admin-booking__review,
+.pet-admin-booking__success {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #e0e8e3;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.pet-admin-booking__group legend {
+  padding: 0 .25rem;
+  color: #34483e;
+  font-weight: 700;
+}
+
+.pet-admin-booking__field {
+  display: grid;
+  gap: .4rem;
+  color: #45574e;
+  font-weight: 600;
+}
+
+.pet-admin-booking__field select,
+.pet-admin-booking__field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #cbd7d0;
+  border-radius: 9px;
+  padding: .55rem .7rem;
+  background: #fff;
+  color: #263832;
+  font: inherit;
+}
+
+.pet-admin-booking__field select:focus-visible,
+.pet-admin-booking__field input:focus-visible,
+.pet-admin-booking__check input:focus-visible,
+.pet-admin-booking__slot input:focus-visible,
+.pet-admin-booking button:focus-visible {
+  outline: 3px solid #88c9b3;
+  outline-offset: 2px;
+}
+
+.pet-admin-booking__group:disabled { opacity: .72; }
+.pet-admin-booking__group:disabled select,
+.pet-admin-booking__group:disabled input { cursor: not-allowed; }
+
+.pet-admin-booking__responsible {
+  display: grid;
+  gap: .2rem;
+  color: #34483e;
+}
+
+.pet-admin-booking__hint,
+.pet-admin-booking__message {
+  margin: .55rem 0 0;
+  color: #596b62;
+  font-size: .92rem;
+}
+
+.pet-admin-booking__message button {
+  min-height: 38px;
+  margin-top: .5rem;
+  border: 1px solid #cbd7d0;
+  border-radius: 8px;
+  padding: .4rem .7rem;
+  background: #fff;
+  color: #263832;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pet-admin-booking__checks,
+.pet-admin-booking__slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: .55rem;
+}
+
+.pet-admin-booking__check,
+.pet-admin-booking__slot {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  min-height: 44px;
+  border: 1px solid #d7e0db;
+  border-radius: 9px;
+  padding: .55rem .7rem;
+  background: #fff;
+  color: #35483f;
+  cursor: pointer;
+}
+
+.pet-admin-booking__check:has(input:checked),
+.pet-admin-booking__slot.is-selected {
+  border-color: #167a61;
+  background: #e7f5ef;
+  color: #12614e;
+}
+
+.pet-admin-booking__check input,
+.pet-admin-booking__slot input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #167a61;
+}
+
+.pet-admin-booking__review,
+.pet-admin-booking__success {
+  display: grid;
+  gap: .85rem;
+  border-color: #b8d9ca;
+  background: #f9fcfa;
+}
+
+.pet-admin-booking__summary-list {
+  display: grid;
+  gap: .55rem;
+  margin: 0;
+}
+
+.pet-admin-booking__summary-list > div {
+  display: grid;
+  grid-template-columns: minmax(95px, .7fr) 1.3fr;
+  gap: .75rem;
+}
+
+.pet-admin-booking__summary-list dt { color: #607168; }
+.pet-admin-booking__summary-list dd { margin: 0; color: #293c33; font-weight: 600; overflow-wrap: anywhere; }
+
+.pet-admin-booking__primary {
+  min-height: 46px;
+  border: 1px solid #167a61;
+  border-radius: 9px;
+  padding: .65rem 1rem;
+  background: #167a61;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pet-admin-booking__primary:disabled { cursor: not-allowed; opacity: .58; }
+
+.pet-admin-booking__alert {
+  margin: 0;
+  border: 1px solid #efc4bd;
+  border-radius: 9px;
+  padding: .8rem;
+  background: #fff3f1;
+  color: #842f27;
+}
+
+@media (max-width: 540px) {
+  .pet-admin-booking__group,
+  .pet-admin-booking__review,
+  .pet-admin-booking__success { padding: .8rem; }
+  .pet-admin-booking__summary-list > div { grid-template-columns: 1fr; gap: .15rem; }
+}

@@ -4,6 +4,7 @@ import { registerHooks } from "node:module";
 import { setImmediate as nextTick } from "node:timers/promises";
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { queryKeys } from "../src/shared/lib/queryKeys.ts";
+import { BUSINESS_TYPE } from "../src/shared/types/businessType.ts";
 import type { PetAdminBookingAction } from "../src/feature/admin/petBooking/booking/petAdminBookingState.ts";
 
 registerHooks({
@@ -931,4 +932,32 @@ test("admin QueryObserver directo: disabled no consulta y Signal se consume sin 
   for (let i = 0; i < 100 && !observer.getCurrentResult().isError; i++) await nextTick();
   assert.equal(observer.getCurrentResult().isError, true);
   assert.equal(calls, 1);
+});
+
+const { getAdminBookingVariant } = await import("../src/feature/admin/pages/adminPage/bookingVariant.ts");
+const { petAdminBookingIssueMessage, petAdminDateLabel, petAdminSlotLabel } = await import("../src/feature/admin/petBooking/booking/petAdminBookingView.ts");
+
+test("AdminContent variant selector: PET_GROOMING usa variante PET y BEAUTY conserva la anterior", () => {
+  assert.equal(getAdminBookingVariant(BUSINESS_TYPE.PET_GROOMING), "PET");
+  assert.equal(getAdminBookingVariant(BUSINESS_TYPE.BEAUTY), "BEAUTY");
+});
+
+test("PET admin view helpers: labels de slot/fecha y copy seguro por código de dominio", () => {
+  assert.equal(petAdminSlotLabel("10:00", "11:30"), "10:00 – 11:30");
+  assert.match(petAdminDateLabel("2026-10-20"), /20/);
+  assert.equal(petAdminBookingIssueMessage({ kind: "slot-conflict", source: "create", status: 409, code: "PET_SLOT_UNAVAILABLE" }),
+    "Ese horario acaba de dejar de estar disponible.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "mascota-stale", source: "create", status: 409, code: "PET_MASCOTA_INACTIVA" }),
+    "La información de la mascota cambió. Revisá la selección.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "responsable-stale", source: "create", status: 409, code: "PET_RESPONSABLE_NO_ASOCIADO" }),
+    "El responsable seleccionado ya no está asociado a esta mascota. Revisá la selección.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "servicio-stale", source: "create", status: 409, code: "PET_SERVICIO_INACTIVO" }),
+    "La configuración del servicio cambió. Revisá la selección.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "extra-stale", source: "create", status: 409, code: "PET_EXTRA_INACTIVO" }),
+    "La configuración de algunos extras cambió. Revisá la selección.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "forbidden", source: "create", status: 403, code: "PET_LOCAL_REQUIRED" }),
+    "No tenés permisos para realizar esta operación.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "creation-unknown", source: "create", status: 500, code: null }),
+    "No pudimos confirmar el resultado de la reserva. Revisá la agenda antes de intentarlo nuevamente.");
+  assert.equal(petAdminBookingIssueMessage({ kind: "read-error", source: "availability", status: 500, code: null }), null);
 });
