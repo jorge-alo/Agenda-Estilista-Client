@@ -71,7 +71,7 @@ export type PetAdminBookingAction =
   | { type: "SET_FECHA"; fecha: string }
   | { type: "SET_SLOT"; slot: PetAdminSelectedSlot }
   | { type: "CLEAR_SLOT" }
-  | { type: "RECONCILE_MASCOTAS"; mascotas: readonly PetAdminMascota[] }
+  | { type: "MASCOTA_UNAVAILABLE"; mascotaId: number }
   | { type: "RECONCILE_DETAIL"; detail: PetAdminMascotaDetail; initial: boolean }
   | { type: "RECONCILE_SERVICIOS"; servicios: readonly PetAdminServicio[] }
   | { type: "RECONCILE_EXTRAS"; extras: readonly PetAdminExtra[] }
@@ -116,9 +116,8 @@ export function petAdminBookingReducer(state: PetAdminBookingState, action: PetA
       return change({ slotSeleccionado: { ...slot } });
     }
     case "CLEAR_SLOT": return draft.slotSeleccionado ? change({ slotSeleccionado: null }) : state;
-    case "RECONCILE_MASCOTAS":
-      return draft.mascotaId !== null && !petAdminSelectableMascotas(action.mascotas).some(item => item.id === draft.mascotaId)
-        ? petAdminInitialState() : state;
+    case "MASCOTA_UNAVAILABLE":
+      return draft.mascotaId === action.mascotaId ? petAdminInitialState() : state;
     case "RECONCILE_DETAIL": {
       if (action.detail.id !== draft.mascotaId) return state;
       if (!action.detail.activo) return petAdminInitialState();
@@ -142,24 +141,22 @@ export function petAdminBookingReducer(state: PetAdminBookingState, action: PetA
 
 export function petAdminSuccessSnapshot(
   draft: PetAdminBookingDraft,
-  mascotas: readonly PetAdminMascota[],
   detail: PetAdminMascotaDetail,
   servicios: readonly PetAdminServicio[],
   extras: readonly PetAdminExtra[],
   availability: PetAdminAvailability,
 ): PetAdminBookingSuccessBase | null {
-  const mascota = petAdminSelectableMascotas(mascotas).find(item => item.id === draft.mascotaId);
   const responsable = detail.responsables.find(item => item.clienteId === draft.clienteId);
   const servicio = petAdminUsableOptions(servicios).find(item => item.id === draft.servicioId);
   const slot = draft.slotSeleccionado;
   const selectedExtras = draft.extraIds.map(id => petAdminUsableOptions(extras).find(item => item.id === id));
-  if (!mascota || !detail.activo || detail.id !== mascota.id || !responsable || !servicio
+  if (!detail.activo || detail.id !== draft.mascotaId || !responsable || !servicio
     || selectedExtras.some(item => !item) || new Set(draft.extraIds).size !== draft.extraIds.length
     || !petAdminValidDate(draft.fecha) || draft.fecha !== availability.fecha || !slot
     || slot.selectionKey !== petAdminSelectionKey(draft)
     || !availability.slots.some(item => item.horaInicio === slot.horaInicio && item.horaFin === slot.horaFin)) return null;
   return Object.freeze({
-    mascotaNombre: mascota.nombre, responsableNombre: responsable.nombre, responsableTelefono: responsable.telefono,
+    mascotaNombre: detail.nombre, responsableNombre: responsable.nombre, responsableTelefono: responsable.telefono,
     servicioNombre: servicio.nombre, fecha: draft.fecha, duracionMinutos: availability.duracionMinutos,
     extras: Object.freeze(selectedExtras.flatMap(item => item ? [Object.freeze({ id: item.id, nombre: item.nombre, duracionMinutos: item.duracionMinutos })] : [])),
   });

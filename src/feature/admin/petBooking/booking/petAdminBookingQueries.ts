@@ -14,6 +14,18 @@ export function petAdminMascotasQuery(allowReads = true) {
     queryFn: ({ signal }) => petAdminBookingService.listarMascotas({ signal }) });
 }
 
+export function petAdminSearchMascotasQuery(q: string, limit = 20, allowReads = false) {
+  const term = q.trim();
+  const valid = (term.length === 0 || (term.length >= 2 && term.length <= 100))
+    && Number.isInteger(limit) && limit >= 1 && limit <= 20;
+  return queryOptions({ ...readingPolicy, queryKey: queryKeys.petAdminBooking.searchMascotas(term, limit),
+    enabled: allowReads && valid,
+    queryFn: ({ signal }) => {
+      if (!valid) throw new PetAdminBookingApiError(0, null);
+      return petAdminBookingService.buscarMascotas({ q: term, limit, signal });
+    } });
+}
+
 export function petAdminDetailQuery(mascotaId: number | null, allowReads = true) {
   return queryOptions({ ...readingPolicy, queryKey: queryKeys.petAdminBooking.mascotaDetail(mascotaId),
     enabled: allowReads && petAdminValidId(mascotaId), queryFn: ({ signal }) => {

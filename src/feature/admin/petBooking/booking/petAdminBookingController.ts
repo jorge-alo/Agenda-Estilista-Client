@@ -2,16 +2,16 @@ import { MutationObserver, QueryObserver, type QueryClient } from "@tanstack/rea
 import { PetAdminBookingApiError } from "../services/petAdminBooking.service.ts";
 import type { PetAdminAvailabilityInput } from "../types/petAdminBooking.types.ts";
 import {
-  petAdminBookingReducer, petAdminCombineSuccess, petAdminInitialState, petAdminSelectableMascotas,
+  petAdminBookingReducer, petAdminCombineSuccess, petAdminInitialState, petAdminValidId,
   petAdminSuccessSnapshot, petAdminUsableOptions,
   type PetAdminBookingAction, type PetAdminSelectedSlot,
 } from "./petAdminBookingState.ts";
 import {
   invalidatePetAdminBookingAfterCreation, petAdminAvailabilityQuery, petAdminBookingErrorKind,
-  petAdminCreationMutation, petAdminDetailQuery, petAdminExtrasQuery, petAdminMascotasQuery, petAdminServiciosQuery,
+  petAdminCreationMutation, petAdminDetailQuery, petAdminExtrasQuery, petAdminSearchMascotasQuery, petAdminServiciosQuery,
 } from "./petAdminBookingQueries.ts";
 
-type ReadName = "mascotas" | "detail" | "servicios" | "extras" | "availability";
+type ReadName = "search" | "detail" | "servicios" | "extras" | "availability";
 type RecoveryKind = "mascota-stale" | "responsable-stale" | "servicio-stale" | "extra-stale" | "slot-conflict";
 export interface PetAdminBookingIssue {
   kind: RecoveryKind | "unauthorized" | "forbidden" | "creation-unknown" | "invalid" | "read-error";
@@ -21,7 +21,7 @@ export interface PetAdminBookingIssue {
 }
 
 /** Admin orchestration shared by the hook and Node tests; no public session/storage/navigation. */
-export function createPetAdminBookingController(client: QueryClient) {
+export function createPetAdminBookingController(client: QueryClient, options: { searchActive?: boolean } = {}) {
   let state = petAdminInitialState();
   let connected = false;
   let disposed = false;
@@ -30,20 +30,27 @@ export function createPetAdminBookingController(client: QueryClient) {
   let unauthorized = false;
   let generation = 0;
   let initialDetailPending = false;
+  let searchTerm = "";
+  let searchActive = options.searchActive ?? false;
   let issue: PetAdminBookingIssue | null = null;
   let recovery: { kind: RecoveryKind; running: boolean } | null = null;
   const listeners = new Set<() => void>();
   const lastErrors = new Map<ReadName, unknown>();
   let subscriptions: Array<() => void> = [];
 
-  const mascotas = new QueryObserver(client, petAdminMascotasQuery(false));
+  const search = new QueryObserver(client, petAdminSearchMascotasQuery(""));
   const detail = new QueryObserver(client, petAdminDetailQuery(null, false));
   const servicios = new QueryObserver(client, petAdminServiciosQuery(null, false));
   const extras = new QueryObserver(client, petAdminExtrasQuery(null, false));
   const availability = new QueryObserver(client, petAdminAvailabilityQuery(null, false));
   const creation = new MutationObserver(client, petAdminCreationMutation());
-  const reads = { mascotas, detail, servicios, extras, availability };
+  const reads = { search, detail, servicios, extras, availability };
   const canRead = () => connected && !disposed && !unauthorized && !state.success;
+  const searchOptions = () => petAdminSearchMascotasQuery(searchTerm, 20, canRead() && searchActive);
+  // The legacy detail endpoint has no code on 404. This exception is NEVER applied to other reads.
+  const detailUnavailable = (error: unknown) => error instanceof PetAdminBookingApiError
+    && ((error.status === 404 && (error.code === null || error.code === "PET_MASCOTA_NOT_FOUND"))
+      || (error.status === 409 && error.code === "PET_MASCOTA_INACTIVA"));
   const selection = (): PetAdminAvailabilityInput | null => {
     const draft = state.draft;
     return draft.mascotaId === null || draft.servicioId === null ? null : {
@@ -52,30 +59,34 @@ export function createPetAdminBookingController(client: QueryClient) {
   };
 
   function submitSnapshot() {
-    const p = mascotas.getCurrentResult();
     const d = detail.getCurrentResult();
     const s = servicios.getCurrentResult();
     const e = extras.getCurrentResult();
     const a = availability.getCurrentResult();
     if (!canRead() || submitting || recovery?.running || issue?.kind === "creation-unknown" || issue?.kind === "forbidden"
-      || !p.isSuccess || p.isFetching || !d.isSuccess || !d.data || d.isFetching || !s.isSuccess || s.isFetching
+      || !d.isSuccess || !d.data || d.isFetching || !s.isSuccess || s.isFetching
       || !e.isSuccess || e.isFetching || !a.isSuccess || a.isFetching) return null;
-    return petAdminSuccessSnapshot(state.draft, p.data, d.data, s.data, e.data, a.data);
+    return petAdminSuccessSnapshot(state.draft, d.data, s.data, e.data, a.data);
   }
 
   function snapshot() {
-    const p = mascotas.getCurrentResult();
+    const p = search.getCurrentResult();
     const d = detail.getCurrentResult();
     const s = servicios.getCurrentResult();
     const e = extras.getCurrentResult();
     const mutation = creation.getCurrentResult();
     return {
       state,
-      mascotas: petAdminSelectableMascotas(p.data ?? []),
+      searchTerm,
+      searchActive,
+      searchResults: searchOptions().enabled && p.isSuccess && !p.isFetching ? p.data : [],
+      searchLoading: searchOptions().enabled && p.isFetching,
+      searchError: searchOptions().enabled && p.isError ? p.error : null,
+      selectedPetDetail: d.isSuccess && d.data && d.data.id === state.draft.mascotaId ? d.data : null,
       responsables: d.data?.id === state.draft.mascotaId ? d.data.responsables : [],
       servicios: petAdminUsableOptions(s.data ?? []),
       extras: petAdminUsableOptions(e.data ?? []),
-      queries: { mascotas: p, detail: d, servicios: s, extras: e },
+      queries: { search: p, detail: d, servicios: s, extras: e },
       availability: availability.getCurrentResult(),
       creation: { status: mutation.status, error: mutation.error },
       isSubmitting: submitting || mutation.isPending,
@@ -96,16 +107,14 @@ export function createPetAdminBookingController(client: QueryClient) {
     if (syncing) return;
     syncing = true;
     try {
-      mascotas.setOptions(petAdminMascotasQuery(canRead()));
-      const p = mascotas.getCurrentResult();
-      if (!submitting && !state.success && p.isSuccess && !p.isFetching) {
-        state = petAdminBookingReducer(state, { type: "RECONCILE_MASCOTAS", mascotas: p.data });
-      }
+      search.setOptions(searchOptions());
       // A detail may reset the pet. Rebind dependent observers before publishing that reset.
       for (let pass = 0; pass < 2; pass++) {
         const mascotaId = state.draft.mascotaId;
-        const active = canRead() && p.isSuccess && p.data.some(item => item.id === mascotaId && item.activo);
-        detail.setOptions(petAdminDetailQuery(mascotaId, active));
+        detail.setOptions(petAdminDetailQuery(mascotaId, canRead()));
+        const petDetail = detail.getCurrentResult();
+        const active = canRead() && petDetail.isSuccess && petDetail.data !== undefined && !petDetail.isFetching
+          && petDetail.data.id === mascotaId && petDetail.data.activo;
         servicios.setOptions(petAdminServiciosQuery(mascotaId, active));
         extras.setOptions(petAdminExtrasQuery(mascotaId, active));
         if (!submitting && !state.success) {
@@ -115,6 +124,8 @@ export function createPetAdminBookingController(client: QueryClient) {
           if (d.isSuccess && d.data && !d.isFetching) {
             state = petAdminBookingReducer(state, { type: "RECONCILE_DETAIL", detail: d.data, initial: initialDetailPending });
             initialDetailPending = false;
+          } else if (d.isError && !d.isFetching && detailUnavailable(d.error) && mascotaId !== null) {
+            state = petAdminBookingReducer(state, { type: "MASCOTA_UNAVAILABLE", mascotaId });
           }
           if (s.isSuccess && !s.isFetching) state = petAdminBookingReducer(state, { type: "RECONCILE_SERVICIOS", servicios: s.data });
           if (e.isSuccess && !e.isFetching) state = petAdminBookingReducer(state, { type: "RECONCILE_EXTRAS", extras: e.data });
@@ -124,9 +135,10 @@ export function createPetAdminBookingController(client: QueryClient) {
       }
       const s = servicios.getCurrentResult();
       const e = extras.getCurrentResult();
-      const ready = canRead() && p.isSuccess && p.data.some(item => item.id === state.draft.mascotaId && item.activo)
-        && s.isSuccess && petAdminUsableOptions(s.data).some(item => item.id === state.draft.servicioId)
-        && e.isSuccess && state.draft.extraIds.every(id => petAdminUsableOptions(e.data).some(item => item.id === id));
+      const d = detail.getCurrentResult();
+      const ready = canRead() && d.isSuccess && d.data !== undefined && !d.isFetching && d.data.id === state.draft.mascotaId && d.data.activo
+        && s.isSuccess && !s.isFetching && petAdminUsableOptions(s.data).some(item => item.id === state.draft.servicioId)
+        && e.isSuccess && !e.isFetching && state.draft.extraIds.every(id => petAdminUsableOptions(e.data).some(item => item.id === id));
       // Responsible selection deliberately does not gate calendar reads.
       availability.setOptions(petAdminAvailabilityQuery(selection(), ready));
     } finally { syncing = false; }
@@ -146,7 +158,6 @@ export function createPetAdminBookingController(client: QueryClient) {
     const alive = () => connected && !disposed && !unauthorized && generation === attempt && recovery === incident;
     // Mark before refetching: errors in the recovery reads cannot recursively start another recovery.
     if (kind === "mascota-stale") {
-      await mascotas.refetch();
       if (alive() && state.draft.mascotaId === mascotaId && mascotaId !== null) await detail.refetch();
     } else if (kind === "responsable-stale") {
       if (mascotaId !== null) await detail.refetch();
@@ -164,7 +175,9 @@ export function createPetAdminBookingController(client: QueryClient) {
 
   function handleError(error: unknown, source: ReadName | "create") {
     if (!connected || disposed) return;
-    const kind = petAdminBookingErrorKind(error);
+    const kind = source === "detail" && detailUnavailable(error) ? "mascota-stale" : petAdminBookingErrorKind(error);
+    // Search is a picker, never evidence about the selected pet or a reason to block a valid draft.
+    if (source === "search" && kind !== "unauthorized") { sync(); return; }
     const status = error instanceof PetAdminBookingApiError ? error.status : 0;
     const code = error instanceof PetAdminBookingApiError ? error.code : null;
     issue = { kind: kind === "other" ? (source === "create" ? (status === 400 ? "invalid" : "creation-unknown") : "read-error") : kind,
@@ -173,6 +186,8 @@ export function createPetAdminBookingController(client: QueryClient) {
       // fetchWithAuth already cleared the JWT and redirected. Do not access storage or restore identity here.
       unauthorized = true;
       for (const observer of Object.values(reads)) void client.cancelQueries({ queryKey: observer.getCurrentQuery().queryKey, exact: true });
+    } else if (source === "detail" && detailUnavailable(error)) {
+      // This read already confirmed invalidity; reconcile it without refetching the same failure in a loop.
     } else if (kind !== "other" && kind !== "forbidden") {
       void recover(kind);
     }
@@ -211,11 +226,32 @@ export function createPetAdminBookingController(client: QueryClient) {
   }
 
   async function refetch(name: ReadName) {
-    if (!canRead() || submitting || (name !== "mascotas" && state.draft.mascotaId === null)
+    if (!canRead() || submitting || (name === "search" ? !searchOptions().enabled : state.draft.mascotaId === null)
       || (name === "availability" && !petAdminAvailabilityQuery(selection()).enabled)) return;
-    clearIncident();
+    if (name !== "search") clearIncident();
     publish();
     await reads[name].refetch();
+  }
+
+  function setSearchActive(active: boolean) {
+    if (disposed || submitting || unauthorized || state.success || searchActive === active) return;
+    searchActive = active;
+    sync();
+    if (!active) resetInactiveSearch();
+  }
+
+  function resetInactiveSearch() {
+    // Reset only this disabled observer's exact key, never a cache observed by another consumer.
+    const query = search.getCurrentQuery();
+    if (query.getObserversCount() === 1) void client.resetQueries({ queryKey: query.queryKey, exact: true });
+  }
+
+  function clearSearch() {
+    if (disposed || submitting || unauthorized || state.success) return;
+    searchTerm = "";
+    searchActive = false;
+    sync();
+    resetInactiveSearch();
   }
 
   return {
@@ -236,7 +272,9 @@ export function createPetAdminBookingController(client: QueryClient) {
       return () => { listeners.delete(listener); if (listeners.size === 0) stop(); };
     },
     setMascota: (mascotaId: number | null) => {
-      if (mascotaId === null || petAdminSelectableMascotas(mascotas.getCurrentResult().data ?? []).some(item => item.id === mascotaId)) {
+      const results = search.getCurrentResult();
+      if (mascotaId === null || (petAdminValidId(mascotaId) && searchOptions().enabled && results.isSuccess
+        && !results.isFetching && results.data.some(item => item.id === mascotaId))) {
         select({ type: "SET_MASCOTA", mascotaId });
       }
     },
@@ -255,7 +293,14 @@ export function createPetAdminBookingController(client: QueryClient) {
       if (!canRead() || !a.isSuccess || a.isFetching || !a.data.slots.some(item => item.horaInicio === slot.horaInicio && item.horaFin === slot.horaFin)) return;
       select({ type: "SET_SLOT", slot });
     },
-    refetchMascotas: () => refetch("mascotas"),
+    setSearchTerm: (term: string) => {
+      if (disposed || submitting || unauthorized || state.success || term.trim() === searchTerm) return;
+      searchTerm = term.trim();
+      sync();
+    },
+    setSearchActive,
+    clearSearch,
+    refetchSearch: () => refetch("search"),
     refetchDetail: () => refetch("detail"),
     refetchServicios: () => refetch("servicios"),
     refetchExtras: () => refetch("extras"),
@@ -266,7 +311,7 @@ export function createPetAdminBookingController(client: QueryClient) {
       initialDetailPending = false;
       clearIncident();
       creation.reset();
-      sync();
+      clearSearch();
     },
     confirmar: async (): Promise<"created" | "ignored" | "error"> => {
       const base = submitSnapshot();

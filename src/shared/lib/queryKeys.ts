@@ -7,6 +7,7 @@ export const queryKeys = {
   petAdminBooking: {
     all: ["pet-admin-booking"] as const,
     mascotas: () => ["pet-admin-booking", "mascotas"] as const,
+    searchMascotas: (q: string, limit: number) => ["pet-admin-booking", "search-mascotas", q.trim(), limit] as const,
     mascotaDetail: (mascotaId: number | null) => ["pet-admin-booking", "detail", mascotaId] as const,
     servicios: (mascotaId: number | null) => ["pet-admin-booking", "servicios", mascotaId] as const,
     extras: (mascotaId: number | null) => ["pet-admin-booking", "extras", mascotaId] as const,
