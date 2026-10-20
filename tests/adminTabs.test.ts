@@ -77,11 +77,11 @@ test("PET conecta solo contenido PET existente y placeholders explícitos", () =
   assert.equal(getPetAdminContentKind("reservar"), "reservar");
   assert.equal(getPetAdminContentKind("mascotas"), "mascotas");
   assert.equal(getPetAdminContentKind("servicios"), "servicios");
+  assert.equal(getPetAdminContentKind("extras"), "extras");
   assert.equal(getPetAdminContentKind("whatsapp"), "whatsapp");
 
   for (const tab of [
     "solicitudes",
-    "extras",
     "horarios",
     "bloqueos",
     "configuracion",
