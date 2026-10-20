@@ -9,6 +9,8 @@ import { usePetMascotaFlags } from "../hooks/usePetMascotaFlags.ts";
 import { PetMascotaFlags } from "./PetMascotaFlags.tsx";
 import { usePetMascotaServicios } from "../hooks/usePetMascotaServicios.ts";
 import { PetMascotaServicios } from "./PetMascotaServicios.tsx";
+import { usePetMascotaExtras } from "../hooks/usePetMascotaExtras.ts";
+import { PetMascotaExtras } from "./PetMascotaExtras.tsx";
 import "../styles/petManagement.css";
 
 interface Props {
@@ -26,23 +28,32 @@ export function PetManagement({ localId }: Props) {
   const servicios = usePetMascotaServicios(localId, management.selectedMascotaId, !creating && Boolean(management.detail), () =>
     !controller.getSnapshot().submitting && !controller.getSnapshot().checking
       && !responsables.controller.getSnapshot().busy && !flags.controller.getSnapshot().busy);
+  const extras = usePetMascotaExtras(localId, management.selectedMascotaId, !creating && Boolean(management.detail), () =>
+    !controller.getSnapshot().submitting && !controller.getSnapshot().checking
+      && !responsables.controller.getSnapshot().busy && !flags.controller.getSnapshot().busy);
 
   function beginCreate() {
     const current = responsables.controller.getSnapshot();
-    if (current.busy || flags.controller.getSnapshot().busy || servicios.controller.getSnapshot().busy) return;
-    if (controller.beginCreate(current.dirty || flags.controller.getSnapshot().dirty || servicios.controller.getSnapshot().dirty)) {
+    if (current.busy || flags.controller.getSnapshot().busy || servicios.controller.getSnapshot().busy
+      || extras.controller.getSnapshot().busy) return;
+    if (controller.beginCreate(current.dirty || flags.controller.getSnapshot().dirty || servicios.controller.getSnapshot().dirty
+      || extras.controller.getSnapshot().dirty)) {
       responsables.controller.syncSelection(null, null);
       flags.controller.syncSelection(null, null);
       servicios.controller.syncSelection(null);
+      extras.controller.syncSelection(null);
     }
   }
   function selectMascota(id: number) {
     const current = responsables.controller.getSnapshot();
-    if (current.busy || flags.controller.getSnapshot().busy || servicios.controller.getSnapshot().busy) return;
-    if (controller.selectMascota(id, current.dirty || flags.controller.getSnapshot().dirty || servicios.controller.getSnapshot().dirty)) {
+    if (current.busy || flags.controller.getSnapshot().busy || servicios.controller.getSnapshot().busy
+      || extras.controller.getSnapshot().busy) return;
+    if (controller.selectMascota(id, current.dirty || flags.controller.getSnapshot().dirty || servicios.controller.getSnapshot().dirty
+      || extras.controller.getSnapshot().dirty)) {
       responsables.controller.syncSelection(id, null);
       flags.controller.syncSelection(id, null);
       servicios.controller.syncSelection(id);
+      extras.controller.syncSelection(id);
     }
   }
 
@@ -52,7 +63,7 @@ export function PetManagement({ localId }: Props) {
         <h1 id="pet-management-title">Mascotas</h1>
         <p>Buscá y consultá la información de las mascotas del local.</p>
         <button className="pet-management__primary" type="button" onClick={beginCreate}
-          disabled={form.submitting || form.checking || creating || responsables.state.busy || flags.state.busy || servicios.state.busy}>Nueva mascota</button>
+          disabled={form.submitting || form.checking || creating || responsables.state.busy || flags.state.busy || servicios.state.busy || extras.state.busy}>Nueva mascota</button>
       </header>
 
       <div className="pet-management__layout">
@@ -69,7 +80,7 @@ export function PetManagement({ localId }: Props) {
           onTermChange={management.setRawTerm}
           onEstadoChange={management.setEstado}
           onSelect={selectMascota}
-          selectionDisabled={form.submitting || form.checking || responsables.state.busy || flags.state.busy || servicios.state.busy}
+          selectionDisabled={form.submitting || form.checking || responsables.state.busy || flags.state.busy || servicios.state.busy || extras.state.busy}
           onRetry={management.retrySearch}
           onClear={management.clearSearch}
         />
@@ -89,7 +100,7 @@ export function PetManagement({ localId }: Props) {
               errorMessage={management.detailErrorMessage}
               notFound={management.detailNotFound}
               onRefresh={management.refetchDetail}
-              refreshDisabled={form.dirty || form.submitting || form.checking || responsables.state.busy || flags.state.busy || servicios.state.busy}
+              refreshDisabled={form.dirty || form.submitting || form.checking || responsables.state.busy || flags.state.busy || servicios.state.busy || extras.state.busy}
               editDisabled={management.detailFetching || Boolean(management.detailErrorMessage)}
               onEdit={() => { if (management.detail) controller.beginEdit(management.detail); }}
               dataForm={editing ? <PetMascotaDataForm controller={controller} state={form} /> : undefined}
@@ -103,6 +114,8 @@ export function PetManagement({ localId }: Props) {
                 disabled={management.detailFetching || Boolean(management.detailErrorMessage)}
               />}
               serviciosContent={<PetMascotaServicios servicios={servicios}
+                disabled={management.detailFetching || Boolean(management.detailErrorMessage) || form.submitting || form.checking || responsables.state.busy || flags.state.busy} />}
+              extrasContent={<PetMascotaExtras extras={extras}
                 disabled={management.detailFetching || Boolean(management.detailErrorMessage) || form.submitting || form.checking || responsables.state.busy || flags.state.busy} />}
             />
           )}

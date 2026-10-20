@@ -48,6 +48,10 @@ export const queryKeys = {
     all: (localId: string) => ["pet-extras-catalog", localId] as const,
   },
 
+  petMascotaExtras: {
+    all: (localId: string, mascotaId: number | null) => ["pet-mascota-extras", localId, mascotaId] as const,
+  },
+
   turnos: {
 
     all: ["turnos"],

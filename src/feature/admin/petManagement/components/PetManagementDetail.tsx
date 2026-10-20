@@ -21,11 +21,12 @@ interface Props {
   responsablesContent: ReactNode;
   flagsContent: ReactNode;
   serviciosContent: ReactNode;
+  extrasContent?: ReactNode;
 }
 
 export function PetManagementDetail({
   selectedMascotaId, detail, loading, fetching, errorMessage, notFound, onRefresh,
-  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent, flagsContent, serviciosContent,
+  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent, flagsContent, serviciosContent, extrasContent,
 }: Props) {
   if (selectedMascotaId === null) {
     return (
@@ -122,6 +123,7 @@ export function PetManagementDetail({
       {flagsContent}
       {responsablesContent}
       {serviciosContent}
+      {extrasContent}
     </section>
   );
 }
