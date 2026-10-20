@@ -17,6 +17,14 @@ export const queryKeys = {
     creation: () => ["pet-admin-booking", "create"] as const,
   },
 
+  petManagement: {
+    scope: (localId: string) => ["pet-management", localId] as const,
+    search: (localId: string, term: string, estado: string, limit: number) =>
+      ["pet-management", localId, "search", term.trim(), estado, limit] as const,
+    detail: (localId: string, mascotaId: number | null) =>
+      ["pet-management", localId, "detail", mascotaId] as const,
+  },
+
   petBooking: {
     scope: (slug: string, sessionScope: string) => ["pet-public-booking", slug, sessionScope] as const,
     options: (slug: string, sessionScope: string, mascotaId: number | null) =>

@@ -1,0 +1,132 @@
+import type { PetManagementDetail } from "../types/petManagement.types.ts";
+import {
+  PET_MANAGEMENT_UNAVAILABLE_MESSAGE,
+  petManagementDateLabel,
+  petManagementFlagLabel,
+  petManagementText,
+} from "./petManagementView.ts";
+
+interface Props {
+  selectedMascotaId: number | null;
+  detail: PetManagementDetail | null;
+  loading: boolean;
+  fetching: boolean;
+  errorMessage: string | null;
+  notFound: boolean;
+  onRefresh: () => void;
+}
+
+export function PetManagementDetail({
+  selectedMascotaId, detail, loading, fetching, errorMessage, notFound, onRefresh,
+}: Props) {
+  if (selectedMascotaId === null) {
+    return (
+      <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title">
+        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        {notFound
+          ? <p className="pet-management__alert" role="status">{PET_MANAGEMENT_UNAVAILABLE_MESSAGE}</p>
+          : <p className="pet-management__hint">Elegí una mascota de los resultados para consultar su ficha.</p>}
+      </section>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title">
+        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        <p className="pet-management__alert" role="status">{PET_MANAGEMENT_UNAVAILABLE_MESSAGE}</p>
+      </section>
+    );
+  }
+
+  if (loading) {
+    return (
+      <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title" aria-busy="true">
+        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        <p className="pet-management__status" role="status">Cargando ficha…</p>
+      </section>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title">
+        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        {errorMessage ? (
+          <div className="pet-management__alert" role="alert">
+            <p>{errorMessage}</p>
+            <button className="pet-management__secondary" type="button" onClick={onRefresh}>Reintentar</button>
+          </div>
+        ) : <p className="pet-management__hint">No pudimos mostrar la ficha de esta mascota.</p>}
+      </section>
+    );
+  }
+
+  return (
+    <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title" aria-busy={fetching}>
+      <h2 id="pet-management-detail-title" className="pet-management__sr-only">Ficha de la mascota</h2>
+
+      <header className="pet-management__detail-header">
+        <div>
+          <p className="pet-management__kicker">Mascota</p>
+          <h3>{detail.nombre}</h3>
+          <span className={`pet-management__badge${detail.activo ? "" : " is-inactive"}`}>
+            {detail.activo ? "Activa" : "Inactiva"}
+          </span>
+        </div>
+        <button
+          className="pet-management__secondary"
+          type="button"
+          onClick={onRefresh}
+          disabled={fetching}
+        >
+          {fetching ? "Actualizando…" : "Actualizar"}
+        </button>
+      </header>
+
+      {errorMessage && (
+        <div className="pet-management__alert" role="alert">
+          <p>{errorMessage}</p>
+          <button className="pet-management__secondary" type="button" onClick={onRefresh}>Reintentar</button>
+        </div>
+      )}
+
+      <section className="pet-management__detail-section" aria-labelledby="pet-management-data-title">
+        <h4 id="pet-management-data-title">Datos</h4>
+        <dl className="pet-management__data">
+          <div><dt>Raza</dt><dd>{petManagementText(detail.raza)}</dd></div>
+          <div><dt>Fecha de nacimiento</dt><dd>{petManagementDateLabel(detail.fechaNacimiento)}</dd></div>
+          <div><dt>Sexo</dt><dd>{petManagementText(detail.sexo)}</dd></div>
+          <div><dt>Tamaño</dt><dd>{petManagementText(detail.tamano)}</dd></div>
+          <div><dt>Tipo de pelo</dt><dd>{petManagementText(detail.tipoPelo)}</dd></div>
+          <div><dt>Estado</dt><dd>{detail.activo ? "Activa" : "Inactiva"}</dd></div>
+          <div><dt>Alta exigencia</dt><dd>{petManagementFlagLabel(detail.altaExigencia, "Sí", "No")}</dd></div>
+          <div>
+            <dt>Reserva online</dt>
+            <dd>{petManagementFlagLabel(detail.reservaOnlineHabilitada, "Habilitada", "Deshabilitada")}</dd>
+          </div>
+          <div className="pet-management__data-wide">
+            <dt>Observaciones</dt>
+            <dd className="pet-management__notes">{petManagementText(detail.observaciones)}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="pet-management__detail-section" aria-labelledby="pet-management-responsables-title">
+        <h4 id="pet-management-responsables-title">Responsables</h4>
+        {detail.responsables.length === 0 ? (
+          <p className="pet-management__hint">Sin responsables asociados.</p>
+        ) : (
+          <ul className="pet-management__responsables">
+            {detail.responsables.map(responsable => (
+              <li key={responsable.id}>
+                <strong>{responsable.nombre}</strong>
+                <span>{responsable.telefono}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </section>
+  );
+}

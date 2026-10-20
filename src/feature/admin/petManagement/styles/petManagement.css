@@ -1,0 +1,335 @@
+.pet-management {
+  display: grid;
+  gap: 1rem;
+  color: #25312d;
+}
+
+.pet-management__header h1,
+.pet-management__header p {
+  margin: 0;
+}
+
+.pet-management__header h1 {
+  color: #263832;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.pet-management__header p {
+  margin-top: .3rem;
+  color: #63736b;
+}
+
+.pet-management__layout {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.pet-management__search-panel,
+.pet-management__detail-panel {
+  min-width: 0;
+  border: 1px solid #e0e8e3;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.pet-management__search-panel {
+  display: grid;
+  align-content: start;
+  gap: .85rem;
+}
+
+.pet-management__panel-header h2,
+.pet-management__detail-panel > h2 {
+  margin: 0;
+  color: #263832;
+  font-size: 1.1rem;
+}
+
+.pet-management__panel-header p {
+  margin: .3rem 0 0;
+  color: #63736b;
+  font-size: .9rem;
+}
+
+.pet-management__controls {
+  display: grid;
+  gap: .75rem;
+}
+
+.pet-management__field {
+  display: grid;
+  gap: .35rem;
+  color: #45574e;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.pet-management__field input,
+.pet-management__field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #cbd7d0;
+  border-radius: 9px;
+  padding: .55rem .7rem;
+  background: #fff;
+  color: #263832;
+  font: inherit;
+}
+
+.pet-management__field input:focus-visible,
+.pet-management__field select:focus-visible,
+.pet-management button:focus-visible {
+  outline: 3px solid #88c9b3;
+  outline-offset: 2px;
+}
+
+.pet-management__clear {
+  justify-self: start;
+}
+
+.pet-management__secondary {
+  min-height: 38px;
+  border: 1px solid #cbd7d0;
+  border-radius: 8px;
+  padding: .4rem .7rem;
+  background: #fff;
+  color: #263832;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pet-management__secondary:hover:not(:disabled) {
+  border-color: #88c9b3;
+  background: #f2faf6;
+}
+
+.pet-management__secondary:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.pet-management__hint,
+.pet-management__status,
+.pet-management__limit {
+  margin: 0;
+  color: #596b62;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.pet-management__limit {
+  border-top: 1px solid #edf2ef;
+  padding-top: .7rem;
+}
+
+.pet-management__alert {
+  margin: 0;
+  border: 1px solid #f0d6a8;
+  border-radius: 9px;
+  padding: .75rem .85rem;
+  background: #fffaf0;
+  color: #734d12;
+  font-size: .9rem;
+}
+
+.pet-management__alert p {
+  margin: 0;
+}
+
+.pet-management__alert .pet-management__secondary {
+  margin-top: .6rem;
+}
+
+.pet-management__results {
+  display: grid;
+  gap: .45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pet-management__result {
+  display: grid;
+  gap: .25rem;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #e0e8e3;
+  border-radius: 10px;
+  padding: .7rem .8rem;
+  background: #fff;
+  color: #293c33;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pet-management__result:hover {
+  border-color: #b8d9ca;
+  background: #f7fcf9;
+}
+
+.pet-management__result.is-selected {
+  border-color: #6bb79c;
+  background: #e7f5ef;
+  box-shadow: inset 0 0 0 1px #6bb79c;
+}
+
+.pet-management__result-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.pet-management__result-heading strong {
+  overflow-wrap: anywhere;
+}
+
+.pet-management__result-meta {
+  color: #63736b;
+  font-size: .86rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.pet-management__badge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: .2rem .5rem;
+  background: #e7f5ef;
+  color: #12614e;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.pet-management__badge.is-inactive {
+  background: #f4f1ec;
+  color: #715d43;
+}
+
+.pet-management__detail-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.pet-management__detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  border-bottom: 1px solid #edf2ef;
+  padding-bottom: .8rem;
+}
+
+.pet-management__detail-header h3 {
+  margin: .15rem 0 .45rem;
+  color: #263832;
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.pet-management__kicker {
+  margin: 0;
+  color: #5d7167;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.pet-management__detail-section h4 {
+  margin: 0 0 .6rem;
+  color: #34483e;
+  font-size: 1rem;
+}
+
+.pet-management__data {
+  display: grid;
+  gap: .55rem;
+  margin: 0;
+}
+
+.pet-management__data > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 40%) minmax(0, 1fr);
+  gap: .6rem;
+  border-bottom: 1px solid #f0f4f1;
+  padding-bottom: .5rem;
+}
+
+.pet-management__data dt {
+  color: #63736b;
+  font-size: .86rem;
+  font-weight: 600;
+}
+
+.pet-management__data dd {
+  margin: 0;
+  color: #263832;
+  overflow-wrap: anywhere;
+}
+
+.pet-management__data > .pet-management__data-wide {
+  grid-template-columns: 1fr;
+}
+
+.pet-management__notes {
+  white-space: pre-wrap;
+}
+
+.pet-management__responsables {
+  display: grid;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pet-management__responsables li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .35rem .75rem;
+  border: 1px solid #e0e8e3;
+  border-radius: 9px;
+  padding: .6rem .7rem;
+}
+
+.pet-management__responsables span {
+  color: #63736b;
+  overflow-wrap: anywhere;
+}
+
+.pet-management__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 900px) {
+  .pet-management__layout {
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .pet-management__search-panel {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}

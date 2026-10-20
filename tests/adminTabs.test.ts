@@ -8,7 +8,7 @@ import {
   isAdminTabForBusinessType,
   reconcileAdminTab,
 } from "../src/feature/admin/pages/adminPage/adminTabs.ts";
-import { getPetAdminContentKind } from "../src/feature/admin/pages/adminPage/petAdminContent.ts";
+import { getPetAdminContentKind, isWidePetAdminContent } from "../src/feature/admin/pages/adminPage/petAdminContent.ts";
 
 test("BEAUTY conserva la navegación actual", () => {
   assert.deepEqual(getAdminTabs(BUSINESS_TYPE.BEAUTY), [
@@ -75,11 +75,11 @@ test("las labels visibles conservan la copy del panel", () => {
 test("PET conecta solo contenido PET existente y placeholders explícitos", () => {
   assert.equal(getPetAdminContentKind("agenda"), "agenda");
   assert.equal(getPetAdminContentKind("reservar"), "reservar");
+  assert.equal(getPetAdminContentKind("mascotas"), "mascotas");
   assert.equal(getPetAdminContentKind("whatsapp"), "whatsapp");
 
   for (const tab of [
     "solicitudes",
-    "mascotas",
     "servicios",
     "extras",
     "horarios",
@@ -88,6 +88,12 @@ test("PET conecta solo contenido PET existente y placeholders explícitos", () =
   ] as const) {
     assert.equal(getPetAdminContentKind(tab), "placeholder");
   }
+});
+
+test("solo Mascotas PET usa el ancho amplio del panel", () => {
+  assert.equal(isWidePetAdminContent(BUSINESS_TYPE.PET_GROOMING, "mascotas"), true);
+  assert.equal(isWidePetAdminContent(BUSINESS_TYPE.PET_GROOMING, "agenda"), false);
+  assert.equal(isWidePetAdminContent(BUSINESS_TYPE.BEAUTY, "mascotas"), false);
 });
 
 test("PET nunca resuelve tabs exclusivas de BEAUTY a contenido", () => {

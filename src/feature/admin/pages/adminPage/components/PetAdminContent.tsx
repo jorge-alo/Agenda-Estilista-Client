@@ -1,6 +1,7 @@
 import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
 import { PetAgenda } from "../../../petAgenda/components/PetAgenda";
 import { PetAdminBookingForm } from "../../../petBooking/components/PetAdminBookingForm";
+import { PetManagement } from "../../../petManagement/components/PetManagement";
 import { WhatsAppStatus } from "../../../whatsapp/components/whatsappStatus";
 import { getAdminTabLabel } from "../adminTabs";
 import { getPetAdminContentKind } from "../petAdminContent";
@@ -14,7 +15,6 @@ interface Props {
 
 const DESCRIPTIONS: Partial<Record<AdminTab, string>> = {
   solicitudes: "Esta sección PET todavía no está implementada.",
-  mascotas: "Esta sección PET todavía no está implementada.",
   servicios: "Esta sección PET todavía no está implementada.",
   extras: "Esta sección PET todavía no está implementada.",
   horarios: "Esta sección PET todavía no está implementada.",
@@ -49,6 +49,12 @@ export const PetAdminContent = ({ tabActiva, localId }: Props) => {
   if (contentKind === "reservar") {
     return (
       <ErrorBoundary key="pet-reservar"><PetAdminBookingForm /></ErrorBoundary>
+    );
+  }
+
+  if (contentKind === "mascotas") {
+    return (
+      <ErrorBoundary key="pet-mascotas"><PetManagement key={localId} localId={localId} /></ErrorBoundary>
     );
   }
 
