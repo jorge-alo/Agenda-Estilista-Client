@@ -40,6 +40,10 @@ export const queryKeys = {
     all: (localId: string) => ["pet-servicios", localId] as const,
   },
 
+  petMascotaServicios: {
+    all: (localId: string, mascotaId: number | null) => ["pet-mascota-servicios", localId, mascotaId] as const,
+  },
+
   petExtras: {
     all: (localId: string) => ["pet-extras-catalog", localId] as const,
   },

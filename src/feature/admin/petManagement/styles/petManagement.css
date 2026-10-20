@@ -482,6 +482,38 @@
   border: 0;
 }
 
+.pet-management__service-list {
+  display: grid;
+  gap: .7rem;
+  margin: .7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pet-management__service-card {
+  display: grid;
+  gap: .55rem;
+  min-width: 0;
+  border: 1px solid #e0e8e3;
+  border-radius: 9px;
+  padding: .8rem;
+}
+
+.pet-management__service-card > button { justify-self: start; }
+.pet-management__service-card small { color: #63736b; font-weight: 400; }
+.pet-management__service-card .pet-management__form { margin: 0; }
+.pet-management__service-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .6rem;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.pet-management__service-fields .pet-management__field { flex: 1 1 130px; max-width: 220px; margin: 0; }
+
 @media (min-width: 900px) {
   .pet-management__layout {
     grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);

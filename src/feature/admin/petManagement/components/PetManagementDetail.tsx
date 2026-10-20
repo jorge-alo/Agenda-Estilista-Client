@@ -20,11 +20,12 @@ interface Props {
   dataForm?: ReactNode;
   responsablesContent: ReactNode;
   flagsContent: ReactNode;
+  serviciosContent: ReactNode;
 }
 
 export function PetManagementDetail({
   selectedMascotaId, detail, loading, fetching, errorMessage, notFound, onRefresh,
-  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent, flagsContent,
+  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent, flagsContent, serviciosContent,
 }: Props) {
   if (selectedMascotaId === null) {
     return (
@@ -120,6 +121,7 @@ export function PetManagementDetail({
 
       {flagsContent}
       {responsablesContent}
+      {serviciosContent}
     </section>
   );
 }
