@@ -1,0 +1,92 @@
+.pet-servicios {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  color: #25312d;
+}
+
+.pet-servicios__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .8rem;
+}
+
+.pet-servicios__header h1,
+.pet-servicios__header p,
+.pet-servicios__empty h2,
+.pet-servicios__empty p,
+.pet-servicios__notice,
+.pet-servicios__message p { margin: 0; }
+
+.pet-servicios__header h1 {
+  color: #263832;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.pet-servicios__header p { margin-top: .3rem; color: #63736b; }
+
+.pet-servicios__primary,
+.pet-servicios__secondary {
+  min-height: 42px;
+  border: 1px solid #27664e;
+  border-radius: 8px;
+  padding: .5rem .85rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pet-servicios__primary { background: #27664e; color: #fff; }
+.pet-servicios__secondary { border-color: #cbd7d0; background: #fff; color: #263832; }
+.pet-servicios__primary:disabled,
+.pet-servicios__secondary:disabled { opacity: .6; cursor: not-allowed; }
+.pet-servicios button:focus-visible,
+.pet-servicios input:focus-visible { outline: 3px solid #88c9b3; outline-offset: 2px; }
+
+.pet-servicios__list { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+.pet-servicios__item,
+.pet-servicios__form,
+.pet-servicios__empty,
+.pet-servicios__message {
+  min-width: 0;
+  border: 1px solid #e0e8e3;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.pet-servicios__item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.pet-servicios__item-main { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem; min-width: 0; }
+.pet-servicios__name { max-width: 100%; overflow-wrap: anywhere; color: #263832; }
+.pet-servicios__status { border-radius: 999px; padding: .2rem .55rem; background: #e7f5ef; color: #12614e; font-size: .82rem; font-weight: 700; }
+.pet-servicios__status.is-inactive { background: #f4f1ec; color: #715d43; }
+.pet-servicios__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pet-servicios__form,
+.pet-servicios__edit { display: grid; gap: .55rem; }
+.pet-servicios__form label,
+.pet-servicios__edit label { color: #45574e; font-size: .9rem; font-weight: 600; }
+.pet-servicios__form input,
+.pet-servicios__edit input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; border: 1px solid #cbd7d0; border-radius: 8px; padding: .55rem .65rem; background: #fff; color: #263832; font: inherit; }
+.pet-servicios__form input[aria-invalid="true"],
+.pet-servicios__edit input[aria-invalid="true"] { border-color: #a12f2f; }
+.pet-servicios__error { margin: 0; color: #a12f2f; font-size: .88rem; }
+.pet-servicios__hint,
+.pet-servicios__loading,
+.pet-servicios__notice { margin: 0; color: #596b62; line-height: 1.5; }
+.pet-servicios__notice { border-left: 3px solid #6bb79c; padding: .45rem .7rem; background: #f2faf6; }
+.pet-servicios__empty { display: grid; justify-items: start; gap: .65rem; }
+.pet-servicios__empty h2 { color: #263832; font-size: 1.1rem; }
+.pet-servicios__empty p { color: #63736b; line-height: 1.5; }
+.pet-servicios__message { display: grid; justify-items: start; gap: .65rem; color: #734d12; }
+
+@media (max-width: 540px) {
+  .pet-servicios__header { align-items: stretch; }
+  .pet-servicios__header > button { width: 100%; }
+  .pet-servicios__item { align-items: stretch; }
+  .pet-servicios__item-main { justify-content: space-between; }
+  .pet-servicios__item > .pet-servicios__actions { width: 100%; }
+  .pet-servicios__item > .pet-servicios__actions button { flex: 1 1 auto; }
+}

@@ -461,10 +461,10 @@ test("search A/B: cambiar key aborta A y B conserva su propio resultado", async 
   client.clear();
 });
 
-test("shell: Mascotas deja de ser placeholder y solo PET+Mascotas usa ancho amplio", () => {
+test("shell: Mascotas y Servicios PET tienen contenido propio; solo Mascotas usa ancho amplio", () => {
   assert.equal(getPetAdminContentKind("mascotas"), "mascotas");
   assert.equal(getPetAdminContentKind("solicitudes"), "placeholder");
-  assert.equal(getPetAdminContentKind("servicios"), "placeholder");
+  assert.equal(getPetAdminContentKind("servicios"), "servicios");
   assert.equal(getPetAdminContentKind("extras"), "placeholder");
   assert.equal(getPetAdminContentKind("horarios"), "placeholder");
   assert.equal(getPetAdminContentKind("bloqueos"), "placeholder");

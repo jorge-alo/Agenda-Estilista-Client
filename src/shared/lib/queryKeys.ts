@@ -36,6 +36,10 @@ export const queryKeys = {
     creation: (slug: string, sessionScope: string) => ["pet-public-booking", slug, sessionScope, "create"] as const,
   },
 
+  petServicios: {
+    all: (localId: string) => ["pet-servicios", localId] as const,
+  },
+
   turnos: {
 
     all: ["turnos"],
