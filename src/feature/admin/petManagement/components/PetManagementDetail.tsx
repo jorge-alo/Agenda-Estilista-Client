@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import {
   PET_MANAGEMENT_UNAVAILABLE_MESSAGE,
   petManagementDateLabel,
-  petManagementFlagLabel,
   petManagementText,
 } from "./petManagementView.ts";
 
@@ -20,11 +19,12 @@ interface Props {
   onEdit?: () => void;
   dataForm?: ReactNode;
   responsablesContent: ReactNode;
+  flagsContent: ReactNode;
 }
 
 export function PetManagementDetail({
   selectedMascotaId, detail, loading, fetching, errorMessage, notFound, onRefresh,
-  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent,
+  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent, flagsContent,
 }: Props) {
   if (selectedMascotaId === null) {
     return (
@@ -111,12 +111,6 @@ export function PetManagementDetail({
           <div><dt>Tamaño</dt><dd>{petManagementText(detail.tamano)}</dd></div>
           <div><dt>Tipo de pelo</dt><dd>{petManagementText(detail.tipoPelo)}</dd></div>
           </>}
-          <div><dt>Estado</dt><dd>{detail.activo ? "Activa" : "Inactiva"}</dd></div>
-          <div><dt>Alta exigencia</dt><dd>{petManagementFlagLabel(detail.altaExigencia, "Sí", "No")}</dd></div>
-          <div>
-            <dt>Reserva online</dt>
-            <dd>{petManagementFlagLabel(detail.reservaOnlineHabilitada, "Habilitada", "Deshabilitada")}</dd>
-          </div>
           {!dataForm && <div className="pet-management__data-wide">
             <dt>Observaciones</dt>
             <dd className="pet-management__notes">{petManagementText(detail.observaciones)}</dd>
@@ -124,6 +118,7 @@ export function PetManagementDetail({
         </dl>
       </section>
 
+      {flagsContent}
       {responsablesContent}
     </section>
   );

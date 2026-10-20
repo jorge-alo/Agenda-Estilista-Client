@@ -390,6 +390,38 @@
   white-space: pre-wrap;
 }
 
+.pet-management__flags {
+  display: grid;
+  gap: .6rem;
+  margin-top: .6rem;
+}
+
+.pet-management__flag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem .75rem;
+  min-width: 0;
+  border: 1px solid #e0e8e3;
+  border-radius: 9px;
+  padding: .7rem;
+}
+
+.pet-management__flag h5,
+.pet-management__flag p {
+  margin: 0;
+}
+
+.pet-management__flag h5 {
+  color: #63736b;
+  font-size: .86rem;
+}
+
+.pet-management__flag > .pet-management__hint {
+  flex-basis: 100%;
+}
+
 .pet-management__responsables {
   display: grid;
   gap: .5rem;

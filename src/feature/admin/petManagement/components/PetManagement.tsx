@@ -5,6 +5,8 @@ import { PetMascotaDataForm } from "./PetMascotaDataForm.tsx";
 import { usePetMascotaForm } from "../hooks/usePetMascotaForm.ts";
 import { usePetResponsables } from "../hooks/usePetResponsables.ts";
 import { PetResponsables } from "./PetResponsables.tsx";
+import { usePetMascotaFlags } from "../hooks/usePetMascotaFlags.ts";
+import { PetMascotaFlags } from "./PetMascotaFlags.tsx";
 import "../styles/petManagement.css";
 
 interface Props {
@@ -17,16 +19,24 @@ export function PetManagement({ localId }: Props) {
   const creating = form.mode === "creating" || form.mode === "submittingCreate";
   const editing = form.mode === "editing" || form.mode === "submittingEdit";
   const responsables = usePetResponsables(localId, management, creating);
+  const flags = usePetMascotaFlags(localId, management, creating, () =>
+    !controller.getSnapshot().submitting && !controller.getSnapshot().checking && !responsables.controller.getSnapshot().busy);
 
   function beginCreate() {
     const current = responsables.controller.getSnapshot();
-    if (current.busy) return;
-    if (controller.beginCreate(current.dirty)) responsables.controller.syncSelection(null, null);
+    if (current.busy || flags.controller.getSnapshot().busy) return;
+    if (controller.beginCreate(current.dirty || flags.controller.getSnapshot().dirty)) {
+      responsables.controller.syncSelection(null, null);
+      flags.controller.syncSelection(null, null);
+    }
   }
   function selectMascota(id: number) {
     const current = responsables.controller.getSnapshot();
-    if (current.busy) return;
-    if (controller.selectMascota(id, current.dirty)) responsables.controller.syncSelection(id, null);
+    if (current.busy || flags.controller.getSnapshot().busy) return;
+    if (controller.selectMascota(id, current.dirty || flags.controller.getSnapshot().dirty)) {
+      responsables.controller.syncSelection(id, null);
+      flags.controller.syncSelection(id, null);
+    }
   }
 
   return (
@@ -35,7 +45,7 @@ export function PetManagement({ localId }: Props) {
         <h1 id="pet-management-title">Mascotas</h1>
         <p>Buscá y consultá la información de las mascotas del local.</p>
         <button className="pet-management__primary" type="button" onClick={beginCreate}
-          disabled={form.submitting || form.checking || creating || responsables.state.busy}>Nueva mascota</button>
+          disabled={form.submitting || form.checking || creating || responsables.state.busy || flags.state.busy}>Nueva mascota</button>
       </header>
 
       <div className="pet-management__layout">
@@ -52,7 +62,7 @@ export function PetManagement({ localId }: Props) {
           onTermChange={management.setRawTerm}
           onEstadoChange={management.setEstado}
           onSelect={selectMascota}
-          selectionDisabled={form.submitting || form.checking || responsables.state.busy}
+          selectionDisabled={form.submitting || form.checking || responsables.state.busy || flags.state.busy}
           onRetry={management.retrySearch}
           onClear={management.clearSearch}
         />
@@ -72,10 +82,14 @@ export function PetManagement({ localId }: Props) {
               errorMessage={management.detailErrorMessage}
               notFound={management.detailNotFound}
               onRefresh={management.refetchDetail}
-              refreshDisabled={form.dirty || form.submitting || form.checking || responsables.state.busy}
+              refreshDisabled={form.dirty || form.submitting || form.checking || responsables.state.busy || flags.state.busy}
               editDisabled={management.detailFetching || Boolean(management.detailErrorMessage)}
               onEdit={() => { if (management.detail) controller.beginEdit(management.detail); }}
               dataForm={editing ? <PetMascotaDataForm controller={controller} state={form} /> : undefined}
+              flagsContent={management.detail && <PetMascotaFlags detail={management.detail}
+                controller={flags.controller} state={flags.state}
+                disabled={management.detailFetching || Boolean(management.detailErrorMessage) || form.submitting || form.checking || responsables.state.busy}
+              />}
               responsablesContent={<PetResponsables
                 responsables={management.detail?.responsables ?? []}
                 controller={responsables.controller} state={responsables.state}
