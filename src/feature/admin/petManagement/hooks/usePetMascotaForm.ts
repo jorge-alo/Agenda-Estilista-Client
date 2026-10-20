@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createPetMascotaFormController } from "../state/petMascotaFormController.ts";
 import type { usePetManagement } from "./usePetManagement.ts";
+import { confirmPetManagementDiscard } from "../components/petManagementConfirm.ts";
 
 export function usePetMascotaForm(localId: string, management: ReturnType<typeof usePetManagement>) {
   const client = useQueryClient();
@@ -9,7 +10,7 @@ export function usePetMascotaForm(localId: string, management: ReturnType<typeof
     localId,
     onSelect: management.selectMascota,
     onUnavailable: management.confirmDetailNotFound,
-    confirmDiscard: () => window.confirm("Hay cambios sin guardar. ¿Querés descartarlos?"),
+    confirmDiscard: confirmPetManagementDiscard,
   }));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   useEffect(() => {

@@ -75,7 +75,7 @@ export function createPetMascotaFormController(client: QueryClient, options: {
     for (const listener of listeners) listener();
   }
   const isCurrent = (token: number) => connected && generation === token;
-  const canLeave = () => !pending(state.mode) && !state.checking && (!dirty() || options.confirmDiscard());
+  const canLeave = (otherDirty = false) => !pending(state.mode) && !state.checking && ((!dirty() && !otherDirty) || options.confirmDiscard());
   function reset(notice: string | null = null, focus = false) {
     generation++;
     state = initial(state.focusDetail + (focus ? 1 : 0), notice);
@@ -178,8 +178,8 @@ export function createPetMascotaFormController(client: QueryClient, options: {
     connect: () => { connected = true; },
     disconnect: () => { connected = false; generation++; },
     syncSelection,
-    beginCreate: () => {
-      if (!canLeave()) return false;
+    beginCreate: (otherDirty = false) => {
+      if (!canLeave(otherDirty)) return false;
       reset();
       state = { ...state, mode: "creating" };
       publish();
@@ -210,9 +210,9 @@ export function createPetMascotaFormController(client: QueryClient, options: {
       publish();
       return true;
     },
-    selectMascota: (id: number) => {
+    selectMascota: (id: number, otherDirty = false) => {
       if (id === selectedId && state.mode !== "creating") return false;
-      if (!canLeave()) return false;
+      if (!canLeave(otherDirty)) return false;
       reset();
       selectedId = id;
       options.onSelect(id);

@@ -19,11 +19,12 @@ interface Props {
   editDisabled?: boolean;
   onEdit?: () => void;
   dataForm?: ReactNode;
+  responsablesContent: ReactNode;
 }
 
 export function PetManagementDetail({
   selectedMascotaId, detail, loading, fetching, errorMessage, notFound, onRefresh,
-  refreshDisabled = false, editDisabled = false, onEdit, dataForm,
+  refreshDisabled = false, editDisabled = false, onEdit, dataForm, responsablesContent,
 }: Props) {
   if (selectedMascotaId === null) {
     return (
@@ -123,21 +124,7 @@ export function PetManagementDetail({
         </dl>
       </section>
 
-      <section className="pet-management__detail-section" aria-labelledby="pet-management-responsables-title">
-        <h4 id="pet-management-responsables-title">Responsables</h4>
-        {detail.responsables.length === 0 ? (
-          <p className="pet-management__hint">Sin responsables asociados.</p>
-        ) : (
-          <ul className="pet-management__responsables">
-            {detail.responsables.map(responsable => (
-              <li key={responsable.id}>
-                <strong>{responsable.nombre}</strong>
-                <span>{responsable.telefono}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {responsablesContent}
     </section>
   );
 }
