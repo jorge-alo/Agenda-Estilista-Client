@@ -19,6 +19,7 @@ interface Props {
   errorMessage: string | null;
   limitMessage: string | null;
   selectedMascotaId: number | null;
+  selectionDisabled?: boolean;
   onTermChange: (value: string) => void;
   onEstadoChange: (value: PetManagementEstado) => void;
   onSelect: (mascotaId: number) => void;
@@ -29,6 +30,7 @@ interface Props {
 export function PetManagementSearch({
   rawTerm, estado, inputState, results, loading, settled, errorMessage, limitMessage, selectedMascotaId,
   onTermChange, onEstadoChange, onSelect, onRetry, onClear,
+  selectionDisabled = false,
 }: Props) {
   const inputId = useId();
   const estadoId = useId();
@@ -107,6 +109,7 @@ export function PetManagementSearch({
                 <button
                   className={`pet-management__result${selected ? " is-selected" : ""}`}
                   type="button"
+                  disabled={selectionDisabled}
                   onClick={() => onSelect(result.id)}
                   aria-current={selected ? "true" : undefined}
                 >

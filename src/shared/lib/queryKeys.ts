@@ -8,6 +8,7 @@ export const queryKeys = {
     all: ["pet-admin-booking"] as const,
     mascotas: () => ["pet-admin-booking", "mascotas"] as const,
     searchMascotas: (q: string, limit: number) => ["pet-admin-booking", "search-mascotas", q.trim(), limit] as const,
+    searches: () => ["pet-admin-booking", "search-mascotas"] as const,
     mascotaDetail: (mascotaId: number | null) => ["pet-admin-booking", "detail", mascotaId] as const,
     servicios: (mascotaId: number | null) => ["pet-admin-booking", "servicios", mascotaId] as const,
     extras: (mascotaId: number | null) => ["pet-admin-booking", "extras", mascotaId] as const,
@@ -19,6 +20,7 @@ export const queryKeys = {
 
   petManagement: {
     scope: (localId: string) => ["pet-management", localId] as const,
+    searches: (localId: string) => ["pet-management", localId, "search"] as const,
     search: (localId: string, term: string, estado: string, limit: number) =>
       ["pet-management", localId, "search", term.trim(), estado, limit] as const,
     detail: (localId: string, mascotaId: number | null) =>

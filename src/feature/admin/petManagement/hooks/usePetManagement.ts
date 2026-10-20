@@ -92,6 +92,7 @@ export function usePetManagement(localId: string) {
     detailErrorKind,
     detailErrorMessage: petManagementDetailErrorMessage(detailErrorKind),
     detailNotFound,
+    confirmDetailNotFound: (mascotaId: number) => dispatch({ type: "DETAIL_NOT_FOUND", mascotaId }),
     setRawTerm: (rawTerm: string) => dispatch({ type: "SET_RAW_TERM", rawTerm }),
     setEstado: (estado: PetManagementEstado) => dispatch({ type: "SET_ESTADO", estado }),
     selectMascota: (mascotaId: number) => {

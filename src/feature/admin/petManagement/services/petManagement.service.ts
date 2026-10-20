@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "../../../../shared/lib/fetchWithAuth.ts";
+import { mascotaBirthDateValid, mascotaWriteBody, type MascotaData, type MascotaDataPatch } from "../forms/petMascotaForm.ts";
 import {
   PET_MANAGEMENT_SEARCH_LIMIT,
   type PetManagementDetail,
@@ -42,10 +43,7 @@ function banderaDb(value: unknown): boolean | null {
 }
 
 function fechaValida(value: unknown): value is string {
-  if (typeof value !== "string" || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
-  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+  return typeof value === "string" && mascotaBirthDateValid(value);
 }
 
 function textoNullable(value: unknown): value is string | null {
@@ -148,7 +146,39 @@ async function respuestaJson<T>(
   return parsed;
 }
 
+async function escribirDatos(path: string, method: "POST" | "PATCH", input: MascotaDataPatch): Promise<{ id: number }> {
+  const body = mascotaWriteBody(input);
+  if (Object.keys(body).length === 0) throw new PetManagementApiError(400, null);
+  let response: Response;
+  try {
+    response = await fetchWithAuth(`${API_URL}/api/pet/admin${path}`, {
+      method, headers: { "Content-Type": "application/json" }, cache: "no-store", body: JSON.stringify(body),
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === "Sesión expirada") throw new PetManagementApiError(401, null);
+    throw new PetManagementApiError(0, null);
+  }
+  if (!response.ok) throw await errorHttp(response);
+  let value: unknown;
+  try { value = await response.json(); } catch { throw new PetManagementApiError(response.status, null); }
+  if (response.status !== (method === "POST" ? 201 : 200) || !esRegistro(value) || !idValido(value.id)) {
+    throw new PetManagementApiError(response.status, null);
+  }
+  return { id: value.id };
+}
+
 export const petManagementService = {
+  createMascota(data: MascotaData): Promise<{ id: number }> {
+    return escribirDatos("/mascotas", "POST", data);
+  },
+
+  async updateMascotaData(mascotaId: number, patch: MascotaDataPatch): Promise<{ id: number }> {
+    if (!idValido(mascotaId)) throw new PetManagementApiError(400, null);
+    const result = await escribirDatos(`/mascotas/${encodeURIComponent(String(mascotaId))}`, "PATCH", patch);
+    if (result.id !== mascotaId) throw new PetManagementApiError(200, null);
+    return result;
+  },
+
   buscarMascotas(input: PetManagementSearchInput): Promise<PetManagementSearchResult[]> {
     const query = new URLSearchParams({
       q: input.q,

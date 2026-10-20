@@ -1,4 +1,5 @@
 import type { PetManagementDetail } from "../types/petManagement.types.ts";
+import type { ReactNode } from "react";
 import {
   PET_MANAGEMENT_UNAVAILABLE_MESSAGE,
   petManagementDateLabel,
@@ -14,15 +15,20 @@ interface Props {
   errorMessage: string | null;
   notFound: boolean;
   onRefresh: () => void;
+  refreshDisabled?: boolean;
+  editDisabled?: boolean;
+  onEdit?: () => void;
+  dataForm?: ReactNode;
 }
 
 export function PetManagementDetail({
   selectedMascotaId, detail, loading, fetching, errorMessage, notFound, onRefresh,
+  refreshDisabled = false, editDisabled = false, onEdit, dataForm,
 }: Props) {
   if (selectedMascotaId === null) {
     return (
       <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title">
-        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        <h2 id="pet-management-detail-title" tabIndex={-1}>Ficha de la mascota</h2>
         {notFound
           ? <p className="pet-management__alert" role="status">{PET_MANAGEMENT_UNAVAILABLE_MESSAGE}</p>
           : <p className="pet-management__hint">Elegí una mascota de los resultados para consultar su ficha.</p>}
@@ -33,7 +39,7 @@ export function PetManagementDetail({
   if (notFound) {
     return (
       <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title">
-        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        <h2 id="pet-management-detail-title" tabIndex={-1}>Ficha de la mascota</h2>
         <p className="pet-management__alert" role="status">{PET_MANAGEMENT_UNAVAILABLE_MESSAGE}</p>
       </section>
     );
@@ -42,7 +48,7 @@ export function PetManagementDetail({
   if (loading) {
     return (
       <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title" aria-busy="true">
-        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        <h2 id="pet-management-detail-title" tabIndex={-1}>Ficha de la mascota</h2>
         <p className="pet-management__status" role="status">Cargando ficha…</p>
       </section>
     );
@@ -51,11 +57,11 @@ export function PetManagementDetail({
   if (!detail) {
     return (
       <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title">
-        <h2 id="pet-management-detail-title">Ficha de la mascota</h2>
+        <h2 id="pet-management-detail-title" tabIndex={-1}>Ficha de la mascota</h2>
         {errorMessage ? (
           <div className="pet-management__alert" role="alert">
             <p>{errorMessage}</p>
-            <button className="pet-management__secondary" type="button" onClick={onRefresh}>Reintentar</button>
+            <button className="pet-management__secondary" type="button" onClick={onRefresh} disabled={refreshDisabled}>Reintentar</button>
           </div>
         ) : <p className="pet-management__hint">No pudimos mostrar la ficha de esta mascota.</p>}
       </section>
@@ -64,7 +70,7 @@ export function PetManagementDetail({
 
   return (
     <section className="pet-management__detail-panel" aria-labelledby="pet-management-detail-title" aria-busy={fetching}>
-      <h2 id="pet-management-detail-title" className="pet-management__sr-only">Ficha de la mascota</h2>
+      <h2 id="pet-management-detail-title" tabIndex={-1}>Ficha de la mascota</h2>
 
       <header className="pet-management__detail-header">
         <div>
@@ -78,7 +84,7 @@ export function PetManagementDetail({
           className="pet-management__secondary"
           type="button"
           onClick={onRefresh}
-          disabled={fetching}
+          disabled={fetching || refreshDisabled}
         >
           {fetching ? "Actualizando…" : "Actualizar"}
         </button>
@@ -87,28 +93,33 @@ export function PetManagementDetail({
       {errorMessage && (
         <div className="pet-management__alert" role="alert">
           <p>{errorMessage}</p>
-          <button className="pet-management__secondary" type="button" onClick={onRefresh}>Reintentar</button>
+          <button className="pet-management__secondary" type="button" onClick={onRefresh} disabled={refreshDisabled}>Reintentar</button>
         </div>
       )}
 
       <section className="pet-management__detail-section" aria-labelledby="pet-management-data-title">
         <h4 id="pet-management-data-title">Datos</h4>
+        {!dataForm && onEdit && <button className="pet-management__secondary" type="button" onClick={onEdit}
+          disabled={editDisabled}>Editar datos</button>}
+        {dataForm}
         <dl className="pet-management__data">
+          {!dataForm && <>
           <div><dt>Raza</dt><dd>{petManagementText(detail.raza)}</dd></div>
           <div><dt>Fecha de nacimiento</dt><dd>{petManagementDateLabel(detail.fechaNacimiento)}</dd></div>
           <div><dt>Sexo</dt><dd>{petManagementText(detail.sexo)}</dd></div>
           <div><dt>Tamaño</dt><dd>{petManagementText(detail.tamano)}</dd></div>
           <div><dt>Tipo de pelo</dt><dd>{petManagementText(detail.tipoPelo)}</dd></div>
+          </>}
           <div><dt>Estado</dt><dd>{detail.activo ? "Activa" : "Inactiva"}</dd></div>
           <div><dt>Alta exigencia</dt><dd>{petManagementFlagLabel(detail.altaExigencia, "Sí", "No")}</dd></div>
           <div>
             <dt>Reserva online</dt>
             <dd>{petManagementFlagLabel(detail.reservaOnlineHabilitada, "Habilitada", "Deshabilitada")}</dd>
           </div>
-          <div className="pet-management__data-wide">
+          {!dataForm && <div className="pet-management__data-wide">
             <dt>Observaciones</dt>
             <dd className="pet-management__notes">{petManagementText(detail.observaciones)}</dd>
-          </div>
+          </div>}
         </dl>
       </section>
 
