@@ -72,18 +72,18 @@ test("las labels visibles conservan la copy del panel", () => {
   assert.equal(getAdminTabLabel("mascotas"), "Mascotas");
 });
 
-test("PET conecta solo contenido PET existente y placeholders explícitos", () => {
+test("PET conecta contenido real de Bloqueos y conserva placeholders explícitos", () => {
   assert.equal(getPetAdminContentKind("agenda"), "agenda");
   assert.equal(getPetAdminContentKind("reservar"), "reservar");
   assert.equal(getPetAdminContentKind("mascotas"), "mascotas");
   assert.equal(getPetAdminContentKind("servicios"), "servicios");
   assert.equal(getPetAdminContentKind("extras"), "extras");
   assert.equal(getPetAdminContentKind("horarios"), "horarios");
+  assert.equal(getPetAdminContentKind("bloqueos"), "bloqueos");
   assert.equal(getPetAdminContentKind("whatsapp"), "whatsapp");
 
   for (const tab of [
     "solicitudes",
-    "bloqueos",
     "configuracion",
   ] as const) {
     assert.equal(getPetAdminContentKind(tab), "placeholder");

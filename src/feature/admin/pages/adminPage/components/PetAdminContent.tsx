@@ -6,6 +6,7 @@ import type { RegisterPetManagementNavigation } from "../../../petManagement/sta
 import { PetServiciosAdmin } from "../../../petServicios/components/PetServiciosAdmin";
 import { PetExtrasAdmin } from "../../../petExtras/components/PetExtrasAdmin";
 import { PetHorariosAdmin } from "../../../petHorarios/components/PetHorariosAdmin";
+import { PetBloqueosAdmin } from "../../../petBloqueos/components/PetBloqueosAdmin";
 import { WhatsAppStatus } from "../../../whatsapp/components/whatsappStatus";
 import { getAdminTabLabel } from "../adminTabs";
 import { getPetAdminContentKind } from "../petAdminContent";
@@ -70,6 +71,10 @@ export const PetAdminContent = ({ tabActiva, localId, registerNavigation }: Prop
 
   if (contentKind === "horarios") {
     return <ErrorBoundary key="pet-horarios"><PetHorariosAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
+  }
+
+  if (contentKind === "bloqueos") {
+    return <ErrorBoundary key="pet-bloqueos"><PetBloqueosAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
   }
 
   if (contentKind === "whatsapp") {

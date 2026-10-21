@@ -207,10 +207,11 @@ test("PATCH incierto reconsulta GET; 404 también refresca y el editor puede rec
   assert.equal(gets, 2);
 });
 
-test("shell PET dirige Extras, Servicios y Horarios a contenido real; otros tabs siguen placeholder", () => {
+test("shell PET dirige Extras, Servicios, Horarios y Bloqueos a contenido real; otros tabs siguen placeholder", () => {
   assert.equal(getPetAdminContentKind("extras"), "extras");
   assert.equal(getPetAdminContentKind("servicios"), "servicios");
   assert.equal(getPetAdminContentKind("horarios"), "horarios");
+  assert.equal(getPetAdminContentKind("bloqueos"), "bloqueos");
   assert.equal(getPetAdminContentKind("solicitudes"), "placeholder");
 });
 
