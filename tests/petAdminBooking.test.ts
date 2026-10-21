@@ -1482,6 +1482,10 @@ test("PET admin view helpers: labels de slot/fecha y copy seguro por código de 
   assert.match(petAdminDateLabel("2026-10-20"), /20/);
   assert.equal(petAdminBookingIssueMessage({ kind: "slot-conflict", source: "create", status: 409, code: "PET_SLOT_UNAVAILABLE" }),
     "Ese horario acaba de dejar de estar disponible.");
+  const settingsError = new PetAdminBookingApiError(409, "PET_HIGH_DEMAND_SETTINGS_REQUIRED");
+  assert.equal(petAdminBookingErrorKind(settingsError), "settings-required");
+  assert.match(petAdminBookingIssueMessage({ kind: "settings-required", source: "availability", status: 409, code: settingsError.code }),
+    /alta exigencia.*MIN_GAP o MAX_PER_DAY.*Configuración PET/);
   assert.equal(petAdminBookingIssueMessage({ kind: "mascota-stale", source: "create", status: 409, code: "PET_MASCOTA_INACTIVA" }),
     "La información de la mascota cambió. Revisá la selección.");
   assert.equal(petAdminBookingIssueMessage({ kind: "responsable-stale", source: "create", status: 409, code: "PET_RESPONSABLE_NO_ASOCIADO" }),

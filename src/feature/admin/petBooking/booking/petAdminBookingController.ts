@@ -14,7 +14,7 @@ import {
 type ReadName = "search" | "detail" | "servicios" | "extras" | "availability";
 type RecoveryKind = "mascota-stale" | "responsable-stale" | "servicio-stale" | "extra-stale" | "slot-conflict";
 export interface PetAdminBookingIssue {
-  kind: RecoveryKind | "unauthorized" | "forbidden" | "creation-unknown" | "invalid" | "read-error";
+  kind: RecoveryKind | "settings-required" | "unauthorized" | "forbidden" | "creation-unknown" | "invalid" | "read-error";
   source: ReadName | "create";
   status: number;
   code: string | null;
@@ -188,7 +188,7 @@ export function createPetAdminBookingController(client: QueryClient, options: { 
       for (const observer of Object.values(reads)) void client.cancelQueries({ queryKey: observer.getCurrentQuery().queryKey, exact: true });
     } else if (source === "detail" && detailUnavailable(error)) {
       // This read already confirmed invalidity; reconcile it without refetching the same failure in a loop.
-    } else if (kind !== "other" && kind !== "forbidden") {
+    } else if (kind !== "other" && kind !== "forbidden" && kind !== "settings-required") {
       void recover(kind);
     }
     sync();

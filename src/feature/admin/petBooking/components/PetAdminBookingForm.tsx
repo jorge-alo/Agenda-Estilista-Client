@@ -171,7 +171,7 @@ export function PetAdminBookingForm() {
             {availability.isFetching ? <Loading>Buscando horarios disponibles…</Loading>
               : availability.isError ? (
                 <div className="pet-admin-booking__message" role="alert">
-                  <p>No pudimos cargar los horarios. Intentá nuevamente.</p>
+                  <p>{booking.issue?.kind === "settings-required" ? "La disponibilidad requiere una regla de alta exigencia configurada." : "No pudimos cargar los horarios. Intentá nuevamente."}</p>
                   <button type="button" onClick={() => void actions.refetchAvailability()}>Reintentar</button>
                 </div>
               ) : availability.isSuccess && availabilityIsCurrent && availability.data.slots.length === 0 ? (

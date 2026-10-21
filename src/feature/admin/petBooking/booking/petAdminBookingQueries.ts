@@ -97,6 +97,7 @@ export function petAdminBookingErrorKind(error: unknown) {
   if (error.status === 403) return "forbidden";
   const code = error.code;
   if (error.status === 409 && code === "PET_SLOT_UNAVAILABLE") return "slot-conflict";
+  if (error.status === 409 && code === "PET_HIGH_DEMAND_SETTINGS_REQUIRED") return "settings-required";
   if ((error.status === 404 && code === "PET_MASCOTA_NOT_FOUND") || (error.status === 409 && code === "PET_MASCOTA_INACTIVA")) return "mascota-stale";
   if ((error.status === 404 && code === "PET_CLIENTE_NOT_FOUND") || (error.status === 409 && code === "PET_RESPONSABLE_NO_ASOCIADO")) return "responsable-stale";
   if ((error.status === 404 && code === "PET_SERVICIO_NOT_FOUND") || (error.status === 409 && (code === "PET_SERVICIO_INACTIVO" || code === "PET_SERVICIO_NO_ASOCIADO"))) return "servicio-stale";
