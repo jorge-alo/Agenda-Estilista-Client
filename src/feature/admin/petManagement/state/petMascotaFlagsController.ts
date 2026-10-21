@@ -1,6 +1,6 @@
 import { MutationObserver, type QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../../shared/lib/queryKeys.ts";
-import { mascotaFlagAppliedMessage, mascotaFlagBlockedReason, MASCOTA_FLAG_UNKNOWN } from "../components/petMascotaFlagsView.ts";
+import { mascotaFlagAppliedMessage, mascotaFlagBlockedReason, mascotaOnlineErrorMessage, MASCOTA_FLAG_UNKNOWN } from "../components/petMascotaFlagsView.ts";
 import { updateMascotaFlagMutation } from "../mutations/petMascotaFlagsMutations.ts";
 import { petManagementDetailQuery } from "../queries/petManagementQueries.ts";
 import { PetManagementApiError } from "../services/petManagement.service.ts";
@@ -19,6 +19,7 @@ function knownError(error: unknown): string | null {
   if (statusOf(error) === 401) return "Tu sesión venció. Volvé a iniciar sesión.";
   if (statusOf(error) === 403) return "No tenés permisos para cambiar estos flags.";
   if (statusOf(error) === 400) return "No pudimos validar el cambio. Actualizá la ficha antes de volver a intentarlo.";
+  if (error instanceof PetManagementApiError && error.status === 409) return mascotaOnlineErrorMessage(error.code);
   return null;
 }
 
@@ -101,7 +102,7 @@ export function createPetMascotaFlagsController(client: QueryClient, options: {
       if (!isCurrent(token)) return false;
       const message = knownError(error);
       if (message) { state = { ...initial(), errorMessage: message }; publish(); return false; }
-      // Includes network/500, malformed acknowledgements, 404 and 409: never replay a PATCH.
+      // Unknown outcomes (including unknown 409s) are verified, never replayed.
     }
     return verify(change, token);
   }

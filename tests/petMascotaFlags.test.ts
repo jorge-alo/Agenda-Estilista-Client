@@ -25,7 +25,7 @@ const { updateMascotaFlagMutation } = await import("../src/feature/admin/petMana
 const { createPetMascotaFormController } = await import("../src/feature/admin/petManagement/state/petMascotaFormController.ts");
 const { createPetResponsablesController } = await import("../src/feature/admin/petManagement/state/petResponsablesController.ts");
 const { petManagementDetailQuery, petManagementSearchQuery } = await import("../src/feature/admin/petManagement/queries/petManagementQueries.ts");
-const { mascotaFlagLabels, mascotaFlagConfirmation, MASCOTA_HIGH_DEMAND_INFO, MASCOTA_REACTIVATION_BLOCKED, MASCOTA_ONLINE_PENDING, MASCOTA_FLAG_UNKNOWN } = await import("../src/feature/admin/petManagement/components/petMascotaFlagsView.ts");
+const { mascotaFlagLabels, mascotaFlagConfirmation, MASCOTA_HIGH_DEMAND_INFO, MASCOTA_REACTIVATION_BLOCKED, MASCOTA_FLAG_UNKNOWN } = await import("../src/feature/admin/petManagement/components/petMascotaFlagsView.ts");
 const { queryKeys } = await import("../src/shared/lib/queryKeys.ts");
 
 const original = { id: 55, nombre: "Responsable original", telefono: "11 2345 6789" };
@@ -42,7 +42,7 @@ function dto(value = detail()) {
 }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 function ack(change: MascotaFlagChange) {
-  return json(change.flag === "reservaOnlineHabilitada" ? { id: 10, reservaOnlineHabilitada: false }
+  return json(change.flag === "reservaOnlineHabilitada" ? { id: 10, reservaOnlineHabilitada: change.value }
     : { ...dto(detail({ [change.flag]: change.value })), nombre: "PATCH no es la ficha" });
 }
 function mockFetch(t: TestContext, fn: (url: string, init: RequestInit) => Promise<Response>) {
@@ -73,6 +73,7 @@ const changes: MascotaFlagChange[] = [
   { flag: "activo", value: false }, { flag: "activo", value: true },
   { flag: "altaExigencia", value: true }, { flag: "altaExigencia", value: false },
   { flag: "reservaOnlineHabilitada", value: false },
+  { flag: "reservaOnlineHabilitada", value: true },
 ];
 const recoveryChanges = changes.filter(change => change.flag !== "activo" || !change.value).filter(change => change.flag !== "altaExigencia" || change.value);
 
@@ -110,10 +111,10 @@ for (const change of changes) {
   });
 }
 
-test("flags service: rechaza IDs/flags/boolean inválidos y habilitación online sin requests", async t => {
+test("flags service: rechaza IDs/flags/boolean inválidos sin requests", async t => {
   let calls = 0; mockFetch(t, async () => { calls++; return json({}); });
   for (const id of [0, -1, 1.5, 2147483648, NaN]) await assert.rejects(petMascotaFlagsService.update(id, changes[0]), { status: 400 });
-  for (const change of [{ flag: "reservaOnlineHabilitada", value: true }, { flag: "activo", value: 1 }, { flag: "nombre", value: true }]) {
+  for (const change of [{ flag: "activo", value: 1 }, { flag: "nombre", value: true }]) {
     await assert.rejects(petMascotaFlagsService.update(10, change as MascotaFlagChange), { status: 400 });
   }
   assert.equal(calls, 0);
@@ -160,12 +161,27 @@ test("deshabilitar online y reactivar requieren dos decisiones explícitas, nunc
   assert.equal(await controller.changeFlag("activo", true), true); assert.equal(calls.length, 4); assert.equal(confirmations.length, 1);
 });
 
-for (const online of [false, true]) {
-  test(`habilitar online bloqueado con estado actual ${online}, sin request ni inferir elegibilidad M.6`, async t => {
-    const { controller } = setup(t, detail({ reservaOnlineHabilitada: online, responsables: [] })); let calls = 0;
+test("online ya habilitada: no-op sin request", async t => {
+    const { controller } = setup(t, detail({ reservaOnlineHabilitada: true, responsables: [] })); let calls = 0;
     mockFetch(t, async () => { calls++; return json({}); });
     assert.equal(await controller.changeFlag("reservaOnlineHabilitada", true), false); assert.equal(calls, 0);
-    assert.equal(controller.getSnapshot().notice, MASCOTA_ONLINE_PENDING);
+    assert.equal(controller.getSnapshot().notice, null);
+});
+
+for (const [code, message] of [
+  ["PET_ONLINE_REQUIRES_RESPONSIBLE", /responsable con teléfono válido.*Responsables/],
+  ["PET_ONLINE_REQUIRES_SERVICE", /servicio permitido, activo y con duración válida.*Servicios/],
+  ["PET_ONLINE_REQUIRES_HIGH_DEMAND_SETTINGS", /MIN_GAP o MAX_PER_DAY.*Configuración PET/],
+  ["PET_MASCOTA_INACTIVE", /inactiva.*Reactivala/],
+] as const) {
+  test(`enable ${code}: backend decide, mensaje accionable, sin GET/retry/navegación`, async t => {
+    const { controller } = setup(t, detail({ responsables: [] })); let calls = 0;
+    mockFetch(t, async (_url, init) => { calls++; assert.equal(init.method, "PATCH"); return json({ error: code, private: "PRIVATE" }, 409); });
+    assert.equal(await controller.changeFlag("reservaOnlineHabilitada", true), false);
+    assert.equal(calls, 1); assert.match(controller.getSnapshot().errorMessage ?? "", message);
+    assert.doesNotMatch(controller.getSnapshot().errorMessage ?? "", /PRIVATE/);
+    assert.equal(controller.getSnapshot().pending, null); assert.equal(controller.getSnapshot().busy, false);
+    assert.equal(window.location.href, "");
   });
 }
 
@@ -376,4 +392,5 @@ test("copy/labels de acciones explícitas y confirmaciones explican preservació
   assert.equal(mascotaFlagLabels(detail(), "reservaOnlineHabilitada").status, "Deshabilitada");
   assert.match(mascotaFlagConfirmation(changes[0], detail()), /requieren mascotas activas.*datos y relaciones se conservarán/);
   assert.match(mascotaFlagConfirmation(changes[4], detail()), /Deshabilitar la reserva online.*datos y relaciones se conservarán/);
+  assert.match(mascotaFlagConfirmation(changes[5], detail()), /Habilitar la reserva online.*validarán/);
 });
