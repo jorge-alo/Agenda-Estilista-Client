@@ -5,6 +5,7 @@ import { PetManagement } from "../../../petManagement/components/PetManagement";
 import type { RegisterPetManagementNavigation } from "../../../petManagement/state/petManagementNavigation";
 import { PetServiciosAdmin } from "../../../petServicios/components/PetServiciosAdmin";
 import { PetExtrasAdmin } from "../../../petExtras/components/PetExtrasAdmin";
+import { PetHorariosAdmin } from "../../../petHorarios/components/PetHorariosAdmin";
 import { WhatsAppStatus } from "../../../whatsapp/components/whatsappStatus";
 import { getAdminTabLabel } from "../adminTabs";
 import { getPetAdminContentKind } from "../petAdminContent";
@@ -19,7 +20,6 @@ interface Props {
 
 const DESCRIPTIONS: Partial<Record<AdminTab, string>> = {
   solicitudes: "Esta sección PET todavía no está implementada.",
-  horarios: "Esta sección PET todavía no está implementada.",
   bloqueos: "Esta sección PET todavía no está implementada.",
   configuracion:
     "La configuración compartida actual incluye opciones de BEAUTY. Se implementará una vista específica para PET.",
@@ -66,6 +66,10 @@ export const PetAdminContent = ({ tabActiva, localId, registerNavigation }: Prop
 
   if (contentKind === "extras") {
     return <ErrorBoundary key="pet-extras"><PetExtrasAdmin localId={localId} /></ErrorBoundary>;
+  }
+
+  if (contentKind === "horarios") {
+    return <ErrorBoundary key="pet-horarios"><PetHorariosAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
   }
 
   if (contentKind === "whatsapp") {

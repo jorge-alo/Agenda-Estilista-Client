@@ -1,0 +1,39 @@
+.pet-horarios { display: grid; gap: 1rem; min-width: 0; color: #25312d; }
+.pet-horarios__header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .8rem; }
+.pet-horarios__header h1, .pet-horarios__header p, .pet-horarios__day h2, .pet-horarios__notice, .pet-horarios__message p, .pet-horarios__closed { margin: 0; }
+.pet-horarios__header h1 { color: #263832; font-family: var(--font-serif); font-size: 1.5rem; font-weight: 400; }
+.pet-horarios__header p { margin-top: .3rem; color: #63736b; }
+.pet-horarios__primary, .pet-horarios__secondary, .pet-horarios__danger, .pet-horarios__add { min-height: 42px; border: 1px solid #27664e; border-radius: 8px; padding: .5rem .85rem; font: inherit; cursor: pointer; }
+.pet-horarios__primary { background: #27664e; color: #fff; }
+.pet-horarios__secondary, .pet-horarios__add { border-color: #cbd7d0; background: #fff; color: #263832; }
+.pet-horarios__danger { border-color: #dec3c0; background: #fff; color: #8b3029; }
+.pet-horarios button:disabled { opacity: .6; cursor: not-allowed; }
+.pet-horarios button:focus-visible, .pet-horarios input:focus-visible, .pet-horarios select:focus-visible { outline: 3px solid #88c9b3; outline-offset: 2px; }
+.pet-horarios__week { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: .8rem; }
+.pet-horarios__day, .pet-horarios__form, .pet-horarios__message { min-width: 0; border: 1px solid #e0e8e3; border-radius: 12px; padding: 1rem; background: #fff; }
+.pet-horarios__day { display: grid; gap: .8rem; }
+.pet-horarios__day > header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.pet-horarios__day h2 { color: #263832; font-size: 1.08rem; }
+.pet-horarios__day > header span { color: #63736b; font-size: .85rem; }
+.pet-horarios__day ul { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.pet-horarios__item { display: grid; gap: .65rem; min-width: 0; border: 1px solid #e4ebe6; border-radius: 9px; padding: .75rem; }
+.pet-horarios__item.is-inactive { background: #faf9f7; }
+.pet-horarios__item-main { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.pet-horarios__item-main strong { color: #263832; font-variant-numeric: tabular-nums; }
+.pet-horarios__status { border-radius: 999px; padding: .2rem .55rem; background: #e7f5ef; color: #12614e; font-size: .82rem; font-weight: 700; }
+.pet-horarios__status.is-inactive { background: #f4f1ec; color: #715d43; }
+.pet-horarios__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pet-horarios__actions > button { flex: 0 1 auto; }
+.pet-horarios__add { width: 100%; border-style: dashed; }
+.pet-horarios__form, .pet-horarios__edit { display: grid; gap: .55rem; }
+.pet-horarios__form h2 { margin: 0; font-size: 1.1rem; }
+.pet-horarios__form label, .pet-horarios__edit label { color: #45574e; font-size: .9rem; font-weight: 600; }
+.pet-horarios__form input, .pet-horarios__edit input, .pet-horarios__form select, .pet-horarios__edit select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; border: 1px solid #cbd7d0; border-radius: 8px; padding: .55rem .65rem; background: #fff; color: #263832; font: inherit; }
+.pet-horarios__times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.pet-horarios__times > div { display: grid; gap: .45rem; }
+.pet-horarios__error { margin: 0; color: #a12f2f; font-size: .88rem; }
+.pet-horarios__notice { border-left: 3px solid #6bb79c; padding: .45rem .7rem; background: #f2faf6; color: #596b62; line-height: 1.5; }
+.pet-horarios__closed { color: #63736b; }
+.pet-horarios__message { display: grid; justify-items: start; gap: .65rem; color: #734d12; }
+@media (max-width: 700px) { .pet-horarios__week { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 540px) { .pet-horarios__header { align-items: stretch; } .pet-horarios__header > button { width: 100%; } .pet-horarios__actions { width: 100%; } .pet-horarios__actions > button { flex: 1 1 auto; } .pet-horarios__times { grid-template-columns: minmax(0, 1fr); } }

@@ -466,7 +466,7 @@ test("shell: Mascotas, Servicios y Extras PET tienen contenido propio; solo Masc
   assert.equal(getPetAdminContentKind("solicitudes"), "placeholder");
   assert.equal(getPetAdminContentKind("servicios"), "servicios");
   assert.equal(getPetAdminContentKind("extras"), "extras");
-  assert.equal(getPetAdminContentKind("horarios"), "placeholder");
+  assert.equal(getPetAdminContentKind("horarios"), "horarios");
   assert.equal(getPetAdminContentKind("bloqueos"), "placeholder");
   assert.equal(getPetAdminContentKind("configuracion"), "placeholder");
   assert.equal(getPetAdminContentKind("agenda"), "agenda");
