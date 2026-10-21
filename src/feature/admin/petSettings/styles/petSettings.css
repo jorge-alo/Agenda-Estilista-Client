@@ -1,0 +1,24 @@
+.pet-settings { display: grid; gap: 1rem; min-width: 0; color: #25312d; }
+.pet-settings__header h1 { margin: 0; color: #263832; font-family: var(--font-serif); font-size: 1.5rem; font-weight: 400; }
+.pet-settings__header p { margin: .35rem 0 0; color: #63736b; }
+.pet-settings__card, .pet-settings__message { display: grid; gap: 1rem; min-width: 0; border: 1px solid #e0e8e3; border-radius: 12px; padding: 1rem; background: #fff; }
+.pet-settings__card fieldset { display: grid; gap: .75rem; margin: 0; border: 0; padding: 0; }
+.pet-settings__card legend, .pet-settings__value label { margin-bottom: .2rem; color: #45574e; font-weight: 700; }
+.pet-settings__option { display: flex; align-items: flex-start; gap: .65rem; border: 1px solid #e0e8e3; border-radius: 9px; padding: .8rem; cursor: pointer; }
+.pet-settings__option input { margin-top: .2rem; accent-color: #27664e; }
+.pet-settings__option span { display: grid; gap: .25rem; }
+.pet-settings__option small { color: #63736b; line-height: 1.4; }
+.pet-settings__value { display: grid; gap: .45rem; max-width: 24rem; }
+.pet-settings__input { display: flex; align-items: center; gap: .65rem; }
+.pet-settings__input input { box-sizing: border-box; width: min(12rem, 100%); min-height: 44px; border: 1px solid #cbd7d0; border-radius: 8px; padding: .55rem .65rem; font: inherit; }
+.pet-settings__input span { color: #63736b; }
+.pet-settings__primary, .pet-settings__secondary, .pet-settings__message button { width: fit-content; min-height: 42px; border: 1px solid #27664e; border-radius: 8px; padding: .5rem .85rem; font: inherit; cursor: pointer; }
+.pet-settings__primary { background: #27664e; color: #fff; }
+.pet-settings__secondary, .pet-settings__message button { border-color: #cbd7d0; background: #fff; color: #263832; }
+.pet-settings button:disabled { opacity: .6; cursor: not-allowed; }
+.pet-settings button:focus-visible, .pet-settings input:focus-visible { outline: 3px solid #88c9b3; outline-offset: 2px; }
+.pet-settings__empty, .pet-settings__notice, .pet-settings__error, .pet-settings__message p { margin: 0; line-height: 1.5; }
+.pet-settings__empty { border: 1px dashed #cbd7d0; border-radius: 10px; padding: .8rem; color: #53665c; background: #fff; }
+.pet-settings__notice { border-left: 3px solid #6bb79c; padding: .45rem .7rem; background: #f2faf6; color: #596b62; }
+.pet-settings__error { color: #a12f2f; font-size: .9rem; }
+@media (max-width: 540px) { .pet-settings__primary { width: 100%; } .pet-settings__value { max-width: none; } }

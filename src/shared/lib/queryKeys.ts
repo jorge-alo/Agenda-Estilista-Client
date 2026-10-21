@@ -57,6 +57,10 @@ export const queryKeys = {
     range: (localId: string, desde: string, hasta: string) => ["pet-bloqueos", localId, desde, hasta] as const,
   },
 
+  petSettings: {
+    detail: (localId: string) => ["pet-settings", localId] as const,
+  },
+
   petMascotaExtras: {
     all: (localId: string, mascotaId: number | null) => ["pet-mascota-extras", localId, mascotaId] as const,
   },

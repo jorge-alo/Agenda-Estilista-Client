@@ -84,10 +84,10 @@ test("PET conecta contenido real de Bloqueos y conserva placeholders explícitos
 
   for (const tab of [
     "solicitudes",
-    "configuracion",
   ] as const) {
     assert.equal(getPetAdminContentKind(tab), "placeholder");
   }
+  assert.equal(getPetAdminContentKind("configuracion"), "configuracion");
 });
 
 test("solo Mascotas PET usa el ancho amplio del panel", () => {

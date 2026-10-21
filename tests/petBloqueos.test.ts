@@ -132,8 +132,8 @@ test("reconciliación por GET adopta solo estado confirmable y nunca reenvía es
   client.setQueryData(petBloqueosQuery("LOCAL").queryKey, observed);
 });
 
-test("shell PET dirige Bloqueos a UI real y mantiene Configuración placeholder", () => {
+test("shell PET dirige Bloqueos y Configuración a UI real", () => {
   assert.equal(getPetAdminContentKind("horarios"), "horarios");
   assert.equal(getPetAdminContentKind("bloqueos"), "bloqueos");
-  assert.equal(getPetAdminContentKind("configuracion"), "placeholder");
+  assert.equal(getPetAdminContentKind("configuracion"), "configuracion");
 });

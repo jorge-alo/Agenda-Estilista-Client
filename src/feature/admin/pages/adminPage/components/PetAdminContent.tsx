@@ -7,6 +7,7 @@ import { PetServiciosAdmin } from "../../../petServicios/components/PetServicios
 import { PetExtrasAdmin } from "../../../petExtras/components/PetExtrasAdmin";
 import { PetHorariosAdmin } from "../../../petHorarios/components/PetHorariosAdmin";
 import { PetBloqueosAdmin } from "../../../petBloqueos/components/PetBloqueosAdmin";
+import { PetSettingsAdmin } from "../../../petSettings/components/PetSettingsAdmin";
 import { WhatsAppStatus } from "../../../whatsapp/components/whatsappStatus";
 import { getAdminTabLabel } from "../adminTabs";
 import { getPetAdminContentKind } from "../petAdminContent";
@@ -22,8 +23,6 @@ interface Props {
 const DESCRIPTIONS: Partial<Record<AdminTab, string>> = {
   solicitudes: "Esta sección PET todavía no está implementada.",
   bloqueos: "Esta sección PET todavía no está implementada.",
-  configuracion:
-    "La configuración compartida actual incluye opciones de BEAUTY. Se implementará una vista específica para PET.",
 };
 
 export const PetAdminContent = ({ tabActiva, localId, registerNavigation }: Props) => {
@@ -75,6 +74,10 @@ export const PetAdminContent = ({ tabActiva, localId, registerNavigation }: Prop
 
   if (contentKind === "bloqueos") {
     return <ErrorBoundary key="pet-bloqueos"><PetBloqueosAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
+  }
+
+  if (contentKind === "configuracion") {
+    return <ErrorBoundary key="pet-configuracion"><PetSettingsAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
   }
 
   if (contentKind === "whatsapp") {
