@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { createPetManagementNavigation, type RegisterPetManagementNavigation } from "../state/petManagementNavigation.ts";
 import { usePetManagement } from "../hooks/usePetManagement.ts";
 import { PetManagementDetail } from "./PetManagementDetail.tsx";
 import { PetManagementSearch } from "./PetManagementSearch.tsx";
@@ -15,9 +17,10 @@ import "../styles/petManagement.css";
 
 interface Props {
   localId: string;
+  registerNavigation?: RegisterPetManagementNavigation;
 }
 
-export function PetManagement({ localId }: Props) {
+export function PetManagement({ localId, registerNavigation }: Props) {
   const management = usePetManagement(localId);
   const { controller, state: form } = usePetMascotaForm(localId, management);
   const creating = form.mode === "creating" || form.mode === "submittingCreate";
@@ -31,6 +34,11 @@ export function PetManagement({ localId }: Props) {
   const extras = usePetMascotaExtras(localId, management.selectedMascotaId, !creating && Boolean(management.detail), () =>
     !controller.getSnapshot().submitting && !controller.getSnapshot().checking
       && !responsables.controller.getSnapshot().busy && !flags.controller.getSnapshot().busy);
+
+  useEffect(() => {
+    registerNavigation?.(createPetManagementNavigation(controller, responsables.controller, flags.controller, servicios.controller, extras.controller));
+    return () => registerNavigation?.(null);
+  }, [registerNavigation, controller, responsables.controller, flags.controller, servicios.controller, extras.controller]);
 
   function beginCreate() {
     const current = responsables.controller.getSnapshot();

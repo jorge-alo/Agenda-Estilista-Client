@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route } from "react-router-dom";
 import { AdminPage } from './feature/admin/pages/adminPage/AdminPage'
 import { PublicLocalPage } from './feature/publicLocal/PublicLocalPage'
 import { LoginPage } from './feature/admin/pages/LoginPage';
@@ -12,10 +12,8 @@ import { PagoFallidoPage } from './feature/pagos/pages/PagoFallidoPage';
 import { PagoPendientePage } from './feature/pagos/pages/PagoPendientePage';
 import { PetAccessPage } from './feature/publicPet/pages/PetAccessPage';
 
-export const App = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
+const router = createBrowserRouter(createRoutesFromElements(
+      <>
         <Route path="/superadmin" element={
           <ProtectedRoute requiredRole="superadmin">
             <SuperAdminPage />
@@ -34,7 +32,7 @@ export const App = () => {
         <Route path="/pago-exitoso" element={<PagoExitosoPage />} />
         <Route path="/pago-fallido" element={<PagoFallidoPage />} />
         <Route path="/pago-pendiente" element={<PagoPendientePage />} />
-      </Routes>
-    </BrowserRouter>
-  )
-}
+      </>
+));
+
+export const App = () => <RouterProvider router={router} />;

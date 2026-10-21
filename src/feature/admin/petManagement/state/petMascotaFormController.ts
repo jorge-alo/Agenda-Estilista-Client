@@ -178,6 +178,7 @@ export function createPetMascotaFormController(client: QueryClient, options: {
     connect: () => { connected = true; },
     disconnect: () => { connected = false; generation++; },
     syncSelection,
+    canLeave,
     beginCreate: (otherDirty = false) => {
       if (!canLeave(otherDirty)) return false;
       reset();

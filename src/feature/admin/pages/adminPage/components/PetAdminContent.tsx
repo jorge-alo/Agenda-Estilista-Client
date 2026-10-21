@@ -2,6 +2,7 @@ import { ErrorBoundary } from "../../../../../shared/ui/ErrorBoundary";
 import { PetAgenda } from "../../../petAgenda/components/PetAgenda";
 import { PetAdminBookingForm } from "../../../petBooking/components/PetAdminBookingForm";
 import { PetManagement } from "../../../petManagement/components/PetManagement";
+import type { RegisterPetManagementNavigation } from "../../../petManagement/state/petManagementNavigation";
 import { PetServiciosAdmin } from "../../../petServicios/components/PetServiciosAdmin";
 import { PetExtrasAdmin } from "../../../petExtras/components/PetExtrasAdmin";
 import { WhatsAppStatus } from "../../../whatsapp/components/whatsappStatus";
@@ -13,6 +14,7 @@ import { PetAdminPlaceholder } from "./PetAdminPlaceholder";
 interface Props {
   tabActiva: AdminTab;
   localId: string;
+  registerNavigation?: RegisterPetManagementNavigation;
 }
 
 const DESCRIPTIONS: Partial<Record<AdminTab, string>> = {
@@ -23,7 +25,7 @@ const DESCRIPTIONS: Partial<Record<AdminTab, string>> = {
     "La configuración compartida actual incluye opciones de BEAUTY. Se implementará una vista específica para PET.",
 };
 
-export const PetAdminContent = ({ tabActiva, localId }: Props) => {
+export const PetAdminContent = ({ tabActiva, localId, registerNavigation }: Props) => {
   const contentKind = getPetAdminContentKind(tabActiva);
 
   if (contentKind === "placeholder") {
@@ -54,7 +56,7 @@ export const PetAdminContent = ({ tabActiva, localId }: Props) => {
 
   if (contentKind === "mascotas") {
     return (
-      <ErrorBoundary key="pet-mascotas"><PetManagement key={localId} localId={localId} /></ErrorBoundary>
+      <ErrorBoundary key="pet-mascotas"><PetManagement key={localId} localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>
     );
   }
 

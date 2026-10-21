@@ -1,7 +1,7 @@
-import { useEffect, useState }
+import { useCallback, useEffect, useRef, useState }
   from "react";
 
-import { useNavigate }
+import { useBeforeUnload, useBlocker, useNavigate }
   from "react-router-dom";
 
 import "./styles/AdminPage.css";
@@ -16,6 +16,7 @@ import { useSuscripcion } from "./hooks/useSuscripcion";
 import { BUSINESS_TYPE, isBusinessType } from "./types/adminPage.types";
 import type { AdminTab, BusinessType } from "./types/adminPage.types";
 import { getAdminTabLabel, getInitialAdminTab, reconcileAdminTab } from "./adminTabs";
+import type { PetManagementNavigationGuard } from "../../petManagement/state/petManagementNavigation";
 
 interface TabSelection {
   businessType: BusinessType | null;
@@ -27,6 +28,22 @@ export const AdminPage = () => {
   const { pagarMutation } = useSuscripcion();
   const navigate =
     useNavigate();
+
+  const navigationGuard = useRef<PetManagementNavigationGuard | null>(null);
+  const registerNavigation = useCallback((guard: PetManagementNavigationGuard | null) => {
+    navigationGuard.current = guard;
+  }, []);
+  const blocker = useBlocker(() => navigationGuard.current?.hasPendingChanges() ?? false);
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    if (navigationGuard.current?.canLeave() ?? true) blocker.proceed();
+    else blocker.reset();
+  }, [blocker]);
+  useBeforeUnload(useCallback((event: BeforeUnloadEvent) => {
+    if (!navigationGuard.current?.hasPendingChanges()) return;
+    event.preventDefault();
+    event.returnValue = "";
+  }, []));
 
   const [tabSelection, setTabSelection] =
     useState<TabSelection>({ businessType: null, tab: "agenda" });
@@ -50,6 +67,7 @@ export const AdminPage = () => {
       : getInitialAdminTab(validBusinessType)
     : tabSelection.tab;
   const setTabActiva = (tab: AdminTab) => {
+    if (tab === tabActiva || !(navigationGuard.current?.canLeave() ?? true)) return;
     setTabSelection({ businessType: validBusinessType, tab });
   };
 
@@ -97,6 +115,7 @@ export const AdminPage = () => {
   // ✅ UN SOLO useEffect para manejar el error de login (eliminamos el duplicado)
   useEffect(() => {
     if (isAdminMeError) {
+      navigationGuard.current = null;
       localStorage.removeItem("token");
       navigate("/login");
     }
@@ -104,7 +123,8 @@ export const AdminPage = () => {
 
   const handleLogout =
     () => {
-
+      if (!(navigationGuard.current?.canLeave() ?? true)) return;
+      navigationGuard.current = null;
       logout();
 
       navigate("/login");
@@ -196,6 +216,7 @@ export const AdminPage = () => {
       />
 
       <AdminContent
+        registerNavigation={registerNavigation}
         tabActiva={tabActiva}
         businessType={data.businessType}
         estilistas={estilistas}
