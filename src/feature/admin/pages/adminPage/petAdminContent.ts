@@ -10,13 +10,12 @@ export type PetAdminContentKind =
   | "horarios"
   | "bloqueos"
   | "configuracion"
+  | "solicitudes"
   | "whatsapp"
   | "placeholder"
   | "none";
 
-const PLACEHOLDER_TABS = new Set<AdminTab>([
-  "solicitudes",
-]);
+const PLACEHOLDER_TABS = new Set<AdminTab>();
 
 export function getPetAdminContentKind(tab: AdminTab): PetAdminContentKind {
   if (tab === "agenda") return "agenda";
@@ -27,6 +26,7 @@ export function getPetAdminContentKind(tab: AdminTab): PetAdminContentKind {
   if (tab === "horarios") return "horarios";
   if (tab === "bloqueos") return "bloqueos";
   if (tab === "configuracion") return "configuracion";
+  if (tab === "solicitudes") return "solicitudes";
   if (tab === "whatsapp") return "whatsapp";
   if (PLACEHOLDER_TABS.has(tab)) return "placeholder";
   return "none";

@@ -8,6 +8,7 @@ import { PetExtrasAdmin } from "../../../petExtras/components/PetExtrasAdmin";
 import { PetHorariosAdmin } from "../../../petHorarios/components/PetHorariosAdmin";
 import { PetBloqueosAdmin } from "../../../petBloqueos/components/PetBloqueosAdmin";
 import { PetSettingsAdmin } from "../../../petSettings/components/PetSettingsAdmin";
+import { PetSolicitudesAdmin } from "../../../petSolicitudes/components/PetSolicitudesAdmin";
 import { WhatsAppStatus } from "../../../whatsapp/components/whatsappStatus";
 import { getAdminTabLabel } from "../adminTabs";
 import { getPetAdminContentKind } from "../petAdminContent";
@@ -78,6 +79,10 @@ export const PetAdminContent = ({ tabActiva, localId, registerNavigation }: Prop
 
   if (contentKind === "configuracion") {
     return <ErrorBoundary key="pet-configuracion"><PetSettingsAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
+  }
+
+  if (contentKind === "solicitudes") {
+    return <ErrorBoundary key="pet-solicitudes"><PetSolicitudesAdmin localId={localId} registerNavigation={registerNavigation} /></ErrorBoundary>;
   }
 
   if (contentKind === "whatsapp") {

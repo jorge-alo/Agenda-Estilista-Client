@@ -82,11 +82,7 @@ test("PET conecta contenido real de Bloqueos y conserva placeholders explícitos
   assert.equal(getPetAdminContentKind("bloqueos"), "bloqueos");
   assert.equal(getPetAdminContentKind("whatsapp"), "whatsapp");
 
-  for (const tab of [
-    "solicitudes",
-  ] as const) {
-    assert.equal(getPetAdminContentKind(tab), "placeholder");
-  }
+  assert.equal(getPetAdminContentKind("solicitudes"), "solicitudes");
   assert.equal(getPetAdminContentKind("configuracion"), "configuracion");
 });
 

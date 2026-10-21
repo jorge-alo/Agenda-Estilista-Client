@@ -212,7 +212,7 @@ test("shell PET dirige Extras, Servicios, Horarios y Bloqueos a contenido real; 
   assert.equal(getPetAdminContentKind("servicios"), "servicios");
   assert.equal(getPetAdminContentKind("horarios"), "horarios");
   assert.equal(getPetAdminContentKind("bloqueos"), "bloqueos");
-  assert.equal(getPetAdminContentKind("solicitudes"), "placeholder");
+  assert.equal(getPetAdminContentKind("solicitudes"), "solicitudes");
 });
 
 test("la capa de catálogo no ofrece delete ni campos de duración/precio/mascota", () => {

@@ -1,0 +1,20 @@
+.pet-solicitudes { max-width: 980px; margin: 0 auto; padding: 1rem; color: #252525; }
+.pet-solicitudes header { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.pet-solicitudes header h1 { flex-basis: 100%; margin: 0; }
+.pet-solicitudes select, .pet-solicitudes input, .pet-solicitudes textarea { display: block; width: 100%; max-width: 100%; min-height: 2.75rem; padding: .55rem; border: 1px solid #777; border-radius: .35rem; font: inherit; }
+.pet-solicitudes button { min-height: 2.75rem; padding: .55rem .85rem; border: 1px solid #555; border-radius: .35rem; background: #fff; color: inherit; font: inherit; cursor: pointer; }
+.pet-solicitudes button:focus-visible, .pet-solicitudes a:focus-visible, .pet-solicitudes input:focus-visible, .pet-solicitudes select:focus-visible, .pet-solicitudes textarea:focus-visible { outline: 3px solid #1769aa; outline-offset: 2px; }
+.pet-solicitudes button:disabled { opacity: .6; cursor: not-allowed; }
+.pet-solicitudes__list { display: grid; gap: .8rem; }
+.pet-solicitudes__card, .pet-solicitudes__detail { padding: 1rem; border: 1px solid #d0d0d0; border-radius: .6rem; background: #fff; }
+.pet-solicitudes__card h2, .pet-solicitudes__detail h2 { margin-top: 0; }
+.pet-solicitudes__card p { margin: .35rem 0; overflow-wrap: anywhere; }
+.pet-solicitudes__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+.pet-solicitudes__detail { margin-top: 1rem; }
+.pet-solicitudes__detail fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: .75rem; margin: .75rem 0; padding: .8rem; }
+.pet-solicitudes__detail fieldset legend { font-weight: 700; }
+.pet-solicitudes__detail label { display: grid; gap: .3rem; }
+.pet-solicitudes__detail textarea { min-height: 5rem; }
+.pet-solicitudes__notice, .pet-solicitudes__empty { padding: .8rem; background: #f3f6f8; border-radius: .4rem; }
+.pet-solicitudes__error { color: #8b1d1d; font-weight: 600; }
+.pet-solicitudes__detail form > button { margin: .5rem .5rem 0 0; }
