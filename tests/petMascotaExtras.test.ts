@@ -68,6 +68,14 @@ function setup(t: TestContext, relations: PetMascotaExtra[] = [relation()]) {
   t.after(() => { controller.disconnect(); client.clear(); });
   return { client, controller, rejectConfirmation: () => { allow = false; }, confirmations: () => confirms };
 }
+function saveDurationButtonDisabled(controller: ReturnType<typeof createPetMascotaExtrasController>) {
+  const html = renderToStaticMarkup(createElement(PetMascotaExtras, { extras: {
+    controller, state: controller.getSnapshot(), loading: false, fetching: false, error: null, refresh: () => {},
+  }, disabled: false }));
+  const button = html.match(/<button(?=[^>]*aria-label="Guardar tiempo adicional de Recuperación de manto #2")[^>]*>/)?.[0];
+  assert.ok(button, "se debe renderizar el botón Guardar tiempo adicional");
+  return /\sdisabled(?:="")?/.test(button);
+}
 function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>(res => { resolve = res; }); return { resolve, promise }; }
 async function waitFor(fn: () => boolean) { const start = Date.now(); while (!fn()) { if (Date.now() - start > 2000) throw new Error("timeout"); await nextTick(); } }
 function detail(): PetManagementDetail { return { id: 10, nombre: "Firu", raza: "Original", fechaNacimiento: null, sexo: null,
@@ -98,6 +106,22 @@ test("render dentro de ficha: minutos adicionales de relación, inactivos visibl
   assert.equal((html.match(/Permitir extra/g) ?? []).length, 1);
   assert.equal((html.match(/Quitar de esta mascota/g) ?? []).length, 2);
   assert.doesNotMatch(html, /precio|Eliminar extra|Duración \(min\)|\+75 min/);
+});
+
+test("Guardar duración solo se habilita mientras los minutos adicionales difieren de los persistidos", async t => {
+  const { controller } = setup(t, [relation(2, 45)]);
+  assert.equal(saveDurationButtonDisabled(controller), true);
+
+  controller.change(2, "75");
+  assert.equal(saveDurationButtonDisabled(controller), false);
+
+  controller.change(2, "45");
+  assert.equal(saveDurationButtonDisabled(controller), true);
+
+  mockFetch(t, async (_url, init) => init.method === "PATCH" ? ack(2, 75) : json([relation(2, 75)]));
+  controller.change(2, "75");
+  assert.equal(await controller.save(2), true);
+  assert.equal(saveDurationButtonDisabled(controller), true);
 });
 
 test("render loading/error/empty distingue catálogo vacío y maneja error con actualización manual", t => {
