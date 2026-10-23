@@ -19,6 +19,7 @@ export function PetHorariosAdmin({ localId, registerNavigation }: Props) {
   const query = useQuery(petHorariosQuery(localId));
   const [creating, setCreating] = useState(false);
   const [createDraft, setCreateDraft] = useState<Draft>(blankDraft(1));
+  const [createFormDay, setCreateFormDay] = useState(1);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<Draft>(blankDraft(""));
   const [formError, setFormError] = useState<string | null>(null);
@@ -140,16 +141,20 @@ export function PetHorariosAdmin({ localId, registerNavigation }: Props) {
 
   return <section className="pet-horarios" aria-labelledby="pet-horarios-title">
     <header className="pet-horarios__header"><div><h1 id="pet-horarios-title">Horarios</h1><p>Configurá los tramos semanales en los que atiende el equipo.</p></div>
-      <button className="pet-horarios__primary" type="button" disabled={busy || creating} onClick={() => { setCreating(true); setCreateDraft(blankDraft(1)); setFormError(null); setNotice(null); }}>+ Agregar tramo</button></header>
+      <button className="pet-horarios__primary" type="button" disabled={busy || creating} onClick={() => { setCreating(true); setCreateFormDay(1); setCreateDraft(blankDraft(1)); setFormError(null); setNotice(null); }}>+ Agregar tramo</button></header>
     {notice && <p className="pet-horarios__notice" role="status">{notice}</p>}
     {verification && <button className="pet-horarios__secondary" type="button" disabled={busy} onClick={() => void verify()}>Verificar nuevamente</button>}
-    {creating && <form className="pet-horarios__form" onSubmit={submitCreate} noValidate>
-      <h2>Nuevo tramo</h2>{form(createDraft, setCreateDraft, "pet-horarios-create")}
-      <div className="pet-horarios__actions"><button className="pet-horarios__primary" type="submit" disabled={busy || Boolean(verification)}>Crear tramo</button><button className="pet-horarios__secondary" type="button" disabled={busy} onClick={() => { setCreating(false); setFormError(null); }}>Cancelar</button></div>
-    </form>}
     {query.isLoading ? <p role="status">Cargando horarios…</p> : query.isError ? <div className="pet-horarios__message" role="alert"><p>{petHorariosErrorMessage(query.error)}</p><button className="pet-horarios__secondary" type="button" onClick={() => void query.refetch()} disabled={query.isFetching}>Reintentar</button></div> : <div className="pet-horarios__week">
       {PET_DAYS.map(day => { const items = dayRecords(day.id); const state = petHorarioDayState(items); return <section className="pet-horarios__day" key={day.id} aria-labelledby={`pet-horarios-day-${day.id}`}>
         <header><h2 id={`pet-horarios-day-${day.id}`}>{day.label}</h2><span>{state === "closed" ? "Cerrado" : "Abierto"}</span></header>
+        {creating && createFormDay === day.id && <form className="pet-horarios__form" onSubmit={submitCreate} noValidate>
+          <h2>Nuevo tramo — {day.label}</h2>
+          {form(createDraft, value => {
+            setCreateDraft(value);
+            if (value.diaSemana !== "") setCreateFormDay(value.diaSemana);
+          }, "pet-horarios-create")}
+          <div className="pet-horarios__actions"><button className="pet-horarios__primary" type="submit" disabled={busy || Boolean(verification)}>Crear tramo</button><button className="pet-horarios__secondary" type="button" disabled={busy} onClick={() => { setCreating(false); setFormError(null); }}>Cancelar</button></div>
+        </form>}
         {!items.length && <p className="pet-horarios__closed">Cerrado</p>}
         <ul>{items.map(horario => <li className={`pet-horarios__item${horario.activo ? "" : " is-inactive"}`} key={horario.id}>
           {editingId === horario.id ? <form className="pet-horarios__edit" onSubmit={event => void saveEdit(event, horario)} noValidate>
@@ -157,7 +162,7 @@ export function PetHorariosAdmin({ localId, registerNavigation }: Props) {
           </form> : <><div className="pet-horarios__item-main"><strong>{petHorarioTimeLabel(horario.hora_inicio, horario.hora_fin)}</strong><span className={`pet-horarios__status${horario.activo ? "" : " is-inactive"}`}>{horario.activo ? "Activo" : "Inactivo"}</span></div>
             <div className="pet-horarios__actions"><button className="pet-horarios__secondary" type="button" disabled={busy || Boolean(verification)} onClick={() => { setEditingId(horario.id); setEditDraft({ diaSemana: horario.dia_semana, horaInicio: normalizePetTime(horario.hora_inicio), horaFin: normalizePetTime(horario.hora_fin) }); setFormError(null); setNotice(null); }}>Editar</button><button className="pet-horarios__secondary" type="button" disabled={busy || Boolean(verification)} onClick={() => void toggle(horario)}>{horario.activo ? "Desactivar" : "Activar"}</button><button className="pet-horarios__danger" type="button" disabled={busy || Boolean(verification)} onClick={() => void remove(horario)}>Eliminar tramo</button></div></>}
         </li>)}</ul>
-        <button className="pet-horarios__add" type="button" disabled={busy || creating || Boolean(verification)} onClick={() => { setCreating(true); setCreateDraft(blankDraft(day.id)); setFormError(null); setNotice(null); }}>+ Agregar tramo</button>
+        <button className="pet-horarios__add" type="button" disabled={busy || creating || Boolean(verification)} onClick={() => { setCreating(true); setCreateFormDay(day.id); setCreateDraft(blankDraft(day.id)); setFormError(null); setNotice(null); }}>+ Agregar tramo</button>
       </section>; })}
     </div>}
   </section>;
