@@ -23,6 +23,7 @@ export function PetMascotaServicios({ servicios, disabled }: {
     <ul className="pet-management__service-list">
       {state.rows.map(row => {
         const fieldId = `pet-service-duration-${row.id}`;
+        const parsedDuration = parsePetDuracion(row.value);
         return <li key={row.id} className="pet-management__service-card">
           <div className="pet-management__result-heading"><strong>{row.nombre} <small>#{row.id}</small></strong>
             <span className={`pet-management__badge${row.activo ? "" : " is-inactive"}`}>{row.activo ? "Activo" : "Inactivo"}</span></div>
@@ -42,7 +43,8 @@ export function PetMascotaServicios({ servicios, disabled }: {
                   aria-invalid={Boolean(row.error)} aria-describedby={row.error ? `${fieldId}-error` : undefined}
                   onChange={event => controller.change(row.id, event.target.value)} />
               </label>
-              <button type="submit" className="pet-management__primary" disabled={parsePetDuracion(row.value) === null}
+              <button type="submit" className="pet-management__primary"
+                disabled={parsedDuration === null || (row.permitido && parsedDuration === row.duracionMinutos)}
                 aria-label={`${row.permitido ? "Guardar duración de" : "Permitir"} ${row.nombre} #${row.id}`}>
                 {row.permitido ? "Guardar duración" : "Permitir servicio"}
               </button>
