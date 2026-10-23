@@ -22,7 +22,7 @@ const { getPetAdminContentKind } = await import("../src/feature/admin/pages/admi
 
 const unconfigured = { configured: false, highDemandRule: null, highDemandGapMinutes: null, highDemandMaxPerDay: null } as const;
 const minGap = { configured: true, highDemandRule: "MIN_GAP", highDemandGapMinutes: 300, highDemandMaxPerDay: null } as const;
-const maxPerDay = { configured: true, highDemandRule: "MAX_PER_DAY", highDemandGapMinutes: null, highDemandMaxPerDay: 2 } as const;
+const maxPerDay = { configured: true, highDemandRule: "MAX_PER_DAY", highDemandGapMinutes: null, highDemandMaxPerDay: 1 } as const;
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 function mockFetch(t: TestContext, fn: (url: string, init: RequestInit) => Promise<Response>) {
   storage.set("token", "PET_SETTINGS_TEST"); window.location.href = "";
@@ -44,13 +44,13 @@ test("DTO rechaza estados híbridos, valores inválidos y configura false solo c
   assert.deepEqual(parsePetSettingsValue(unconfigured), unconfigured);
   assert.deepEqual(parsePetSettingsValue(minGap), minGap);
   assert.deepEqual(parsePetSettingsValue(maxPerDay), maxPerDay);
-  for (const bad of [null, [], {}, { ...unconfigured, highDemandRule: "MIN_GAP" }, { ...minGap, highDemandMaxPerDay: 1 }, { ...minGap, highDemandGapMinutes: 0 }, { ...minGap, highDemandGapMinutes: 1.5 }, { ...maxPerDay, highDemandMaxPerDay: 2147483648 }]) assert.equal(parsePetSettingsValue(bad), null);
+  for (const bad of [null, [], {}, { ...unconfigured, highDemandRule: "MIN_GAP" }, { ...minGap, highDemandMaxPerDay: 1 }, { ...minGap, highDemandGapMinutes: 0 }, { ...minGap, highDemandGapMinutes: 1.5 }, { ...maxPerDay, highDemandMaxPerDay: 2 }, { ...maxPerDay, highDemandMaxPerDay: 2147483648 }]) assert.equal(parsePetSettingsValue(bad), null);
 });
 
 test("hidrata configuración exacta; no configurada produce draft sin selección", () => {
   assert.deepEqual(petSettingsDraft(unconfigured), { rule: null, value: "" });
   assert.deepEqual(petSettingsDraft(minGap), { rule: "MIN_GAP", value: "300" });
-  assert.deepEqual(petSettingsDraft(maxPerDay), { rule: "MAX_PER_DAY", value: "2" });
+  assert.deepEqual(petSettingsDraft(maxPerDay), { rule: "MAX_PER_DAY", value: "1" });
 });
 
 test("valida entero positivo sin vacío, cero, negativo, decimal, NaN ni coerción", () => {
@@ -58,14 +58,15 @@ test("valida entero positivo sin vacío, cero, negativo, decimal, NaN ni coerci�
   assert.ok(validatePetSettingsDraft({ rule: null, value: "2" }));
   assert.equal(validatePetSettingsDraft({ rule: "MIN_GAP", value: "1" }), null);
   assert.equal(validatePetSettingsDraft({ rule: "MIN_GAP", value: "02" }), null);
-  assert.equal(validatePetSettingsDraft({ rule: "MAX_PER_DAY", value: "2147483647" }), null);
+  assert.equal(validatePetSettingsDraft({ rule: "MAX_PER_DAY", value: "1" }), null);
+  assert.ok(validatePetSettingsDraft({ rule: "MAX_PER_DAY", value: "2" }));
 });
 
 test("payloads PUT son completos y mantienen exclusividad al cambiar de regla", () => {
   const gap = petSettingsPayload({ rule: "MIN_GAP", value: "300" });
-  const max = petSettingsPayload({ rule: "MAX_PER_DAY", value: "2" });
+  const max = petSettingsPayload({ rule: "MAX_PER_DAY", value: "1" });
   assert.deepEqual(gap, { highDemandRule: "MIN_GAP", highDemandGapMinutes: 300, highDemandMaxPerDay: null });
-  assert.deepEqual(max, { highDemandRule: "MAX_PER_DAY", highDemandGapMinutes: null, highDemandMaxPerDay: 2 });
+  assert.deepEqual(max, { highDemandRule: "MAX_PER_DAY", highDemandGapMinutes: null, highDemandMaxPerDay: 1 });
   assert.equal(petSettingsMatchesWrite(minGap, gap!), true);
   assert.equal(petSettingsMatchesWrite(minGap, max!), false);
   assert.equal(petSettingsMatchesWrite(maxPerDay, gap!), false);
@@ -76,7 +77,7 @@ test("PUT reemplaza la configuración con únicamente los tres campos contractua
     assert.equal(url, "/api/pet/admin/settings"); assert.equal(init.method, "PUT");
     bodies.push(JSON.parse(String(init.body))); return json(maxPerDay);
   });
-  const write = petSettingsPayload({ rule: "MAX_PER_DAY", value: "2" })!;
+  const write = petSettingsPayload({ rule: "MAX_PER_DAY", value: "1" })!;
   assert.deepEqual(await petSettingsService.replace(write), maxPerDay);
   assert.deepEqual(bodies, [write]);
   assert.equal("configured" in (bodies[0] as object), false);

@@ -31,7 +31,7 @@ export function parsePetSettingsValue(value: unknown): PetSettings | null {
   if (rule === "MIN_GAP" && Number.isInteger(gap) && Number(gap) >= 1 && Number(gap) <= 2147483647 && max === null) {
     return { configured: true, highDemandRule: rule, highDemandGapMinutes: gap as number, highDemandMaxPerDay: null };
   }
-  if (rule === "MAX_PER_DAY" && Number.isInteger(max) && Number(max) >= 1 && Number(max) <= 2147483647 && gap === null) {
+  if (rule === "MAX_PER_DAY" && max === 1 && gap === null) {
     return { configured: true, highDemandRule: rule, highDemandGapMinutes: null, highDemandMaxPerDay: max as number };
   }
   return null;
@@ -42,12 +42,13 @@ export function petSettingsDraft(settings: PetSettings): PetSettingsDraft {
     rule: settings.highDemandRule,
     value: settings.highDemandRule === "MIN_GAP"
       ? String(settings.highDemandGapMinutes)
-      : settings.highDemandRule === "MAX_PER_DAY" ? String(settings.highDemandMaxPerDay) : "",
+      : settings.highDemandRule === "MAX_PER_DAY" ? "1" : "",
   };
 }
 
 export function validatePetSettingsDraft(draft: PetSettingsDraft): string | null {
   if (!draft.rule) return "Elegí una regla antes de guardar.";
+  if (draft.rule === "MAX_PER_DAY") return draft.value === "1" ? null : "Esta regla permite exactamente un turno por día.";
   if (!/^\d+$/.test(draft.value) || !Number.isSafeInteger(Number(draft.value)) || Number(draft.value) < 1 || Number(draft.value) > 2147483647) {
     return "Ingresá un número entero positivo válido.";
   }
@@ -59,7 +60,7 @@ export function petSettingsPayload(draft: PetSettingsDraft): PetSettingsWrite | 
   const value = Number(draft.value);
   return draft.rule === "MIN_GAP"
     ? { highDemandRule: "MIN_GAP", highDemandGapMinutes: value, highDemandMaxPerDay: null }
-    : { highDemandRule: "MAX_PER_DAY", highDemandGapMinutes: null, highDemandMaxPerDay: value };
+    : { highDemandRule: "MAX_PER_DAY", highDemandGapMinutes: null, highDemandMaxPerDay: 1 };
 }
 
 export function petSettingsMatchesWrite(settings: PetSettings, write: PetSettingsWrite): boolean {
