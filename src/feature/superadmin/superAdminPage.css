@@ -69,6 +69,29 @@
   border-radius: var(--radius-md);
 }
 
+.sa-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sa-filtro {
+  border: 0.5px solid var(--color-border);
+  border-radius: 20px;
+  padding: 8px 12px;
+  background: var(--color-white);
+  color: var(--color-text-soft);
+  font: 500 12px var(--font-sans);
+  cursor: pointer;
+}
+
+.sa-filtro.seleccionado {
+  border-color: var(--color-primary);
+  background: rgba(201,169,110,0.12);
+  color: var(--color-primary);
+}
+
 /* ── Lista de locales ── */
 .sa-lista {
   display: flex;
@@ -257,7 +280,8 @@
   text-transform: uppercase;
 }
 
-.sa-field input {
+.sa-field input,
+.sa-field select {
   background: var(--color-bg);
   border: 0.5px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -269,7 +293,8 @@
   transition: border-color var(--transition);
 }
 
-.sa-field input:focus {
+.sa-field input:focus,
+.sa-field select:focus {
   border-color: var(--color-primary);
 }
 
@@ -313,4 +338,12 @@
 .sa-btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.sa-badge-tipo {
+  display: inline-block;
+  background: var(--color-bg);
+  color: var(--color-text-soft);
+  text-transform: none;
+  letter-spacing: 0;
 }

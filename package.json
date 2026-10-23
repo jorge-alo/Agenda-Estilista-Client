@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test": "node --experimental-strip-types --test tests/adminTabs.test.ts tests/petSession.test.ts tests/petBooking.test.ts tests/petAdminBooking.test.ts tests/petManagement.test.ts tests/petMascotaData.test.ts tests/petResponsables.test.ts tests/petMascotaFlags.test.ts tests/petServicios.test.ts tests/petExtras.test.ts tests/petMascotaServicios.test.ts tests/petMascotaExtras.test.ts tests/petM3Integration.test.ts tests/petHorarios.test.ts tests/petBloqueos.test.ts tests/petSettings.test.ts tests/petSolicitudes.test.ts",
+    "test": "node --experimental-strip-types --test tests/adminTabs.test.ts tests/superadminBusinessType.test.ts tests/petSession.test.ts tests/petBooking.test.ts tests/petAdminBooking.test.ts tests/petManagement.test.ts tests/petMascotaData.test.ts tests/petResponsables.test.ts tests/petMascotaFlags.test.ts tests/petServicios.test.ts tests/petExtras.test.ts tests/petMascotaServicios.test.ts tests/petMascotaExtras.test.ts tests/petM3Integration.test.ts tests/petHorarios.test.ts tests/petBloqueos.test.ts tests/petSettings.test.ts tests/petSolicitudes.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

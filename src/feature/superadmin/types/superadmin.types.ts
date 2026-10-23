@@ -1,3 +1,5 @@
+import type { BusinessType } from "../../../shared/types/businessType";
+
 export interface Local {
   id: number;
   nombre: string;
@@ -5,6 +7,7 @@ export interface Local {
   telefono?: string;
   activo: boolean;
   created_at: string;
+  business_type: BusinessType;
 }
 
 export interface CrearLocalDTO {
@@ -12,4 +15,5 @@ export interface CrearLocalDTO {
   email: string;
   password: string;
   telefono?: string;
+  business_type: BusinessType;
 }

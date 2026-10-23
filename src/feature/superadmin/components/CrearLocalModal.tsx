@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useCrearLocal } from "../mutations/useCrearLocal";
 import { crearLocalSchema, type CrearLocalInput } from "../schema/superadmin.schema";
+import { BUSINESS_TYPE } from "../../../shared/types/businessType";
+import { BUSINESS_TYPE_OPTIONS } from "../../../shared/types/businessTypeLabels";
 
 
 interface Props {
@@ -13,12 +15,13 @@ export const CrearLocalModal = ({ onClose }: Props) => {
     password: "",
     nombreLocal: "",
     telefono: "",
+    business_type: BUSINESS_TYPE.BEAUTY,
   });
   const [error, setError] = useState("");
   
   const crearMutation = useCrearLocal();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError(""); // Limpiar error al escribir
   };
@@ -79,6 +82,20 @@ export const CrearLocalModal = ({ onClose }: Props) => {
               placeholder="Mínimo 6 caracteres"
               disabled={crearMutation.isPending}
             />
+          </div>
+          <div className="sa-field">
+            <label htmlFor="business_type">Tipo de negocio</label>
+            <select
+              id="business_type"
+              name="business_type"
+              value={form.business_type}
+              onChange={handleChange}
+              disabled={crearMutation.isPending}
+            >
+              {BUSINESS_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
           </div>
           <div className="sa-field">
             <label>Teléfono <span className="sa-opcional">(opcional)</span></label>

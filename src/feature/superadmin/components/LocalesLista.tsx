@@ -1,6 +1,10 @@
 import { useState } from "react";
 import type { Local } from "../types/superadmin.types";
 import { useToggleLocal, useEliminarLocal } from "../mutations/useGestionarLocal";
+import { BUSINESS_TYPE } from "../../../shared/types/businessType";
+import { BUSINESS_TYPE_LABELS, filterLocalesByBusinessType, type BusinessTypeFilter } from "../../../shared/types/businessTypeLabels";
+
+type FiltroTipo = BusinessTypeFilter;
 
 interface Props {
   locales: Local[];
@@ -8,6 +12,7 @@ interface Props {
 
 export const LocalesLista = ({ locales }: Props) => {
   const [confirmEliminar, setConfirmEliminar] = useState<number | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("ALL");
 
   const toggleMutation = useToggleLocal();
   const deleteMutation = useEliminarLocal();
@@ -22,17 +27,35 @@ export const LocalesLista = ({ locales }: Props) => {
     });
   };
 
-  if (locales.length === 0) {
-    return <p className="sa-empty">No hay locales registrados</p>;
-  }
+  const cantidadBeauty = locales.filter((local) => local.business_type === BUSINESS_TYPE.BEAUTY).length;
+  const cantidadPet = locales.filter((local) => local.business_type === BUSINESS_TYPE.PET_GROOMING).length;
+  const localesFiltrados = filterLocalesByBusinessType(locales, filtroTipo);
 
   return (
-    <div className="sa-lista">
-      {locales.map((local) => (
+    <>
+      <div className="sa-filtros" role="group" aria-label="Filtrar locales por tipo de negocio">
+        {([
+          { value: "ALL", label: "Todos", count: locales.length },
+          { value: BUSINESS_TYPE.BEAUTY, label: BUSINESS_TYPE_LABELS[BUSINESS_TYPE.BEAUTY], count: cantidadBeauty },
+          { value: BUSINESS_TYPE.PET_GROOMING, label: BUSINESS_TYPE_LABELS[BUSINESS_TYPE.PET_GROOMING], count: cantidadPet },
+        ] as const).map((filtro) => (
+          <button key={filtro.value} type="button"
+            className={`sa-filtro ${filtroTipo === filtro.value ? "seleccionado" : ""}`}
+            aria-pressed={filtroTipo === filtro.value}
+            onClick={() => setFiltroTipo(filtro.value)}>
+            {filtro.label} ({filtro.count})
+          </button>
+        ))}
+      </div>
+      {localesFiltrados.length === 0 ? (
+        <p className="sa-empty">{locales.length === 0 ? "No hay locales registrados" : "No hay locales para este tipo de negocio"}</p>
+      ) : <div className="sa-lista">
+      {localesFiltrados.map((local) => (
         <div key={local.id} className={`sa-local ${!local.activo ? "bloqueado" : ""}`}>
           <div className="sa-local-header">
             <div>
               <span className="sa-local-nombre">{local.nombre}</span>
+              <span className="sa-badge sa-badge-tipo">{BUSINESS_TYPE_LABELS[local.business_type]}</span>
               <span className={`sa-badge ${local.activo ? "activo" : "inactivo"}`}>
                 {local.activo ? "Activo" : "Bloqueado"}
               </span>
@@ -89,6 +112,7 @@ export const LocalesLista = ({ locales }: Props) => {
           )}
         </div>
       ))}
-    </div>
+      </div>}
+    </>
   );
 };
