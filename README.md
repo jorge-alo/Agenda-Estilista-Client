@@ -1,7 +1,7 @@
 # 💈 Agenda Estilista | Sistema de Gestión y Reservas
 
-[![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22.12%2B-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19.x-blue.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-orange.svg)](https://www.mysql.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -46,14 +46,18 @@ Plataforma **SaaS multi-tenant** diseñada para la gestión integral de salones 
 | **Backend** | Node.js, Express, TypeScript, MySQL2 (Pool de conexiones) |
 | **Base de Datos** | MySQL 8.0 |
 | **Integraciones** | Mercado Pago SDK, Evolution API (WhatsApp), Resend (Email) |
-| **DevOps/Deploy** | Vercel (Frontend), Railway (Backend & DB) |
+| **DevOps/Deploy** | Cloudflare Workers + Static Assets (app frontend), Railway (Backend & DB); Vercel temporalmente como rollback |
+
+La app productiva se sirve en `https://app.agendaok.com.ar`; la landing comercial está separada en
+`https://agendaok.com.ar`. Build de producción: `npm run build` (`tsc -b && vite build`), output `dist`;
+Cloudflare Builds/Wrangler despliega el cliente. Vercel permanece solo como rollback temporal.
 
 ---
 
 ## ⚙️ Instalación y Configuración Local
 
 ### 1. Prerrequisitos
-- Node.js >= 18.x
+- Node.js >= 22.12.0 (Vite 8 / Rolldown toolchain)
 - MySQL 8.0 (local o en la nube)
 - Git
 
@@ -84,7 +88,7 @@ DATABASE_URL="mysql://usuario:password@localhost:3306/agenda_db"
 # Seguridad
 JWT_SECRET="tu_clave_secreta_muy_segura_aqui"
 
-# URLs del Sistema (CRÍTICO para CORS y Mercado Pago)
+# URLs del Sistema (CORS y enlaces generados por backend)
 FRONTEND_URL="http://localhost:5173"
 BACKEND_URL="http://localhost:3000"
 CORS_ORIGINS="http://localhost:5173"
@@ -99,6 +103,10 @@ RESEND_API_KEY="tu_api_key_de_resend"
 EVOLUTION_API_URL="http://localhost:8080"
 EVOLUTION_API_KEY="tu_api_key_de_evolution"
 ```
+
+En producción, `FRONTEND_URL` es la URL canónica de la aplicación para enlaces generados por el
+backend (`https://app.agendaok.com.ar`); `CORS_ORIGINS` es una allowlist CSV de origins del navegador.
+La landing comercial es independiente en `https://agendaok.com.ar`.
 
 ### 5. Configuración de la Base de Datos
 Ejecutá las siguientes consultas SQL para habilitar las funcionalidades de pago y limpieza automática:
