@@ -1,6 +1,6 @@
 import { fetchWithAuth } from "../../../../shared/lib/fetchWithAuth.ts";
-import { parsePetSettingsValue } from "../types/petSettings.types.ts";
-import type { PetSettings, PetSettingsWrite } from "../types/petSettings.types.ts";
+import { parsePetCapacityValue, parsePetSettingsValue } from "../types/petSettings.types.ts";
+import type { PetCapacityWrite, PetSettings, PetSettingsWrite } from "../types/petSettings.types.ts";
 
 const API_URL = import.meta.env?.VITE_API_URL ?? "";
 const URL = `${API_URL}/api/pet/admin/settings`;
@@ -10,8 +10,8 @@ export class PetSettingsApiError extends Error {
   constructor(status: number) { super("PET_SETTINGS_API_ERROR"); this.name = "PetSettingsApiError"; this.status = status; }
 }
 
-async function request(init: RequestInit): Promise<Response> {
-  try { return await fetchWithAuth(URL, { cache: "no-store", ...init }); }
+async function request(init: RequestInit, url = URL): Promise<Response> {
+  try { return await fetchWithAuth(url, { cache: "no-store", ...init }); }
   catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") throw error;
     throw new PetSettingsApiError(error instanceof Error && error.message === "Sesión expirada" ? 401 : 0);
@@ -34,5 +34,12 @@ export const petSettingsService = {
     const settings = await parseResponse(response);
     if (response.status !== 200) throw new PetSettingsApiError(response.status);
     return settings;
+  },
+  async updateCapacity(write: PetCapacityWrite): Promise<PetCapacityWrite> {
+    const response = await request({ method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(write) }, `${URL}/capacity`);
+    if (!response.ok) throw new PetSettingsApiError(response.status);
+    const stored = parsePetCapacityValue(await response.json().catch(() => null));
+    if (!stored || response.status !== 200) throw new PetSettingsApiError(response.status);
+    return stored;
   },
 };

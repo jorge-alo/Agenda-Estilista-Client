@@ -10,7 +10,7 @@
 .pet-settings__option small { color: #63736b; line-height: 1.4; }
 .pet-settings__value { display: grid; gap: .45rem; max-width: 24rem; }
 .pet-settings__input { display: flex; align-items: center; gap: .65rem; }
-.pet-settings__input input { box-sizing: border-box; width: min(12rem, 100%); min-height: 44px; border: 1px solid #cbd7d0; border-radius: 8px; padding: .55rem .65rem; font: inherit; }
+.pet-settings__input input, .pet-settings__value > input { box-sizing: border-box; width: min(12rem, 100%); min-height: 44px; border: 1px solid #cbd7d0; border-radius: 8px; padding: .55rem .65rem; font: inherit; }
 .pet-settings__input span { color: #63736b; }
 .pet-settings__primary, .pet-settings__secondary, .pet-settings__message button { width: fit-content; min-height: 42px; border: 1px solid #27664e; border-radius: 8px; padding: .5rem .85rem; font: inherit; cursor: pointer; }
 .pet-settings__primary { background: #27664e; color: #fff; }
@@ -21,4 +21,5 @@
 .pet-settings__empty { border: 1px dashed #cbd7d0; border-radius: 10px; padding: .8rem; color: #53665c; background: #fff; }
 .pet-settings__notice { border-left: 3px solid #6bb79c; padding: .45rem .7rem; background: #f2faf6; color: #596b62; }
 .pet-settings__error { color: #a12f2f; font-size: .9rem; }
+.pet-settings__card > p:not(.pet-settings__error):not(.pet-settings__notice) { margin: 0; color: #63736b; line-height: 1.4; }
 @media (max-width: 540px) { .pet-settings__primary { width: 100%; } .pet-settings__value { max-width: none; } }

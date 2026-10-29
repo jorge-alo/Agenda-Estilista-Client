@@ -1,6 +1,7 @@
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../../shared/lib/queryKeys.ts";
 import { PetSettingsApiError, petSettingsService } from "../services/petSettings.service.ts";
+import type { PetSettings } from "../types/petSettings.types.ts";
 
 export function createPetSettingsNavigationGuard(state: { dirty: boolean; busy: boolean; uncertain: boolean }, confirmDiscard: () => boolean) {
   return {
@@ -29,4 +30,10 @@ export async function invalidatePetSettingsDependencies(client: { invalidateQuer
     client.invalidateQueries({ queryKey: queryKeys.petAdminBooking.availabilityAll }),
     client.invalidateQueries({ queryKey: queryKeys.petTurnoDisponibilidad.all }),
   ]);
+}
+
+export async function acceptPetCapacity(client: QueryClient, localId: string, capacity: number): Promise<void> {
+  client.setQueryData<PetSettings>(queryKeys.petSettings.detail(localId), current => current
+    ? { ...current, petConcurrentCapacity: capacity } : current);
+  await invalidatePetSettingsDependencies(client, localId);
 }
