@@ -6,9 +6,10 @@ import { petFirstVisitRequestErrorMessage } from "../session/publicPetRequestUi"
 
 interface Props {
   slug: string;
+  onSubmittingChange?: (pending: boolean) => void;
 }
 
-export function PetFirstVisitForm({ slug }: Props) {
+export function PetFirstVisitForm({ slug, onSubmittingChange }: Props) {
   const mutation = useCreatePetRequest(slug);
   const {
     register,
@@ -41,7 +42,10 @@ export function PetFirstVisitForm({ slug }: Props) {
 
   const globalError = petFirstVisitRequestErrorMessage(mutation.error);
 
-  const onSubmit = handleSubmit(values => mutation.mutate(values));
+  const onSubmit = handleSubmit(values => {
+    onSubmittingChange?.(true);
+    mutation.mutate(values, { onSettled: () => onSubmittingChange?.(false) });
+  });
 
   return (
     <form className="pet-first-visit-form" onSubmit={onSubmit} noValidate aria-busy={mutation.isPending}>

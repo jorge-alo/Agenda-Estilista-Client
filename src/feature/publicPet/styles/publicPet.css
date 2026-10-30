@@ -41,6 +41,74 @@
   padding: 24px 16px 40px;
 }
 
+.pet-entry-selector {
+  display: grid;
+  gap: 14px;
+}
+
+.pet-entry-selector h2 {
+  margin-bottom: 6px;
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.pet-entry-option {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: 104px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.pet-entry-option:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg);
+}
+
+.pet-entry-option:focus-visible,
+.pet-entry-back:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.pet-entry-option-title {
+  font: 500 18px var(--font-sans);
+}
+
+.pet-entry-option-description {
+  color: var(--color-text-soft);
+  font: 400 14px/1.5 var(--font-sans);
+}
+
+.pet-entry-back {
+  min-height: 44px;
+  margin-bottom: 20px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font: 500 14px var(--font-sans);
+  cursor: pointer;
+}
+
+.pet-entry-back:hover:not(:disabled) {
+  background: var(--color-white);
+}
+
+.pet-entry-back:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .pet-public-intro {
   margin-bottom: 24px;
 }
@@ -173,9 +241,6 @@
 }
 
 .pet-existing-client {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid var(--color-border);
   display: grid;
   gap: 12px;
 }

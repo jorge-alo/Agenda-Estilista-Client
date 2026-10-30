@@ -9,9 +9,13 @@ import { runPetRequestOnce } from "../session/publicPetRequestUi";
 
 type RequestState = "idle" | "submitting" | "submitted" | "error";
 
-interface Props { slug: string }
+interface Props {
+  slug: string;
+  direct?: boolean;
+  onSubmittingChange?: (pending: boolean) => void;
+}
 
-export function PetExistingClientAccess({ slug }: Props) {
+export function PetExistingClientAccess({ slug, direct = false, onSubmittingChange }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [telefono, setTelefono] = useState("");
   const [state, setState] = useState<RequestState>("idle");
@@ -32,6 +36,7 @@ export function PetExistingClientAccess({ slug }: Props) {
       setFieldError(null);
       setRequestError(null);
       setState("submitting");
+      onSubmittingChange?.(true);
       try {
         await requestPetAccessLink(slug, telefono);
         setTelefono("");
@@ -39,6 +44,8 @@ export function PetExistingClientAccess({ slug }: Props) {
       } catch (error: unknown) {
         setRequestError(petAccessRequestErrorMessage(error));
         setState("error");
+      } finally {
+        onSubmittingChange?.(false);
       }
     });
   };
@@ -53,7 +60,7 @@ export function PetExistingClientAccess({ slug }: Props) {
   return (
     <section className="pet-existing-client" aria-labelledby="pet-existing-client-title">
       <h2 id="pet-existing-client-title">¿Ya sos cliente?</h2>
-      {!expanded ? (
+      {!direct && !expanded ? (
         <button className="pet-existing-client-toggle" type="button" onClick={() => setExpanded(true)}>
           Solicitar acceso
         </button>
@@ -89,9 +96,9 @@ export function PetExistingClientAccess({ slug }: Props) {
           <button className="pet-submit-button" type="submit" disabled={state === "submitting"}>
             {state === "submitting" ? "Enviando…" : "Enviar enlace por WhatsApp"}
           </button>
-          <button className="pet-existing-client-cancel" type="button" disabled={state === "submitting"} onClick={() => { setExpanded(false); reset(); }}>
+          {!direct && <button className="pet-existing-client-cancel" type="button" disabled={state === "submitting"} onClick={() => { setExpanded(false); reset(); }}>
             Cancelar
-          </button>
+          </button>}
         </form>
       )}
     </section>
