@@ -1,6 +1,6 @@
-import { isCanonicalPetToken, readPetSession, removePetSession, writePetSession, type StoredPetSession } from "./petSessionStorage.ts";
+import { isCanonicalPetToken, isPersistedPetSession, readPetSession, removeExpectedPetSession, writePetSession, type StoredPetSession } from "./petSessionStorage.ts";
 import {
-  activatePetSessionScope, clearPetSessionScope, invalidateCurrentPetSession, isCurrentPetSessionScope, releasePetSessionScope,
+  activatePetSessionScope, clearPetSessionScope, invalidateCurrentPetSession, isCurrentPetSessionScope, releasePetSessionScope, petSessionRevision, petSessionScopeCredential,
 } from "./petSessionScope.ts";
 import { runOnceByKey } from "./singleFlight.ts";
 
@@ -16,7 +16,7 @@ export type PetSessionFlowResult =
   | { status: "unauthenticated" }
   | { status: "invalid-link" }
   | { status: "local-unavailable" }
-  | { status: "error" };
+  | { status: "error"; reason?: "storage-unavailable" };
 
 export type PetProfileRefreshResult =
   | { status: "refreshed"; profile: PetPublicProfile }
@@ -153,15 +153,22 @@ function resultFromError(error: unknown, phase: "consume" | "restore"): PetSessi
 
 export function consumePetMagicLinkOnce(slug: string, challenge: string): Promise<PetSessionFlowResult> {
   return runOnceByKey(consumeFlights, slug, async () => {
+    const revision = petSessionRevision(slug);
+    const previous = readPetSession(slug);
+    let issued: StoredPetSession | null = null;
     try {
       const session = await consume(slug, challenge);
+      if (revision !== petSessionRevision(slug) ||
+          (previous ? !isPersistedPetSession(slug, previous) : readPetSession(slug) !== null)) return { status: "error" };
       // Only a session returned by successful consume is persisted; the challenge is never stored.
-      writePetSession(slug, session);
+      if (!writePetSession(slug, session)) return { status: "error", reason: "storage-unavailable" };
+      issued = session;
       const profile = await getMe(slug, session);
-      return { status: "authenticated", session, profile, sessionScope: activatePetSessionScope(slug) };
+      if (revision !== petSessionRevision(slug) || !isPersistedPetSession(slug, session)) return { status: "error" };
+      return { status: "authenticated", session, profile, sessionScope: activatePetSessionScope(slug, undefined, session) };
     } catch (error) {
-      if (error instanceof PetSessionApiError && error.status === 401) {
-        removePetSession(slug);
+      if (issued && error instanceof PetSessionApiError && error.status === 401 &&
+          revision === petSessionRevision(slug) && removeExpectedPetSession(slug, issued)) {
         clearPetSessionScope(slug);
       }
       return resultFromError(error, "consume");
@@ -170,19 +177,22 @@ export function consumePetMagicLinkOnce(slug: string, challenge: string): Promis
 }
 
 export function restorePetSessionOnce(slug: string): Promise<PetSessionFlowResult> {
-  return runOnceByKey(restoreFlights, slug, async () => {
-    const session = readPetSession(slug);
+  const session = readPetSession(slug);
+  const revision = petSessionRevision(slug);
+  // Tokens remain memory-only map keys, never query keys or logs.
+  return runOnceByKey(restoreFlights, `${slug}\u0000${revision}\u0000${session?.token ?? ""}`, async () => {
     if (!session) {
+      if (revision !== petSessionRevision(slug) || readPetSession(slug)) return { status: "error" };
       clearPetSessionScope(slug);
       return { status: "unauthenticated" };
     }
     try {
       const profile = await getMe(slug, session);
-      return { status: "authenticated", session, profile, sessionScope: activatePetSessionScope(slug) };
+      if (revision !== petSessionRevision(slug) || !isPersistedPetSession(slug, session)) return { status: "error" };
+      return { status: "authenticated", session, profile, sessionScope: activatePetSessionScope(slug, undefined, session) };
     } catch (error) {
       if (error instanceof PetSessionApiError && error.status === 401) {
-        removePetSession(slug);
-        clearPetSessionScope(slug);
+        if (revision === petSessionRevision(slug) && removeExpectedPetSession(slug, session)) clearPetSessionScope(slug);
         return { status: "unauthenticated" };
       }
       return resultFromError(error, "restore");
@@ -196,17 +206,17 @@ const refreshFlights = new Map<string, Promise<PetProfileRefreshResult>>();
 export function refreshPetSessionProfileOnce(slug: string, sessionScope: string): Promise<PetProfileRefreshResult> {
   return runOnceByKey(refreshFlights, `${slug}\u0000${sessionScope}`, async () => {
     if (!isCurrentPetSessionScope(slug, sessionScope)) return { status: "stale" };
-    const session = readPetSession(slug);
-    if (!session) {
+    const session = petSessionScopeCredential(slug, sessionScope);
+    if (!session || !isPersistedPetSession(slug, session)) {
       releasePetSessionScope(slug, sessionScope);
       return { status: "unauthorized" };
     }
     try {
       const profile = await getMe(slug, session);
-      if (!isCurrentPetSessionScope(slug, sessionScope)) return { status: "stale" };
+      if (!isCurrentPetSessionScope(slug, sessionScope) || !isPersistedPetSession(slug, session)) return { status: "stale" };
       return { status: "refreshed", profile };
     } catch (error) {
-      if (!isCurrentPetSessionScope(slug, sessionScope)) return { status: "stale" };
+      if (!isCurrentPetSessionScope(slug, sessionScope) || !isPersistedPetSession(slug, session)) return { status: "stale" };
       if (error instanceof PetSessionApiError && error.status === 401) {
         invalidateCurrentPetSession(slug, sessionScope);
         return { status: "unauthorized" };
@@ -217,6 +227,9 @@ export function refreshPetSessionProfileOnce(slug: string, sessionScope: string)
 }
 
 export async function logoutPetSession(slug: string, token: string): Promise<void> {
+  const expected = readPetSession(slug);
+  // Close locally before waiting for the network; other tabs exit immediately.
+  if (expected?.token === token) removeExpectedPetSession(slug, expected);
   try {
     if (!isCanonicalPetToken(token)) return;
     const response = await fetch(sessionPath(slug, "logout"), {
@@ -227,6 +240,6 @@ export async function logoutPetSession(slug: string, token: string): Promise<voi
     if (!response.ok) throw await errorFrom(response);
   } finally {
     // Always exit locally, even if the request fails or times out.
-    removePetSession(slug);
+    if (expected?.token === token) removeExpectedPetSession(slug, expected);
   }
 }

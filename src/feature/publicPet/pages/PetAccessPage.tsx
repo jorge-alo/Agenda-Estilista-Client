@@ -100,7 +100,11 @@ export function PetAccessPage() {
           No hay una sesión activa. Solicitá un nuevo enlace desde la agenda del local.
         </AccessMessage>}
         {state.status === "local-unavailable" && <LocalMessage title="Este local no está disponible." />}
-        {state.status === "error" && <AccessMessage> No pudimos validar tu acceso. Intentá nuevamente.</AccessMessage>}
+        {state.status === "error" && <AccessMessage>
+          {state.reason === "storage-unavailable"
+            ? "No pudimos guardar tu sesión en este navegador. Revisá el almacenamiento del sitio y solicitá un nuevo enlace."
+            : "No pudimos validar tu acceso. Intentá nuevamente."}
+        </AccessMessage>}
         <p className="pet-session-back"><Link to={`/${encodeURIComponent(slug)}`}>Volver a la agenda del local</Link></p>
       </div>
     </main>

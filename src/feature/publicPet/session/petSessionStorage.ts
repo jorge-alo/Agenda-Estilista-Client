@@ -41,26 +41,26 @@ export function parseStoredPetSession(raw: string | null, now = Date.now()): Sto
   }
 }
 
-function getSessionStorage(): Storage | null {
-  try { return typeof window === "undefined" ? null : window.sessionStorage; }
+function getPetStorage(): Storage | null {
+  try { return typeof window === "undefined" ? null : window.localStorage; }
   catch { return null; }
 }
 
-export function readPetSession(slug: string, now = Date.now(), storage = getSessionStorage()): StoredPetSession | null {
+export function readPetSession(slug: string, now = Date.now(), storage = getPetStorage()): StoredPetSession | null {
   if (!storage) return null;
   const key = petSessionStorageKey(slug);
   try {
     const raw = storage.getItem(key);
     if (raw === null) return null;
     const session = parseStoredPetSession(raw, now);
-    if (!session) storage.removeItem(key);
+    if (!session && storage.getItem(key) === raw) storage.removeItem(key);
     return session;
   } catch {
     return null;
   }
 }
 
-export function writePetSession(slug: string, session: StoredPetSession, storage = getSessionStorage()): boolean {
+export function writePetSession(slug: string, session: StoredPetSession, storage = getPetStorage()): boolean {
   if (!storage || !validSession(session, Date.now())) return false;
   try {
     // The challenge is never passed here; only the server-issued session pair is stored.
@@ -71,7 +71,26 @@ export function writePetSession(slug: string, session: StoredPetSession, storage
   }
 }
 
-export function removePetSession(slug: string, storage = getSessionStorage()): void {
+export function removePetSession(slug: string, storage = getPetStorage()): void {
   if (!storage) return;
-  try { storage.removeItem(petSessionStorageKey(slug)); } catch { /* sessionStorage may be unavailable */ }
+  try { storage.removeItem(petSessionStorageKey(slug)); } catch { /* storage may be unavailable */ }
+}
+
+export function samePetSession(a: StoredPetSession | null, b: StoredPetSession | null): boolean {
+  return a === b || (!!a && !!b && a.token === b.token && a.expiresAt === b.expiresAt);
+}
+
+/** Compare the persisted pair, including expired entries, before removing it. */
+export function removeExpectedPetSession(slug: string, expected: StoredPetSession, storage = getPetStorage()): boolean {
+  if (!storage) return false;
+  try {
+    const raw = storage.getItem(petSessionStorageKey(slug));
+    if (!samePetSession(parseStoredPetSession(raw, -Infinity), expected)) return false;
+    storage.removeItem(petSessionStorageKey(slug));
+    return true;
+  } catch { return false; }
+}
+
+export function isPersistedPetSession(slug: string, expected: StoredPetSession): boolean {
+  return samePetSession(readPetSession(slug), expected);
 }
