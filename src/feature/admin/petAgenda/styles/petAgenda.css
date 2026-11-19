@@ -67,6 +67,37 @@
   gap: .65rem;
 }
 
+.pet-agenda__day { gap: 1rem; }
+
+.pet-agenda__time-group {
+  display: grid;
+  gap: .65rem;
+}
+
+.pet-agenda__time-heading {
+  display: flex;
+  align-items: baseline;
+  gap: .55rem;
+  margin: 0;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid #e4e9e6;
+  color: #1d5747;
+  font-size: 1rem;
+}
+
+.pet-agenda__time-heading span {
+  color: #64746d;
+  font-size: .8rem;
+  font-weight: 400;
+}
+
+.pet-agenda__time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+  gap: .65rem;
+}
+
 .pet-agenda__day-column {
   min-height: 220px;
   padding: .7rem;
@@ -83,11 +114,21 @@
   border-bottom: 1px solid #e4e9e6;
 }
 
-.pet-agenda__day-column h2 {
-  margin: 0;
+.pet-agenda__day-link {
+  border: 0;
+  border-radius: 5px;
+  padding: .2rem .3rem;
+  background: transparent;
+  color: #25312d;
+  font: inherit;
   font-size: .95rem;
+  font-weight: 700;
   text-transform: capitalize;
+  cursor: pointer;
 }
+
+.pet-agenda__day-link:hover { color: #167a61; }
+.pet-agenda__day-link:focus-visible { outline: 2px solid #167a61; outline-offset: 2px; }
 
 .pet-agenda__day-column > header span {
   color: #64746d;
@@ -103,7 +144,13 @@
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 2px 7px rgb(26 50 39 / 5%);
+  min-width: 0;
+  width: 100%;
+  max-width: 360px;
 }
+
+.pet-turno__mobile-summary { display: none; }
+.pet-turno__details { display: grid; gap: .45rem; }
 
 .pet-turno__header,
 .pet-turno__pet,
@@ -159,6 +206,7 @@
 }
 
 .pet-turno__service span { color: #748179; }
+.pet-turno__mobile-duration { display: none; }
 .pet-turno__extras { display: grid; gap: .2rem; padding-left: 1.1rem; }
 .pet-turno__responsible { align-items: flex-start; flex-direction: column; gap: .15rem; }
 .pet-turno__responsible a { color: #167a61; text-decoration: none; }
@@ -180,6 +228,72 @@
   .pet-agenda__navigation { justify-content: space-between; }
   .pet-agenda__date-picker { justify-content: space-between; }
   .pet-agenda__week { grid-template-columns: repeat(7, minmax(240px, 80vw)); }
+
+  .pet-turno--mobile-collapsible { display: block; padding: 0; overflow: hidden; }
+
+  .pet-turno--mobile-collapsible .pet-turno__mobile-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .15rem .45rem;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    padding: .4rem .6rem;
+    background: #fff;
+    color: #25312d;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .pet-turno--mobile-collapsible .pet-turno__mobile-summary:focus-visible {
+    position: relative;
+    z-index: 1;
+    outline: 2px solid #167a61;
+    outline-offset: -3px;
+  }
+
+  .pet-turno__mobile-time {
+    color: #1d5747;
+    font-size: .82rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .pet-turno__mobile-pet {
+    grid-column: 1;
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pet-turno__mobile-pet { font-size: .9rem; }
+  .pet-turno__mobile-service {
+    grid-column: 2;
+    overflow: hidden;
+    min-width: 0;
+    color: #52645b;
+    font-size: .78rem;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pet-turno--mobile-collapsible .pet-turno__details { display: none; padding: 0 .75rem .75rem; }
+  .pet-turno--mobile-collapsible.pet-turno--expanded .pet-turno__details { display: grid; }
+  .pet-turno--mobile-collapsible.pet-turno--expanded .pet-turno__mobile-summary { border-bottom: 1px solid #edf0ee; }
+  .pet-turno--mobile-collapsible .pet-turno__header,
+  .pet-turno--mobile-collapsible .pet-turno__pet:not(.pet-turno__pet--high-demand),
+  .pet-turno--mobile-collapsible .pet-turno__pet h3,
+  .pet-turno--mobile-collapsible .pet-turno__service { display: none; }
+  .pet-turno--mobile-collapsible .pet-turno__mobile-duration {
+    display: block;
+    margin: 0;
+    color: #52645b;
+    font-size: .8rem;
+  }
 }
 
 .pet-reschedule-backdrop {

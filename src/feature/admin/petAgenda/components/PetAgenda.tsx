@@ -70,71 +70,92 @@ function PetTurnCard({
   onCompletar,
   onReprogramar,
   pending,
+  mobileCompact = false,
 }: {
   turno: TurnoPet;
   onCancelar: (id: number) => void;
   onCompletar: (id: number) => void;
   onReprogramar: (turno: TurnoPet) => void;
   pending: boolean;
+  mobileCompact?: boolean;
 }) {
   const active = turno.estado === "activo";
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <article className={`pet-turno ${active ? "pet-turno--active" : ""}`}>
-      <header className="pet-turno__header">
-        <time className="pet-turno__time">
-          {turno.hora}–{turno.horaFin ?? "--:--"}
-        </time>
+    <article className={`pet-turno ${active ? "pet-turno--active" : ""}${mobileCompact ? " pet-turno--mobile-collapsible" : ""}${expanded ? " pet-turno--expanded" : ""}`}>
+      <button
+        type="button"
+        className="pet-turno__mobile-summary"
+        aria-expanded={expanded}
+        aria-controls={`pet-turno-details-${turno.id}`}
+        onClick={() => setExpanded(value => !value)}
+      >
+        <span className="pet-turno__mobile-time">{turno.hora}–{turno.horaFin ?? "--:--"}</span>
         <span className={`pet-turno__status ${claseEstado(turno.estado)}`}>
           {labelEstado(turno.estado)}
         </span>
-      </header>
+        <strong className="pet-turno__mobile-pet">{turno.mascota.nombre}</strong>
+        <span className="pet-turno__mobile-service">{turno.servicio.nombre}</span>
+      </button>
 
-      <div className="pet-turno__pet">
-        <h3>{turno.mascota.nombre}</h3>
-        {turno.mascota.altaExigenciaSnapshot === true && (
-          <span className="pet-turno__high-demand">Alta exigencia</span>
+      <div id={`pet-turno-details-${turno.id}`} className="pet-turno__details">
+        <header className="pet-turno__header">
+          <time className="pet-turno__time">
+            {turno.hora}–{turno.horaFin ?? "--:--"}
+          </time>
+          <span className={`pet-turno__status ${claseEstado(turno.estado)}`}>
+            {labelEstado(turno.estado)}
+          </span>
+        </header>
+
+        <div className={`pet-turno__pet${turno.mascota.altaExigenciaSnapshot === true ? " pet-turno__pet--high-demand" : ""}`}>
+          <h3>{turno.mascota.nombre}</h3>
+          {turno.mascota.altaExigenciaSnapshot === true && (
+            <span className="pet-turno__high-demand">Alta exigencia</span>
+          )}
+        </div>
+
+        <p className="pet-turno__service">
+          {turno.servicio.nombre} <span>({turno.servicio.duracionMinutos} min)</span>
+        </p>
+        <p className="pet-turno__mobile-duration">Duración del servicio: {turno.servicio.duracionMinutos} min</p>
+
+        {turno.extras.length > 0 && (
+          <ul className="pet-turno__extras" aria-label="Extras del turno">
+            {turno.extras.map((extra, index) => (
+              <li key={`${extra.id ?? "snapshot"}-${index}`}>
+                {extra.nombre} (+{extra.duracionMinutos} min)
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="pet-turno__responsible">
+          <span>{turno.responsable.nombre}</span>
+          <a href={`tel:${turno.responsable.telefono}`}>{turno.responsable.telefono}</a>
+        </div>
+
+        {active && (
+          <footer className="pet-turno__actions">
+            <button type="button" disabled={pending} onClick={() => onReprogramar(turno)}>
+              Reprogramar
+            </button>
+            <button type="button" disabled={pending} onClick={() => onCancelar(turno.id)}>
+              Cancelar
+            </button>
+            <button type="button" disabled={pending} onClick={() => onCompletar(turno.id)}>
+              Completar
+            </button>
+          </footer>
         )}
       </div>
-
-      <p className="pet-turno__service">
-        {turno.servicio.nombre} <span>({turno.servicio.duracionMinutos} min)</span>
-      </p>
-
-      {turno.extras.length > 0 && (
-        <ul className="pet-turno__extras" aria-label="Extras del turno">
-          {turno.extras.map((extra, index) => (
-            <li key={`${extra.id ?? "snapshot"}-${index}`}>
-              {extra.nombre} (+{extra.duracionMinutos} min)
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="pet-turno__responsible">
-        <span>{turno.responsable.nombre}</span>
-        <a href={`tel:${turno.responsable.telefono}`}>{turno.responsable.telefono}</a>
-      </div>
-
-      {active && (
-        <footer className="pet-turno__actions">
-          <button type="button" disabled={pending} onClick={() => onReprogramar(turno)}>
-            Reprogramar
-          </button>
-          <button type="button" disabled={pending} onClick={() => onCancelar(turno.id)}>
-            Cancelar
-          </button>
-          <button type="button" disabled={pending} onClick={() => onCompletar(turno.id)}>
-            Completar
-          </button>
-        </footer>
-      )}
     </article>
   );
 }
 
 export function PetAgenda() {
-  const [mode, setMode] = useState<ModoAgenda>("semana");
+  const [mode, setMode] = useState<ModoAgenda>("dia");
   const [focusDate, setFocusDate] = useState(() => fechaLocalKey(new Date()));
   const [turnoParaReprogramar, setTurnoParaReprogramar] = useState<TurnoPet | null>(null);
   const week = useMemo(() => rangoSemana(focusDate), [focusDate]);
@@ -165,6 +186,16 @@ export function PetAgenda() {
     }
     return grouped;
   }, [turnos]);
+
+  const turnosPorHora = useMemo(() => {
+    const grouped = new Map<string, TurnoPet[]>();
+    for (const turno of turnosPorFecha.get(focusDate) ?? []) {
+      const current = grouped.get(turno.hora) ?? [];
+      current.push(turno);
+      grouped.set(turno.hora, current);
+    }
+    return grouped;
+  }, [turnosPorFecha, focusDate]);
 
   if (isLoading) return <p className="pet-agenda__message" role="status">Cargando agenda PET…</p>;
   if (isError) {
@@ -198,11 +229,21 @@ export function PetAgenda() {
       </header>
 
       {mode === "dia" ? (
-        (turnosPorFecha.get(focusDate) ?? []).length === 0 ? (
+        turnosPorHora.size === 0 ? (
           <p className="pet-agenda__message">No hay turnos para este día.</p>
         ) : (
           <div className="pet-agenda__day">
-            {(turnosPorFecha.get(focusDate) ?? []).map(turno => <PetTurnCard key={turno.id} turno={turno} {...turnoProps} />)}
+            {[...turnosPorHora].map(([hora, horaTurnos]) => (
+              <section className="pet-agenda__time-group" key={hora}>
+                <h2 className="pet-agenda__time-heading">
+                  <time>{hora}</time>
+                  <span>{horaTurnos.length} {horaTurnos.length === 1 ? "turno" : "turnos"}</span>
+                </h2>
+                <div className="pet-agenda__time-grid">
+                  {horaTurnos.map(turno => <PetTurnCard key={turno.id} turno={turno} mobileCompact {...turnoProps} />)}
+                </div>
+              </section>
+            ))}
           </div>
         )
       ) : (
@@ -212,7 +253,17 @@ export function PetAgenda() {
             return (
               <section className="pet-agenda__day-column" key={date}>
                 <header>
-                  <h2>{fechaDesdeKey(date).toLocaleDateString("es-AR", { weekday: "short", day: "numeric" })}</h2>
+                  <button
+                    type="button"
+                    className="pet-agenda__day-link"
+                    aria-label={`Ver agenda del ${fechaDesdeKey(date).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}`}
+                    onClick={() => {
+                      setFocusDate(date);
+                      setMode("dia");
+                    }}
+                  >
+                    {fechaDesdeKey(date).toLocaleDateString("es-AR", { weekday: "short", day: "numeric" })}
+                  </button>
                   <span>{dateTurnos.length}</span>
                 </header>
                 {dateTurnos.length === 0

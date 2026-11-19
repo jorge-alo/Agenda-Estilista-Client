@@ -3,7 +3,7 @@ import { BUSINESS_TYPE, type BusinessType } from "../types/adminPage.types";
 import type { AdminTab } from "../types/adminPage.types";
 import { BeautyAdminContent } from "./BeautyAdminContent";
 import { PetAdminContent } from "./PetAdminContent";
-import { isWidePetAdminContent } from "../petAdminContent";
+import { isWidePetAdminAgenda, isWidePetAdminContent } from "../petAdminContent";
 import type { RegisterPetManagementNavigation } from "../../../petManagement/state/petManagementNavigation";
 
 interface Props {
@@ -26,7 +26,7 @@ export const AdminContent = ({
   registerNavigation,
 }: Props) => {
   return (
-    <div className={`admin-content${isWidePetAdminContent(businessType, tabActiva) ? " admin-content--wide" : ""}`}>
+    <div className={`admin-content${isWidePetAdminContent(businessType, tabActiva) ? " admin-content--wide" : ""}${isWidePetAdminAgenda(businessType, tabActiva) ? " admin-content--agenda-wide" : ""}`}>
       {businessType === BUSINESS_TYPE.PET_GROOMING ? (
         <PetAdminContent tabActiva={tabActiva} localId={localId} registerNavigation={registerNavigation} />
       ) : (

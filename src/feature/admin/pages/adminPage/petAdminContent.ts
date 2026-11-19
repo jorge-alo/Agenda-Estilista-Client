@@ -35,3 +35,7 @@ export function getPetAdminContentKind(tab: AdminTab): PetAdminContentKind {
 export function isWidePetAdminContent(businessType: BusinessType, tab: AdminTab): boolean {
   return businessType === BUSINESS_TYPE.PET_GROOMING && tab === "mascotas";
 }
+
+export function isWidePetAdminAgenda(businessType: BusinessType, tab: AdminTab): boolean {
+  return businessType === BUSINESS_TYPE.PET_GROOMING && tab === "agenda";
+}

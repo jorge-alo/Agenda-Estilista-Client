@@ -8,7 +8,7 @@ import {
   isAdminTabForBusinessType,
   reconcileAdminTab,
 } from "../src/feature/admin/pages/adminPage/adminTabs.ts";
-import { getPetAdminContentKind, isWidePetAdminContent } from "../src/feature/admin/pages/adminPage/petAdminContent.ts";
+import { getPetAdminContentKind, isWidePetAdminAgenda, isWidePetAdminContent } from "../src/feature/admin/pages/adminPage/petAdminContent.ts";
 
 test("BEAUTY conserva la navegación actual", () => {
   assert.deepEqual(getAdminTabs(BUSINESS_TYPE.BEAUTY), [
@@ -90,6 +90,12 @@ test("solo Mascotas PET usa el ancho amplio del panel", () => {
   assert.equal(isWidePetAdminContent(BUSINESS_TYPE.PET_GROOMING, "mascotas"), true);
   assert.equal(isWidePetAdminContent(BUSINESS_TYPE.PET_GROOMING, "agenda"), false);
   assert.equal(isWidePetAdminContent(BUSINESS_TYPE.BEAUTY, "mascotas"), false);
+});
+
+test("solo la agenda PET recibe su ancho de escritorio dedicado", () => {
+  assert.equal(isWidePetAdminAgenda(BUSINESS_TYPE.PET_GROOMING, "agenda"), true);
+  assert.equal(isWidePetAdminAgenda(BUSINESS_TYPE.PET_GROOMING, "mascotas"), false);
+  assert.equal(isWidePetAdminAgenda(BUSINESS_TYPE.BEAUTY, "agenda"), false);
 });
 
 test("PET nunca resuelve tabs exclusivas de BEAUTY a contenido", () => {
