@@ -44,7 +44,8 @@
 .pet-servicios__primary:disabled,
 .pet-servicios__secondary:disabled { opacity: .6; cursor: not-allowed; }
 .pet-servicios button:focus-visible,
-.pet-servicios input:focus-visible { outline: 3px solid #88c9b3; outline-offset: 2px; }
+.pet-servicios input:focus-visible,
+.pet-servicios textarea:focus-visible { outline: 3px solid #88c9b3; outline-offset: 2px; }
 
 .pet-servicios__list { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
 .pet-servicios__item,
@@ -61,6 +62,8 @@
 .pet-servicios__item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
 .pet-servicios__item-main { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem; min-width: 0; }
 .pet-servicios__name { max-width: 100%; overflow-wrap: anywhere; color: #263832; }
+.pet-servicios__text { min-width: 0; }
+.pet-servicios__description { margin: .3rem 0 0; color: #63736b; white-space: pre-line; overflow-wrap: anywhere; line-height: 1.5; }
 .pet-servicios__status { border-radius: 999px; padding: .2rem .55rem; background: #e7f5ef; color: #12614e; font-size: .82rem; font-weight: 700; }
 .pet-servicios__status.is-inactive { background: #f4f1ec; color: #715d43; }
 .pet-servicios__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
@@ -69,8 +72,12 @@
 .pet-servicios__form label,
 .pet-servicios__edit label { color: #45574e; font-size: .9rem; font-weight: 600; }
 .pet-servicios__form input,
+.pet-servicios__form textarea,
+.pet-servicios__edit textarea,
 .pet-servicios__edit input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; border: 1px solid #cbd7d0; border-radius: 8px; padding: .55rem .65rem; background: #fff; color: #263832; font: inherit; }
 .pet-servicios__form input[aria-invalid="true"],
+.pet-servicios__form textarea[aria-invalid="true"],
+.pet-servicios__edit textarea[aria-invalid="true"],
 .pet-servicios__edit input[aria-invalid="true"] { border-color: #a12f2f; }
 .pet-servicios__error { margin: 0; color: #a12f2f; font-size: .88rem; }
 .pet-servicios__hint,

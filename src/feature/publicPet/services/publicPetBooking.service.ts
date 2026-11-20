@@ -49,7 +49,9 @@ function parseOptions(value: unknown): PetBookingOptions | null {
   const servicios: PetBookingOptions["servicios"] = [];
   for (const item of value.servicios) {
     if (!isRecord(item) || !validId(item.id) || typeof item.nombre !== "string" || !validDuration(item.duracionMinutos)) return null;
-    servicios.push({ id: item.id, nombre: item.nombre, duracionMinutos: item.duracionMinutos });
+    if (item.descripcion !== undefined && item.descripcion !== null && typeof item.descripcion !== "string") return null;
+    servicios.push({ id: item.id, nombre: item.nombre, duracionMinutos: item.duracionMinutos,
+      ...(item.descripcion !== undefined ? { descripcion: item.descripcion as string | null } : {}) });
   }
   const extras: PetBookingOptions["extras"] = [];
   for (const item of value.extras) {

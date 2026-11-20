@@ -123,6 +123,14 @@
   font-size: 13px;
 }
 
+.pet-booking-option-description {
+  color: var(--color-text-soft);
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 .pet-booking-date {
   display: grid;
   gap: 7px;

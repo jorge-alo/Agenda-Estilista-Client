@@ -19,7 +19,7 @@ export function petServicioStatus(active: number): { label: "Activo" | "Inactivo
 
 export function petServiciosErrorMessage(error: unknown): string {
   if (!(error instanceof PetServiciosApiError)) return "Ocurrió un error. Intentá nuevamente.";
-  if (error.status === 400) return "Revisá el nombre ingresado e intentá nuevamente.";
+  if (error.status === 400) return "Revisá el nombre y la descripción ingresados e intentá nuevamente.";
   if (error.status === 401) return "Tu sesión expiró. Iniciá sesión nuevamente.";
   if (error.status === 403) return "No tenés permisos para administrar los servicios PET de este local.";
   if (error.status === 404) return "Este servicio ya no está disponible. Actualizamos el catálogo.";

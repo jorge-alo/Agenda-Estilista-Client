@@ -6,6 +6,7 @@ export interface PetBookingContext {
 export interface PetBookingService {
   id: number;
   nombre: string;
+  descripcion?: string | null;
   duracionMinutos: number;
 }
 

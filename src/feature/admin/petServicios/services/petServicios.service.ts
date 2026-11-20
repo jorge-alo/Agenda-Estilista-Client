@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "../../../../shared/lib/fetchWithAuth.ts";
 import type { PetServicio, PetServicioWrite } from "../types/petServicios.types.ts";
+import { normalizePetServicioDescripcion, validatePetServicioDescripcion } from "../types/petServicios.types.ts";
 
 const API_URL = import.meta.env?.VITE_API_URL ?? "";
 const INT_MAX = 2147483647;
@@ -27,7 +28,9 @@ function validId(value: unknown): value is number {
 function parseServicio(value: unknown): PetServicio | null {
   if (!isRecord(value) || !validId(value.id) || typeof value.nombre !== "string"
     || (value.activo !== 0 && value.activo !== 1)) return null;
-  return { id: value.id, nombre: value.nombre, activo: value.activo };
+  if (value.descripcion !== undefined && value.descripcion !== null && typeof value.descripcion !== "string") return null;
+  return { id: value.id, nombre: value.nombre, activo: value.activo,
+    ...(value.descripcion !== undefined ? { descripcion: value.descripcion as string | null } : {}) };
 }
 
 async function httpError(response: Response): Promise<PetServiciosApiError> {
@@ -70,13 +73,16 @@ export const petServiciosService = {
     return servicios;
   },
 
-  async createPetServicio(input: { nombre: string }): Promise<PetServicio> {
+  async createPetServicio(input: { nombre: string; descripcion?: string | null }): Promise<PetServicio> {
     const nombre = typeof input?.nombre === "string" ? input.nombre.trim() : "";
     if (nombre.length < 1 || nombre.length > 100) throw new PetServiciosApiError(400);
+    if (input.descripcion !== undefined && input.descripcion !== null
+      && (typeof input.descripcion !== "string" || validatePetServicioDescripcion(input.descripcion))) throw new PetServiciosApiError(400);
     const response = await request("", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre }),
+      body: JSON.stringify({ nombre, ...(input.descripcion !== undefined
+        ? { descripcion: input.descripcion === null ? null : normalizePetServicioDescripcion(input.descripcion) } : {}) }),
     });
     if (!response.ok) throw await httpError(response);
     let body: unknown;
@@ -88,15 +94,23 @@ export const petServiciosService = {
 
   async updatePetServicio(servicioId: number, payload: PetServicioWrite): Promise<PetServicio> {
     if (!validId(servicioId) || !isRecord(payload)) throw new PetServiciosApiError(400);
-    let body: { nombre?: string; activo?: boolean };
-    if (Object.keys(payload).length === 1 && "nombre" in payload && typeof payload.nombre === "string") {
+    const keys = Object.keys(payload);
+    if (!keys.length || keys.some(key => !["nombre", "descripcion", "activo"].includes(key))) throw new PetServiciosApiError(400);
+    const body: PetServicioWrite = {};
+    if ("nombre" in payload) {
+      if (typeof payload.nombre !== "string") throw new PetServiciosApiError(400);
       const nombre = payload.nombre.trim();
       if (!nombre || nombre.length > 100) throw new PetServiciosApiError(400);
-      body = { nombre };
-    } else if (Object.keys(payload).length === 1 && "activo" in payload && typeof payload.activo === "boolean") {
-      body = { activo: payload.activo };
-    } else {
-      throw new PetServiciosApiError(400);
+      body.nombre = nombre;
+    }
+    if ("descripcion" in payload) {
+      if (payload.descripcion !== null && (typeof payload.descripcion !== "string"
+        || validatePetServicioDescripcion(payload.descripcion))) throw new PetServiciosApiError(400);
+      body.descripcion = payload.descripcion === null ? null : normalizePetServicioDescripcion(payload.descripcion);
+    }
+    if ("activo" in payload) {
+      if (typeof payload.activo !== "boolean") throw new PetServiciosApiError(400);
+      body.activo = payload.activo;
     }
     const response = await request(`/${encodeURIComponent(String(servicioId))}`, {
       method: "PATCH",

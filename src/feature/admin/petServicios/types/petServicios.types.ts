@@ -1,10 +1,19 @@
 export interface PetServicio {
   id: number;
   nombre: string;
+  descripcion?: string | null;
   activo: number;
 }
 
-export type PetServicioWrite = { nombre: string } | { activo: boolean };
+export interface PetServicioWrite { nombre?: string; descripcion?: string | null; activo?: boolean }
+
+export function normalizePetServicioDescripcion(value: string): string | null {
+  return value.trim() || null;
+}
+
+export function validatePetServicioDescripcion(value: string): string | null {
+  return [...value.trim()].length > 1000 ? "Usá hasta 1000 caracteres para la descripción." : null;
+}
 
 export function normalizePetServicioNombre(value: string): string {
   return value.trim();

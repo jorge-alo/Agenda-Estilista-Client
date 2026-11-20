@@ -79,6 +79,7 @@ export function PetBookingSelection({
                     checked={servicioId === servicio.id} onChange={() => onServicio(servicio.id)} />
                   <span className="pet-booking-option-text">
                     <span className="pet-booking-option-name">{servicio.nombre}</span>
+                    {servicio.descripcion?.trim() && <span className="pet-booking-option-description">{servicio.descripcion}</span>}
                     <span className="pet-booking-option-meta">{servicio.duracionMinutos} min</span>
                   </span>
                 </label>

@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
+import { registerHooks } from "node:module";
+import { readFileSync } from "node:fs";
+import ts from "typescript";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { setImmediate as nextTick } from "node:timers/promises";
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { queryKeys } from "../src/shared/lib/queryKeys.ts";
@@ -125,6 +130,50 @@ test("opciones: success con shape incompatible es error de protocolo", async t =
     assertPrivateError(error, 200, null);
     return true;
   });
+});
+
+test("opciones: conserva descripciones opcionales y rechaza tipos incompatibles", async t => {
+  const servicios = [{ id: 2, nombre: "Baño", descripcion: "Baño y secado", duracionMinutos: 90 },
+    { id: 3, nombre: "Corte", descripcion: null, duracionMinutos: 30 }];
+  t.mock.method(globalThis, "fetch", async () => response({ servicios, extras: [] }));
+  assert.deepEqual((await publicPetBookingService.getOpcionesReserva(context, 7)).servicios, servicios);
+  t.mock.method(globalThis, "fetch", async () => response({ servicios: [{ ...servicios[0], descripcion: 123 }], extras: [] }));
+  await assert.rejects(publicPetBookingService.getOpcionesReserva(context, 7), { status: 200 });
+});
+
+test("selección pública: descripción debajo del nombre, texto escapado y ausencia sin bloque vacío", async () => {
+  // Compilar únicamente TSX en memoria permite verificar el markup real sin instalar un runner DOM.
+  const hooks = registerHooks({
+    resolve(specifier, context, nextResolve) {
+      if (specifier.startsWith(".") && !/\.[cm]?[jt]sx?$/.test(specifier)) {
+        try { return nextResolve(`${specifier}.ts`, context); } catch { /* Resolver normalmente. */ }
+      }
+      return nextResolve(specifier, context);
+    },
+    load(url, context, nextLoad) {
+      if (!url.endsWith(".tsx")) return nextLoad(url, context);
+      return { format: "module", shortCircuit: true, source: ts.transpileModule(readFileSync(new URL(url), "utf8"), {
+        compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext },
+      }).outputText };
+    },
+  });
+  try {
+    const { PetBookingSelection } = await import("../src/feature/publicPet/components/PetBookingSelection.tsx");
+    const render = (descripcion?: string | null) => renderToStaticMarkup(createElement(PetBookingSelection, {
+      mascotas: [{ id: 1, nombre: "Luna" }], mascotaId: 1, servicioId: 2,
+      servicios: [{ id: 2, nombre: "Baño", duracionMinutos: 45, descripcion }], extras: [], extraIds: [],
+      fecha: "", minFecha: "2026-11-20", optionsStatus: "ready", locked: false, duracionLabel: null,
+      onMascota() {}, onServicio() {}, onToggleExtra() {}, onFecha() {}, onRetryOptions() {},
+    }));
+    const html = render("Incluye <b>secado</b> y cepillado.");
+    assert.match(html, /pet-booking-option-name">Baño<\/span><span class="pet-booking-option-description">Incluye &lt;b&gt;secado&lt;\/b&gt; y cepillado\./);
+    for (const value of [undefined, null, "", "   "]) {
+      const without = render(value);
+      assert.ok(without.includes('pet-booking-option-name">Baño</span>'));
+      assert.ok(!without.includes("pet-booking-option-description"));
+      assert.ok(!without.includes("Sin descripción"));
+    }
+  } finally { hooks.deregister(); }
 });
 
 test("disponibilidad: POST body exacto, extraIds ASC en copia, Bearer/no-store/signal", async t => {

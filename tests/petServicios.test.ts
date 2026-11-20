@@ -21,7 +21,7 @@ Object.defineProperty(globalThis, "window", { configurable: true, value: { locat
 
 const { petServiciosService, PetServiciosApiError } = await import("../src/feature/admin/petServicios/services/petServicios.service.ts");
 const { petServicioMutationPolicy, petServicioWriteIsUncertain, petServicioWriteWithRecovery, petServiciosQuery } = await import("../src/feature/admin/petServicios/queries/petServiciosQueries.ts");
-const { validatePetServicioNombre } = await import("../src/feature/admin/petServicios/types/petServicios.types.ts");
+const { validatePetServicioNombre, validatePetServicioDescripcion } = await import("../src/feature/admin/petServicios/types/petServicios.types.ts");
 const { petServicioStatus, petServiciosCatalogState, petServiciosErrorMessage } = await import("../src/feature/admin/petServicios/components/petServiciosView.ts");
 
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
@@ -102,6 +102,38 @@ test("validación local trim 1–100, con nombres duplicados sin regla de unicid
   assert.equal(validatePetServicioNombre("x".repeat(101)), "Usá hasta 100 caracteres.");
   assert.equal(validatePetServicioNombre("  Baño  "), null);
   assert.equal(validatePetServicioNombre("Baño"), null);
+});
+
+test("descripción: alta y edición normalizan texto/vacío, omisión conserva PATCH parcial", async t => {
+  const bodies: unknown[] = [];
+  mockFetch(t, async (_url, init) => {
+    const body = JSON.parse(String(init.body)) as { descripcion?: string | null };
+    bodies.push(body);
+    return json({ ...dto(12, "Baño"), descripcion: body.descripcion ?? null }, init.method === "POST" ? 201 : 200);
+  });
+  const created = await petServiciosService.createPetServicio({ nombre: "Baño", descripcion: "  Incluye secado.\nCepillado.  " });
+  assert.equal(created.descripcion, "Incluye secado.\nCepillado.");
+  assert.equal((await petServiciosService.updatePetServicio(12, { descripcion: "  " })).descripcion, null);
+  await petServiciosService.updatePetServicio(12, { nombre: "Nuevo", descripcion: "Nueva" });
+  await petServiciosService.updatePetServicio(12, { activo: false });
+  assert.deepEqual(bodies, [{ nombre: "Baño", descripcion: "Incluye secado.\nCepillado." }, { descripcion: null },
+    { nombre: "Nuevo", descripcion: "Nueva" }, { activo: false }]);
+  assert.equal(validatePetServicioDescripcion("🐾".repeat(1000)), null);
+  assert.match(validatePetServicioDescripcion("x".repeat(1001))!, /1000/);
+  const count = bodies.length;
+  for (const descripcion of ["x".repeat(1001), 2, {}, false]) {
+    await assert.rejects(petServiciosService.createPetServicio({ nombre: "Baño", descripcion } as never), { status: 400 });
+    await assert.rejects(petServiciosService.updatePetServicio(12, { descripcion } as never), { status: 400 });
+  }
+  assert.equal(bodies.length, count);
+});
+
+test("catálogo acepta descripción nula/texto y rechaza tipos incorrectos en la respuesta", async t => {
+  let data: unknown = [{ ...dto(1, "Baño"), descripcion: null }, { ...dto(2, "Corte"), descripcion: "Incluye baño" }];
+  mockFetch(t, async () => json(data));
+  assert.deepEqual(await petServiciosService.getPetServicios(), data);
+  data = [{ ...dto(1, "Baño"), descripcion: 42 }];
+  await assert.rejects(petServiciosService.getPetServicios(), { status: 200 });
 });
 
 test("estados de catálogo distinguen loading/error/empty/list y evitan vacío durante carga", () => {
