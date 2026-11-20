@@ -28,7 +28,7 @@ const { queryKeys } = await import("../src/shared/lib/queryKeys.ts");
 
 const existing = { id: 55, nombre: "Nombre canónico", telefono: "11 2345 6789" };
 const saved = { id: 77, nombre: "Guardado", telefono: "+54 11 2345 6790", isNew: true };
-const draft = { nombre: " Nuevo ", telefono: " +54 11 2345 6790 " };
+const draft = { nombre: " Nuevo ", telefono: " +54 11 2345 6790 ", recordatoriosD30: true };
 function detail(overrides: Partial<PetManagementDetail> = {}): PetManagementDetail {
   return { id: 10, nombre: "Firu", raza: "Mestizo", fechaNacimiento: null, sexo: null, tamano: null,
     tipoPelo: null, observaciones: "Original", activo: true, altaExigencia: false, reservaOnlineHabilitada: false,
@@ -76,7 +76,7 @@ async function waitFor(fn: () => boolean) {
 }
 
 test("responsable helpers: trim, solo nombre/teléfono y límites reales, sin canonicalizar teléfono", () => {
-  assert.deepEqual(normalizeResponsableDraft({ ...draft, local_id: 99 } as typeof draft), { nombre: "Nuevo", telefono: "+54 11 2345 6790" });
+  assert.deepEqual(normalizeResponsableDraft({ ...draft, local_id: 99 } as typeof draft), { nombre: "Nuevo", telefono: "+54 11 2345 6790", recordatoriosD30: true });
   assert.ok(validateResponsableDraft(emptyResponsableDraft()).nombre);
   assert.ok(validateResponsableDraft(emptyResponsableDraft()).telefono);
   assert.deepEqual(validateResponsableDraft({ nombre: "x".repeat(255), telefono: "x".repeat(50) }), {});
@@ -90,7 +90,7 @@ test("service crear/reutilizar: POST exacto, JWT, proyección canónica, sin ten
     assert.equal(url, "/api/pet/admin/responsables"); assert.equal(init.method, "POST");
     assert.equal(init.cache, "no-store"); assert.equal(init.signal, undefined);
     assert.equal((init.headers as Record<string, string>).Authorization, "Bearer ADMIN_TEST_SENTINEL");
-    assert.deepEqual(JSON.parse(String(init.body)), { nombre: "Nuevo", telefono: "+54 11 2345 6790" });
+    assert.deepEqual(JSON.parse(String(init.body)), { nombre: "Nuevo", telefono: "+54 11 2345 6790", recordatoriosD30: true });
     return json({ ...existing, isNew: false, local_id: 9, created_at: "ignored" });
   });
   const result = await petResponsablesService.createResponsable({ ...draft, local_id: 999, activo: true } as typeof draft);
@@ -476,4 +476,64 @@ test("Responsables opera independiente: refetch preserva draft dirty de Datos y 
   fill(controller); assert.equal(await controller.submit(), true);
   assert.equal(data.getSnapshot().draft.raza, "Caniche A"); assert.equal(data.getSnapshot().draft.observaciones, "Original");
   assert.equal(data.getSnapshot().dirty, true); assert.equal(data.getSnapshot().serverChanged, true);
+});
+
+const d30 = (enabled = true, revision = 1) => ({ estado: enabled ? 'habilitada' as const : 'baja' as const,
+  habilitada: enabled, revision, telefono: '+541123456789' });
+test('D30 alta: marcado por defecto; desmarcar se envia en el alta sin pasos adicionales', async t => {
+  const { controller } = setup(t);
+  assert.equal(controller.getSnapshot().draft.recordatoriosD30, true);
+  assert.equal(controller.getSnapshot().dirty, false);
+  fill(controller); controller.changeD30Draft(false);
+  mockFetch(t, async (url, init) => {
+    if (url === '/api/pet/admin/responsables') {
+      assert.equal(JSON.parse(String(init.body)).recordatoriosD30, false); return json(saved, 201);
+    }
+    if (init.method === 'POST') return relation();
+    return json(dto(detail({ responsables: [{ ...saved, recordatoriosD30: d30(false) }] })));
+  });
+  assert.equal(await controller.submit(), true);
+});
+test('D30 ficha: PATCH por responsable con revision y sin tenant; GET confirma baja y reactivacion', async t => {
+  const { controller } = setup(t, detail({ responsables: [{ ...existing, recordatoriosD30: d30() }] }));
+  let enabled = true; let rev = 1; let writes = 0;
+  mockFetch(t, async (url, init) => {
+    if (init.method === 'PATCH') {
+      assert.equal(url, `/api/pet/admin/responsables/${existing.id}/recordatorios-d30`);
+      const body = JSON.parse(String(init.body));
+      assert.equal(body.revision, rev); assert.equal(body.telefono, '+541123456789');
+      assert.equal(typeof body.operacionId, 'string'); assert.equal(body.local_id, undefined);
+      enabled = body.habilitada; rev++; writes++; return json(d30(enabled, rev));
+    }
+    return json(dto(detail({ responsables: [{ ...existing, recordatoriosD30: d30(enabled, rev) }] })));
+  });
+  assert.equal(await controller.updateD30(existing.id, false), true);
+  assert.match(controller.getSnapshot().notice!, /deshabilitados/);
+  assert.equal(await controller.updateD30(existing.id, true), true);
+  assert.match(controller.getSnapshot().notice!, /habilitados/);
+  assert.equal(writes, 2);
+});
+test('D30 resultado incierto: bloquea otra escritura hasta poder verificar; no reintenta PATCH', async t => {
+  const { controller } = setup(t, detail({ responsables: [{ ...existing, recordatoriosD30: d30() }] }));
+  let writes = 0; let failRead = true;
+  mockFetch(t, async (_url, init) => {
+    if (init.method === 'PATCH') { writes++; throw new Error('network'); }
+    if (failRead) throw new Error('network');
+    return json(dto(detail({ responsables: [{ ...existing, recordatoriosD30: d30(false, 2) }] })));
+  });
+  assert.equal(await controller.updateD30(existing.id, false), false);
+  assert.equal(await controller.updateD30(existing.id, true), false);
+  failRead = false; assert.equal(await controller.verify(), true);
+  assert.equal(writes, 1);
+});
+test('D30 conflicto concurrente: muestra estado actual sin reenviar intencion vieja', async t => {
+  const { controller } = setup(t, detail({ responsables: [{ ...existing, recordatoriosD30: d30(false) }] }));
+  let writes = 0;
+  mockFetch(t, async (_url, init) => {
+    if (init.method === 'PATCH') { writes++; return json({ error: 'PET_D30_CONFLICT' }, 409); }
+    return json(dto(detail({ responsables: [{ ...existing, recordatoriosD30: d30(false, 3) }] })));
+  });
+  assert.equal(await controller.updateD30(existing.id, true), true);
+  assert.match(controller.getSnapshot().notice!, /deshabilitados/); assert.equal(writes, 1);
+  assert.match(controller.getSnapshot().errorMessage!, /preferencia cambió/);
 });

@@ -13,7 +13,7 @@ export interface PetSolicitud {
 }
 
 export interface PetSolicitudConversionInput {
-  responsable: { nombre: string; telefono: string };
+  responsable: { nombre: string; telefono: string; recordatoriosD30?: boolean };
   mascota: { nombre: string; raza: string | null; fechaNacimiento: string | null; tamano: string | null; sexo: string | null; tipoPelo: string | null; observaciones: string | null };
 }
 
@@ -50,7 +50,7 @@ export function parsePetSolicitudConversion(value: unknown): PetSolicitudConvers
 }
 
 export function conversionDraft(solicitud: PetSolicitud) {
-  return { responsable: { nombre: solicitud.responsable.nombre, telefono: solicitud.responsable.telefono }, mascota: { nombre: solicitud.mascota.nombre, raza: solicitud.mascota.raza, fechaNacimiento: solicitud.mascota.fechaNacimiento, tamano: solicitud.mascota.tamano, sexo: solicitud.mascota.sexo, tipoPelo: "", observaciones: "" } };
+  return { responsable: { nombre: solicitud.responsable.nombre, telefono: solicitud.responsable.telefono, recordatoriosD30: true }, mascota: { nombre: solicitud.mascota.nombre, raza: solicitud.mascota.raza, fechaNacimiento: solicitud.mascota.fechaNacimiento, tamano: solicitud.mascota.tamano, sexo: solicitud.mascota.sexo, tipoPelo: "", observaciones: "" } };
 }
 
 export function petSolicitudActions(estado: PetSolicitudEstado) {

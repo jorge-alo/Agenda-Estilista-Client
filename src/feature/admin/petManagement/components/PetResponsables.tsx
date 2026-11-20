@@ -34,6 +34,12 @@ function ResponsableForm({ controller, state }: { controller: PetResponsablesCon
             </div>
           );
         })}
+        <label className="pet-management__d30">
+          <input type="checkbox" checked={state.draft.recordatoriosD30 ?? true}
+            onChange={event => controller.changeD30Draft(event.target.checked)} />
+          Recibir recordatorios mensuales por WhatsApp
+        </label>
+        <p className="pet-management__hint">Preferencia operativa para este teléfono. Si el responsable ya existe, se conserva su preferencia actual.</p>
       </fieldset>
       <div className="pet-management__form-actions">
         <button className="pet-management__primary" type="submit" disabled={state.busy || state.verification !== null}>
@@ -63,6 +69,7 @@ export function PetResponsables({ responsables, controller, state, disabled }: {
       {state.notice && <p className="pet-management__status" role="status">{state.notice}</p>}
       {state.errorMessage && <p className="pet-management__alert" role="alert">{state.errorMessage}</p>}
       {state.mode === "checking" && <p className="pet-management__status" role="status">Verificando responsables desde la ficha…</p>}
+      {state.mode === 'updating-d30' && <p className="pet-management__status" role="status">Guardando preferencia de recordatorios…</p>}
       {state.verification && !state.busy && <button className="pet-management__secondary" type="button" onClick={() => { void controller.verify(); }}>
         Reintentar verificación de ficha
       </button>}
@@ -71,6 +78,21 @@ export function PetResponsables({ responsables, controller, state, disabled }: {
           {responsables.map(responsable => (
             <li key={responsable.id}>
               <div className="pet-management__responsable-info"><strong>{responsable.nombre}</strong><span>{responsable.telefono}</span></div>
+              <div>
+                <label className="pet-management__d30">
+                  <input type="checkbox" checked={responsable.recordatoriosD30?.habilitada ?? false}
+                    aria-label={`Recibir recordatorios mensuales por WhatsApp para ${responsable.nombre}`}
+                    disabled={disabled || state.mode !== 'viewing' || state.verification !== null
+                      || !responsable.recordatoriosD30 || responsable.recordatoriosD30.estado === 'no_disponible'}
+                    onChange={event => { void controller.updateD30(responsable.id, event.target.checked); }} />
+                  Recibir recordatorios mensuales por WhatsApp
+                </label>
+                <p className="pet-management__hint">Aplica a este teléfono para todas sus mascotas en este local.
+                  {!responsable.recordatoriosD30 ? ' Estado no disponible.'
+                    : responsable.recordatoriosD30.estado === 'baja' ? ' Baja registrada.'
+                    : responsable.recordatoriosD30.estado === 'no_disponible' ? ' Revisá el teléfono o su titular.'
+                    : responsable.recordatoriosD30.estado === 'sin_registro' ? ' Sin habilitación registrada.' : ''}</p>
+              </div>
               <button className="pet-management__secondary" type="button" aria-label={`Quitar a ${responsable.nombre} de esta mascota`}
                 disabled={disabled || state.mode !== "viewing" || state.verification !== null}
                 onClick={() => { void controller.removeResponsable(responsable.id); }}>Quitar</button>

@@ -16,7 +16,7 @@ async function readJson(response: Response): Promise<unknown> {
   try { return await response.json(); } catch { return null; }
 }
 
-async function write(path: string, method: "POST" | "DELETE", body?: object): Promise<Response> {
+async function write(path: string, method: "POST" | "DELETE" | "PATCH", body?: object): Promise<Response> {
   let response: Response;
   try {
     response = await fetchWithAuth(`${API_URL}/api/pet/admin${path}`, {
@@ -43,6 +43,12 @@ async function relationWrite(path: string, method: "POST" | "DELETE", body?: { c
 }
 
 export const petResponsablesService = {
+  async updateD30(clienteId: number, preference: NonNullable<PetManagementResponsable['recordatoriosD30']>, habilitada: boolean, operacionId: string): Promise<void> {
+    if (!petManagementValidId(clienteId) || !preference.telefono) throw new PetManagementApiError(400, null);
+    await write(`/responsables/${clienteId}/recordatorios-d30`, 'PATCH', {
+      habilitada, revision: preference.revision, telefono: preference.telefono, operacionId,
+    });
+  },
   async createResponsable(draft: ResponsableDraft): Promise<ConfirmedResponsable> {
     const response = await write("/responsables", "POST", normalizeResponsableDraft(draft));
     const value = await readJson(response);

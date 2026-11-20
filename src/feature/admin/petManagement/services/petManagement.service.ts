@@ -56,7 +56,16 @@ function parseResponsables(value: unknown): PetManagementResponsable[] | null {
   for (const item of value) {
     if (!esRegistro(item) || !idValido(item.id)
       || typeof item.nombre !== "string" || typeof item.telefono !== "string") return null;
-    responsables.push({ id: item.id, nombre: item.nombre, telefono: item.telefono });
+    let recordatoriosD30: PetManagementResponsable['recordatoriosD30'];
+    if (item.recordatoriosD30 !== undefined) {
+      const d = item.recordatoriosD30;
+      if (!esRegistro(d) || typeof d.estado !== 'string' || !['habilitada','autorizada','baja','sin_registro','no_disponible'].includes(d.estado)
+        || typeof d.habilitada !== 'boolean' || typeof d.revision !== 'number' || !Number.isSafeInteger(d.revision) || d.revision < 0
+        || !(d.telefono === null || typeof d.telefono === 'string')
+        || d.habilitada !== (d.estado === 'habilitada' || d.estado === 'autorizada')) return null;
+      recordatoriosD30 = d as unknown as NonNullable<PetManagementResponsable['recordatoriosD30']>;
+    }
+    responsables.push({ id: item.id, nombre: item.nombre, telefono: item.telefono, ...(recordatoriosD30 ? { recordatoriosD30 } : {}) });
   }
   return responsables;
 }

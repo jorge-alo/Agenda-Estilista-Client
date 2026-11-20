@@ -5,10 +5,11 @@ import { associateResponsableMutation, createResponsableMutation, removeResponsa
 import { petManagementDetailQuery } from "../queries/petManagementQueries.ts";
 import { PetManagementApiError } from "../services/petManagement.service.ts";
 import type { ConfirmedResponsable } from "../services/petResponsables.service.ts";
+import { petResponsablesService } from "../services/petResponsables.service.ts";
 import type { PetManagementDetail, PetManagementResponsable } from "../types/petManagement.types.ts";
 
-type Mode = "viewing" | "adding" | "creating" | "associating" | "removing" | "checking";
-interface RelationAction { kind: "associate" | "remove"; clienteId: number }
+type Mode = "viewing" | "adding" | "creating" | "associating" | "removing" | "checking" | "updating-d30";
+interface RelationAction { kind: "associate" | "remove" | "d30"; clienteId: number; d30Habilitada?: boolean }
 interface State {
   mode: Mode;
   draft: ResponsableDraft;
@@ -55,7 +56,7 @@ export function createPetResponsablesController(client: QueryClient, options: {
   const associate = new MutationObserver(client, associateResponsableMutation(client, options.localId));
   const remove = new MutationObserver(client, removeResponsableMutation(client, options.localId));
   const dirty = () => state.confirmed !== null || state.verification !== null
-    || Object.values(normalizeResponsableDraft(state.draft)).some(Boolean);
+    || Boolean(state.draft.nombre.trim() || state.draft.telefono.trim() || state.draft.recordatoriosD30 === false);
   const snapshot = () => ({ ...state, busy: busy(state.mode), dirty: dirty() });
   let current = snapshot();
   const publish = () => { current = snapshot(); for (const listener of listeners) listener(); };
@@ -87,6 +88,16 @@ export function createPetResponsablesController(client: QueryClient, options: {
       if (!isCurrent(token)) return false;
       if (!detail) throw new PetManagementApiError(200, null);
       remote = detail;
+      if (action.kind === 'd30') {
+        const preference = detail.responsables.find(r => r.id === action.clienteId)?.recordatoriosD30;
+        if (!preference) throw new PetManagementApiError(200, null);
+        reset(preference.habilitada ? 'Recordatorios mensuales habilitados para este teléfono.' : 'Recordatorios mensuales deshabilitados para este teléfono.');
+        if (preference.habilitada !== action.d30Habilitada) {
+          state = { ...state, errorMessage: 'La preferencia cambió. Revisá el estado actual antes de volver a modificarla.' };
+        }
+        publish();
+        return true;
+      }
       const present = detail.responsables.some(item => item.id === action.clienteId);
       if (present === (action.kind === "associate")) {
         reset(action.kind === "remove" ? "Se quitó la relación con esta mascota. El responsable sigue en el sistema."
@@ -207,6 +218,27 @@ export function createPetResponsablesController(client: QueryClient, options: {
       reset(null, true); publish(); return true;
     },
     submit,
+    changeD30Draft: (value: boolean) => {
+      if (state.mode !== 'adding' || state.confirmed || state.verification) return;
+      state = { ...state, draft: { ...state.draft, recordatoriosD30: value } }; publish();
+    },
+    updateD30: async (clienteId: number, habilitada: boolean) => {
+      if (!connected || selectedId === null || state.mode !== 'viewing' || state.verification) return false;
+      const preference = remote?.responsables.find(r => r.id === clienteId)?.recordatoriosD30;
+      if (!preference || !preference.telefono || (habilitada && preference.estado === 'no_disponible')) return false;
+      const token = ++generation;
+      state = { ...state, mode: 'updating-d30', errorMessage: null, notice: null }; publish();
+      try {
+        await petResponsablesService.updateD30(clienteId, preference, habilitada, crypto.randomUUID());
+      } catch (error: unknown) {
+        if (!isCurrent(token)) return false;
+        const message = knownError(error);
+        if (message) { state = { ...state, mode: 'viewing', errorMessage: message }; publish(); return false; }
+      }
+      await client.invalidateQueries({ queryKey: queryKeys.petManagement.scope(options.localId), refetchType: 'none' });
+      if (!isCurrent(token)) return false;
+      return verify({ kind: 'd30', clienteId, d30Habilitada: habilitada }, token);
+    },
     removeResponsable,
     verify: () => {
       if (!connected || !state.verification || busy(state.mode)) return Promise.resolve(false);

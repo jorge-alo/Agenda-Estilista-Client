@@ -1,13 +1,14 @@
 export interface ResponsableDraft {
   nombre: string;
   telefono: string;
+  recordatoriosD30?: boolean;
 }
 export type ResponsableErrors = Partial<Record<keyof ResponsableDraft, string>>;
 
-export const emptyResponsableDraft = (): ResponsableDraft => ({ nombre: "", telefono: "" });
+export const emptyResponsableDraft = (): ResponsableDraft => ({ nombre: "", telefono: "", recordatoriosD30: true });
 
 export function normalizeResponsableDraft(draft: ResponsableDraft): ResponsableDraft {
-  return { nombre: draft.nombre.trim(), telefono: draft.telefono.trim() };
+  return { nombre: draft.nombre.trim(), telefono: draft.telefono.trim(), recordatoriosD30: draft.recordatoriosD30 ?? true };
 }
 
 export function validateResponsableDraft(draft: ResponsableDraft): ResponsableErrors {

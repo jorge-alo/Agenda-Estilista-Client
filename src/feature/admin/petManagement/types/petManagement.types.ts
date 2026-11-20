@@ -11,6 +11,12 @@ export interface PetManagementResponsable {
   id: number;
   nombre: string;
   telefono: string;
+  recordatoriosD30?: {
+    estado: 'habilitada' | 'autorizada' | 'baja' | 'sin_registro' | 'no_disponible';
+    habilitada: boolean;
+    revision: number;
+    telefono: string | null;
+  };
 }
 
 export interface PetManagementSearchResult {

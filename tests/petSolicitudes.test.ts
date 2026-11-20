@@ -38,6 +38,7 @@ test("PATCH transición y POST conversión usan cuerpos contractuales y no se re
   const calls: { url: string; init: RequestInit }[] = []; mockFetch(t, async (url, init) => { calls.push({ url, init }); return init.method === "POST" ? json({ solicitudId: 7, estado: "CONVERTIDA", cliente: { id: 2, reutilizado: true }, mascota: { id: 4 } }, 201) : json({ ok: true }); });
   await petSolicitudesService.changeState(7, "CONTACTADA");
   const draft = conversionDraft(parsePetSolicitudes([solicitud])![0]);
+  assert.equal(draft.responsable.recordatoriosD30, true);
   draft.responsable.telefono = "114"; draft.mascota.tipoPelo = "corto"; draft.mascota.observaciones = "nota";
   const result = await petSolicitudesService.convert(7, { ...draft, mascota: { ...draft.mascota, tipoPelo: draft.mascota.tipoPelo || null, observaciones: draft.mascota.observaciones || null } });
   assert.deepEqual(result, { solicitudId: 7, estado: "CONVERTIDA", cliente: { id: 2, reutilizado: true }, mascota: { id: 4 } });
