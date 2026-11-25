@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState } from "react";
 import type { PetPublicProfile } from "../session/publicPetSession.service";
 import { formatearFechaBookingArgentina } from "../booking/publicPetBookingState";
 
@@ -11,9 +12,91 @@ interface Props {
 }
 
 export function PetSessionPanel({ profile, onLogout, loggingOut = false, showMascotas = true, turnosRefreshStatus = null }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const itemRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (menuRef.current?.contains(event.target as Node)) return;
+      setMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setMenuOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (menuOpen) itemRef.current?.focus();
+  }, [menuOpen]);
+
+  function handleLogout() {
+    setMenuOpen(false);
+    onLogout();
+  }
+
   return (
     <section className="pet-session-card" aria-label="Tu sesión de mascotas">
-      <h2>Hola, {profile.cliente.nombre}</h2>
+      <div className="pet-session-heading">
+        <h2>Hola, {profile.cliente.nombre}</h2>
+        <div
+          ref={menuRef}
+          className="pet-session-menu-wrap"
+          onBlur={event => {
+            if (event.relatedTarget instanceof Node && menuRef.current?.contains(event.relatedTarget)) return;
+            setMenuOpen(false);
+          }}
+        >
+          <button
+            ref={triggerRef}
+            type="button"
+            className="pet-session-menu-trigger"
+            aria-label="Opciones de sesión"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-controls={menuOpen ? menuId : undefined}
+            onClick={() => setMenuOpen(open => !open)}
+            onKeyDown={event => {
+              if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+              event.preventDefault();
+              if (menuOpen) itemRef.current?.focus();
+              else setMenuOpen(true);
+            }}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="5" r="1.7" />
+              <circle cx="12" cy="12" r="1.7" />
+              <circle cx="12" cy="19" r="1.7" />
+            </svg>
+          </button>
+          {menuOpen && (
+            <div className="pet-session-menu" id={menuId} role="menu" aria-label="Opciones de sesión">
+              <button
+                ref={itemRef}
+                type="button"
+                role="menuitem"
+                className="pet-session-menu-item"
+                onClick={handleLogout}
+                disabled={loggingOut}
+              >
+                {loggingOut ? "Cerrando sesión…" : "Cerrar sesión"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
       <section className="pet-booking-section" aria-label="Tus próximos turnos">
         <h3>Tus próximos turnos</h3>
         {turnosRefreshStatus === "loading" ? <p className="pet-session-muted" role="status">Actualizando tus turnos…</p>
@@ -40,9 +123,6 @@ export function PetSessionPanel({ profile, onLogout, loggingOut = false, showMas
       ) : (
         <p className="pet-session-muted">No hay mascotas habilitadas para reserva online en este momento.</p>
       ))}
-      <button className="pet-session-logout pet-session-logout-link" type="button" onClick={onLogout} disabled={loggingOut}>
-        {loggingOut ? "Cerrando sesión…" : "Cerrar sesión"}
-      </button>
     </section>
   );
 }

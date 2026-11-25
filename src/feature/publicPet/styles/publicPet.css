@@ -359,6 +359,94 @@
   font-weight: 500;
 }
 
+.pet-session-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pet-session-heading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pet-session-menu-wrap {
+  position: relative;
+  flex: none;
+}
+
+.pet-session-menu-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  color: color-mix(in srgb, var(--color-text-soft) 60%, var(--color-text));
+  cursor: pointer;
+}
+
+.pet-session-menu-trigger:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.pet-session-menu-trigger:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.pet-session-menu-trigger svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.pet-session-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: 0 10px 24px rgba(28, 28, 28, 0.12);
+}
+
+.pet-session-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--color-text);
+  font: 500 14px var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pet-session-menu-item:not(:disabled):hover {
+  background: var(--color-bg);
+}
+
+.pet-session-menu-item:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pet-session-menu-item:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .pet-session-list {
   display: grid;
   gap: 8px;
@@ -424,28 +512,6 @@
   color: var(--color-primary-soft);
   font: 500 14px var(--font-sans);
   cursor: pointer;
-}
-
-.pet-session-logout-link {
-  display: inline-flex;
-  align-items: center;
-  justify-self: start;
-  min-width: 44px;
-  padding: 10px 0;
-  background: none;
-  color: var(--color-text);
-  color: color-mix(in srgb, var(--color-text-soft) 60%, var(--color-text));
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.pet-session-logout-link:not(:disabled):hover {
-  color: var(--color-text);
-}
-
-.pet-session-logout-link:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
 }
 
 .pet-session-logout:disabled {
