@@ -176,6 +176,46 @@ test("selección pública: descripción debajo del nombre, texto escapado y ause
   } finally { hooks.deregister(); }
 });
 
+test("panel cliente: próximos turnos compactos, Confirmado, vacío y error diferenciados", async () => {
+  const hooks = registerHooks({
+    resolve(specifier, context, nextResolve) {
+      if (specifier.startsWith(".") && !/\.[cm]?[jt]sx?$/.test(specifier)) {
+        try { return nextResolve(`${specifier}.ts`, context); } catch { /* Resolver normalmente. */ }
+      }
+      return nextResolve(specifier, context);
+    },
+    load(url, context, nextLoad) {
+      if (!url.endsWith(".tsx")) return nextLoad(url, context);
+      return { format: "module", shortCircuit: true, source: ts.transpileModule(readFileSync(new URL(url), "utf8"), {
+        compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext },
+      }).outputText };
+    },
+  });
+  try {
+    const { PetSessionPanel } = await import("../src/feature/publicPet/components/PetSessionPanel.tsx");
+    const turno = { id: 42, mascota: { id: 9, nombre: "Rocky <b>" }, fecha: "2030-01-02", hora: "10:30", servicio: "Baño <script>", estado: "activo" as const };
+    const render = (proximosTurnos = [turno], turnosRefreshStatus: "loading" | "error" | null = null) =>
+      renderToStaticMarkup(createElement(PetSessionPanel, {
+        profile: { cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos },
+        onLogout() {}, showMascotas: false, turnosRefreshStatus,
+      }));
+    const html = render();
+    assert.ok(html.indexOf("Hola, Ana") < html.indexOf("Tus próximos turnos"));
+    for (const text of ["Rocky &lt;b&gt;", "Baño &lt;script&gt;", "10:30", "Confirmado", formatearFechaBookingArgentina(turno.fecha)]) {
+      assert.ok(html.includes(text));
+    }
+    assert.ok(!/Cancelar|Reprogramar/.test(html));
+    assert.ok(render([]).includes("No tenés próximos turnos reservados"));
+    for (const list of [[], [turno]]) {
+      const error = render(list, "error");
+      assert.ok(error.includes("No pudimos actualizar tus próximos turnos"));
+      assert.ok(!error.includes("No tenés próximos turnos reservados"));
+      assert.ok(!error.includes("Confirmado"));
+    }
+    assert.ok(render([], "loading").includes("Actualizando tus turnos…"));
+  } finally { hooks.deregister(); }
+});
+
 test("disponibilidad: POST body exacto, extraIds ASC en copia, Bearer/no-store/signal", async t => {
   const signal = new AbortController().signal;
   let request: { url: string; init?: RequestInit } | undefined;

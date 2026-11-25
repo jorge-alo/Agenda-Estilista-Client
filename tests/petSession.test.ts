@@ -180,7 +180,7 @@ test("consume: un solo request bajo doble ejecución, guarda solo sesión por sl
     if (url.endsWith("/session/consume")) {
       return new Response(JSON.stringify({ sessionToken: session.token, expiresAt: session.expiresAt }), { status: 201 });
     }
-    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [{ id: 9, nombre: "Rocky" }] }), { status: 200 });
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [{ id: 9, nombre: "Rocky" }], proximosTurnos: [] }), { status: 200 });
   });
 
   await withTestStorage(storage, async () => {
@@ -231,7 +231,7 @@ test("restauración: sesión vigente consulta /me y vuelve a estado autenticado"
     calls++;
     assert.ok(String(input).endsWith("/local-a/session/me"));
     assert.deepEqual(init?.headers, { Authorization: `Bearer ${session.token}` });
-    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] }), { status: 200 });
   });
   await withTestStorage(storage, async () => {
     const result = await restorePetSessionOnce("local-a");
@@ -242,6 +242,38 @@ test("restauración: sesión vigente consulta /me y vuelve a estado autenticado"
     }
     assert.equal(calls, 1);
     assert.notEqual(storage.getItem(petSessionStorageKey("local-a")), null);
+  });
+});
+
+test("/me próximos turnos: proyección mínima y protocolo inválido nunca equivale a vacío", async t => {
+  const storage = new MemoryStorage();
+  const session = futureSession();
+  const slug = "proximos-turnos";
+  storage.setItem(petSessionStorageKey(slug), JSON.stringify(session));
+  const turno = { id: 42, mascota: { id: 9, nombre: "Rocky" }, fecha: "2030-01-02", hora: "10:30", servicio: "Baño", estado: "activo" };
+  let payload: unknown = { cliente: { nombre: "Ana" }, mascotas: [{ id: 9, nombre: "Rocky" }],
+    proximosTurnos: [{ ...turno, telefono: "PRIVATE_PHONE" }] };
+  t.mock.method(globalThis, "fetch", async (_input: RequestInfo | URL, init?: RequestInit) => {
+    assert.equal(init?.cache, "no-store");
+    assert.deepEqual(init?.headers, { Authorization: `Bearer ${session.token}` });
+    return new Response(JSON.stringify(payload));
+  });
+  await withTestStorage(storage, async () => {
+    const result = await restorePetSessionOnce(slug);
+    assert.equal(result.status, "authenticated");
+    if (result.status !== "authenticated") return;
+    assert.deepEqual(result.profile.proximosTurnos, [turno]);
+    for (const invalid of [undefined, null, {}, [null], [{ ...turno, estado: "cancelado" }],
+      [{ ...turno, id: "42" }], [{ ...turno, mascota: null }], [{ ...turno, hora: "25:00" }]]) {
+      payload = { cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: invalid };
+      const refreshed = await refreshPetSessionProfileOnce(slug, result.sessionScope);
+      assert.deepEqual(refreshed, { status: "error" });
+      assert.deepEqual(petSessionUiStateAfterRefresh(result, refreshed), result);
+    }
+    payload = { cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] };
+    const empty = await refreshPetSessionProfileOnce(slug, result.sessionScope);
+    assert.equal(empty.status, "refreshed");
+    if (empty.status === "refreshed") assert.deepEqual(empty.profile.proximosTurnos, []);
   });
 });
 
@@ -373,7 +405,7 @@ test("scope: restore simultáneo comparte scope y una instancia nueva genera otr
   let meCalls = 0;
   t.mock.method(globalThis, "fetch", async () => {
     meCalls++;
-    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] }), { status: 200 });
   });
   await withTestStorage(storage, async () => {
     const first = restorePetSessionOnce("scope-stable");
@@ -409,7 +441,7 @@ test("scope: consume no deriva del challenge ni del token y no se persiste", asy
     if (String(input).endsWith("/session/consume")) {
       return new Response(JSON.stringify({ sessionToken: session.token, expiresAt: session.expiresAt }), { status: 201 });
     }
-    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] }), { status: 200 });
   });
   await withTestStorage(storage, async () => {
     const result = await consumePetMagicLinkOnce("scope-consume", challenge);
@@ -477,8 +509,8 @@ test("refresh /me: dedupe, reemplaza profile al éxito, conserva al error y 401 
   const session = futureSession();
   storage.setItem(petSessionStorageKey("scope-refresh"), JSON.stringify(session));
   let mode: "ok" | "error" | "unauthorized" = "ok";
-  let profileResponse: { cliente: { nombre: string }; mascotas: Array<{ id: number; nombre: string }> } =
-    { cliente: { nombre: "Ana" }, mascotas: [] };
+  let profileResponse: { cliente: { nombre: string }; mascotas: Array<{ id: number; nombre: string }>; proximosTurnos: [] } =
+    { cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] };
   let meCalls = 0;
   t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
     meCalls++;
@@ -495,7 +527,7 @@ test("refresh /me: dedupe, reemplaza profile al éxito, conserva al error y 401 
     const scope = restored.sessionScope;
     const authenticatedState: PetSessionUiState = restored;
 
-    profileResponse = { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }] };
+    profileResponse = { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }], proximosTurnos: [] };
     const first = refreshPetSessionProfileOnce("scope-refresh", scope);
     const replay = refreshPetSessionProfileOnce("scope-refresh", scope);
     assert.equal(first, replay, "StrictMode no duplica el refresh");
@@ -504,7 +536,7 @@ test("refresh /me: dedupe, reemplaza profile al éxito, conserva al error y 401 
     const refreshed = await first;
     assert.deepEqual(refreshed, {
       status: "refreshed",
-      profile: { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }] },
+      profile: { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }], proximosTurnos: [] },
     });
     const afterRefresh = petSessionUiStateAfterRefresh(authenticatedState, refreshed);
     assert.equal(afterRefresh.status, "authenticated");
@@ -519,7 +551,7 @@ test("refresh /me: dedupe, reemplaza profile al éxito, conserva al error y 401 
     assert.notEqual(storage.getItem(petSessionStorageKey("scope-refresh")), null);
 
     mode = "ok";
-    profileResponse = { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }, { id: 4, nombre: "Luna" }] };
+    profileResponse = { cliente: { nombre: "Ana" }, mascotas: [{ id: 3, nombre: "Milo" }, { id: 4, nombre: "Luna" }], proximosTurnos: [] };
     const retried = await refreshPetSessionProfileOnce("scope-refresh", scope);
     assert.equal(retried.status, "refreshed", "el error previo permite reintentar");
 
@@ -544,7 +576,7 @@ test("logout: libera solo el scope saliente y un 401 tardío queda ignorado", as
   storage.setItem(petSessionStorageKey("scope-logout-b"), JSON.stringify(futureSession()));
   t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
     if (String(input).endsWith("/session/logout")) return new Response(null, { status: 204 });
-    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] }), { status: 200 });
+    return new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] }), { status: 200 });
   });
   await withTestStorage(storage, async () => {
     const restored = await restorePetSessionOnce("scope-logout");
@@ -652,7 +684,7 @@ for (const status of [403, 429, 500, 503, 0]) {
 test("localStorage: reload y nueva instancia restauran la misma credencial sin usar sessionStorage", async t => {
   const storage = new MemoryStorage();
   const session = futureSession();
-  t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [] })));
+  t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify({ cliente: { nombre: "Ana" }, mascotas: [], proximosTurnos: [] })));
   await withTestStorage(storage, async () => { assert.equal(writePetSession("persistent", session), true); });
   for (let instance = 0; instance < 2; instance++) {
     clearPetSessionScope("persistent");
@@ -703,7 +735,7 @@ for (const lateStatus of [200, 401]) {
         started();
         return new Promise<Response>(resolve => { finish = resolve; });
       }
-      return new Response(JSON.stringify({ cliente: { nombre: "B" }, mascotas: [] }));
+      return new Response(JSON.stringify({ cliente: { nombre: "B" }, mascotas: [], proximosTurnos: [] }));
     });
     await withTestStorage(storage, async () => {
       const old = restorePetSessionOnce("race");
@@ -712,7 +744,7 @@ for (const lateStatus of [200, 401]) {
       const current = await restorePetSessionOnce("race");
       assert.equal(current.status, "authenticated");
       const scopeB = currentPetSessionScope("race");
-      finish(new Response(JSON.stringify({ cliente: { nombre: "A" }, mascotas: [] }), { status: lateStatus }));
+      finish(new Response(JSON.stringify({ cliente: { nombre: "A" }, mascotas: [], proximosTurnos: [] }), { status: lateStatus }));
       assert.notEqual((await old).status, "authenticated");
       assert.deepEqual(readPetSession("race"), b);
       assert.equal(currentPetSessionScope("race"), scopeB);
@@ -755,7 +787,7 @@ test("race: /me en vuelo no reactiva una sesión cerrada localmente", async t =>
     const pending = restorePetSessionOnce("revoked");
     await ready;
     await logoutPetSession("revoked", session.token);
-    finish(new Response(JSON.stringify({ cliente: { nombre: "Old" }, mascotas: [] })));
+    finish(new Response(JSON.stringify({ cliente: { nombre: "Old" }, mascotas: [], proximosTurnos: [] })));
     assert.notEqual((await pending).status, "authenticated");
     assert.equal(currentPetSessionScope("revoked"), null);
   });
@@ -915,7 +947,7 @@ for (const lateStatus of [200, 401]) {
       await ready;
       writePetSession("refresh-race", b);
       const scopeB = activatePetSessionScope("refresh-race", undefined, b);
-      finish(new Response(JSON.stringify({ cliente: { nombre: "A" }, mascotas: [] }), { status: lateStatus }));
+      finish(new Response(JSON.stringify({ cliente: { nombre: "A" }, mascotas: [], proximosTurnos: [] }), { status: lateStatus }));
       assert.deepEqual(await pending, { status: "stale" });
       assert.deepEqual(readPetSession("refresh-race"), b);
       assert.equal(currentPetSessionScope("refresh-race"), scopeB);

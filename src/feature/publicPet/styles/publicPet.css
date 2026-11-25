@@ -366,6 +366,47 @@
   color: var(--color-text);
 }
 
+.pet-session-turnos {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pet-session-turno {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-text);
+}
+
+.pet-session-turno > strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pet-session-turno .pet-booking-summary {
+  gap: 4px;
+}
+
+@media (min-width: 480px) {
+  .pet-session-turnos {
+    gap: 12px;
+  }
+
+  .pet-session-turno {
+    padding: 16px;
+  }
+
+  .pet-session-turno .pet-booking-summary {
+    gap: 6px;
+  }
+}
+
 .pet-session-muted,
 .pet-session-message,
 .pet-session-back {
@@ -383,6 +424,28 @@
   color: var(--color-primary-soft);
   font: 500 14px var(--font-sans);
   cursor: pointer;
+}
+
+.pet-session-logout-link {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-width: 44px;
+  padding: 10px 0;
+  background: none;
+  color: var(--color-text);
+  color: color-mix(in srgb, var(--color-text-soft) 60%, var(--color-text));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pet-session-logout-link:not(:disabled):hover {
+  color: var(--color-text);
+}
+
+.pet-session-logout-link:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
 }
 
 .pet-session-logout:disabled {

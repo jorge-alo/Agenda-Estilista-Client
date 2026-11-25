@@ -315,6 +315,50 @@
 
 .pet-booking-success {
   justify-items: stretch;
+  scroll-margin-top: 16px;
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-white));
+}
+
+.pet-booking-success:focus {
+  outline: none;
+}
+
+.pet-booking-success:focus-visible {
+  outline: 3px solid var(--color-success);
+  outline-offset: 3px;
+}
+
+.pet-booking-success-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pet-booking-success-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-success) 16%, var(--color-white));
+  color: color-mix(in srgb, var(--color-success) 75%, var(--color-dark));
+}
+
+.pet-booking-success-icon svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pet-booking-success h2 {
+  color: color-mix(in srgb, var(--color-success) 55%, var(--color-dark));
+  font-weight: 600;
 }
 
 .pet-booking-visually-hidden {
@@ -332,5 +376,15 @@
 @media (min-width: 480px) {
   .pet-booking-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pet-booking-success-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .pet-booking-success-icon svg {
+    width: 32px;
+    height: 32px;
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PetSessionPanel } from "./PetSessionPanel";
 import { PetBookingSelection } from "./PetBookingSelection";
 import { PetBookingSlots } from "./PetBookingSlots";
@@ -16,7 +16,7 @@ import {
 } from "../booking/publicPetBookingView";
 import { getFechaLocal } from "../../../shared/helpers/date.helpers";
 import type { PetProfileRefreshResult, PetPublicProfile } from "../session/publicPetSession.service";
-import type { PetSessionScopeRef } from "../session/petSessionScope";
+import { isCurrentPetSessionScope, type PetSessionScopeRef } from "../session/petSessionScope";
 import "../styles/publicPetBooking.css";
 
 interface Props {
@@ -42,6 +42,37 @@ export function PetBookingFlow({
   const reconcileOptions = actions.reconcileOptions;
   const recoveryMessage = notice ?? state.avisoRecuperable;
   const noticeRef = useRef<HTMLParagraphElement | null>(null);
+  const successRef = useRef<HTMLElement>(null);
+  const [turnosRefreshStatus, setTurnosRefreshStatus] = useState<"loading" | "error" | null>(null);
+  const [scrollToSuccess, setScrollToSuccess] = useState(false);
+  const confirmarYRefrescar = async () => {
+    const outcome = await actions.confirmar();
+    if (outcome !== "created" || !isCurrentPetSessionScope(slug, sessionScope)) return;
+    setTurnosRefreshStatus("loading");
+    try {
+      const result = await onRefreshProfile();
+      if (isCurrentPetSessionScope(slug, sessionScope)) {
+        setTurnosRefreshStatus(result.status === "refreshed" ? null : "error");
+      }
+    } catch {
+      if (isCurrentPetSessionScope(slug, sessionScope)) setTurnosRefreshStatus("error");
+    } finally {
+      // Scroll only after the profile refresh settles, so its layout change does not move the confirmation again.
+      if (isCurrentPetSessionScope(slug, sessionScope)) setScrollToSuccess(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!scrollToSuccess || !createdBooking) return;
+    setScrollToSuccess(false);
+    const element = successRef.current;
+    if (!element) return;
+    const reduceMotion = typeof window !== "undefined"
+      && typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    element.focus({ preventScroll: true });
+    element.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, [scrollToSuccess, createdBooking]);
 
   useEffect(() => {
     if (recoveryMessage) noticeRef.current?.focus();
@@ -68,13 +99,18 @@ export function PetBookingFlow({
     <>
       <PetSessionPanel
         profile={profile}
+        turnosRefreshStatus={turnosRefreshStatus}
         showMascotas={false}
         loggingOut={status === "logging-out"}
         onLogout={() => { if (canStartPetLogout(isSubmitting, status)) onLogout(); }}
       />
 
       {createdBooking ? (
-        <PetBookingSuccess success={createdBooking} onNewBooking={actions.startNewBooking} />
+        <PetBookingSuccess
+          success={createdBooking}
+          onNewBooking={actions.startNewBooking}
+          containerRef={successRef}
+        />
       ) : sessionInvalid ? null : bookingUnavailable ? (
         <section className="pet-booking-card pet-booking-empty" role="alert">
           <p ref={noticeRef} tabIndex={-1}>{recoveryMessage}</p>
@@ -139,7 +175,7 @@ export function PetBookingFlow({
                   duracionLabel={duracionLabel}
                   canConfirm={canConfirm}
                   isSubmitting={isSubmitting}
-                  onConfirm={() => { void actions.confirmar(); }}
+                  onConfirm={() => { void confirmarYRefrescar(); }}
                 />
               )}
             </section>

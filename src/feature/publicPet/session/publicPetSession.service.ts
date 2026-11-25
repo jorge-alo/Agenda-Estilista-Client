@@ -9,6 +9,14 @@ const API_URL = import.meta.env?.VITE_API_URL ?? "";
 export interface PetPublicProfile {
   cliente: { nombre: string };
   mascotas: Array<{ id: number; nombre: string }>;
+  proximosTurnos: Array<{
+    id: number;
+    mascota: { id: number; nombre: string };
+    fecha: string;
+    hora: string;
+    servicio: string;
+    estado: "activo";
+  }>;
 }
 
 export type PetSessionFlowResult =
@@ -127,7 +135,24 @@ function parseProfile(payload: unknown): PetPublicProfile {
     if (!Number.isSafeInteger(pet.id) || typeof pet.nombre !== "string") throw new PetSessionApiError(0);
     mascotas.push({ id: pet.id as number, nombre: pet.nombre });
   }
-  return { cliente: { nombre: client.nombre }, mascotas };
+  if (!Array.isArray(result.proximosTurnos)) throw new PetSessionApiError(0);
+  const proximosTurnos: PetPublicProfile["proximosTurnos"] = [];
+  for (const item of result.proximosTurnos) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw new PetSessionApiError(0);
+    const turno = item as Record<string, unknown>;
+    if (!turno.mascota || typeof turno.mascota !== "object" || Array.isArray(turno.mascota)) throw new PetSessionApiError(0);
+    const mascota = turno.mascota as Record<string, unknown>;
+    if (!Number.isSafeInteger(turno.id) || (turno.id as number) < 1 ||
+        !Number.isSafeInteger(mascota.id) || (mascota.id as number) < 1 || typeof mascota.nombre !== "string" ||
+        typeof turno.fecha !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(turno.fecha) ||
+        typeof turno.hora !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(turno.hora) ||
+        typeof turno.servicio !== "string" || turno.estado !== "activo") throw new PetSessionApiError(0);
+    proximosTurnos.push({
+      id: turno.id as number, mascota: { id: mascota.id as number, nombre: mascota.nombre },
+      fecha: turno.fecha, hora: turno.hora, servicio: turno.servicio, estado: turno.estado,
+    });
+  }
+  return { cliente: { nombre: client.nombre }, mascotas, proximosTurnos };
 }
 
 async function getMe(slug: string, session: StoredPetSession): Promise<PetPublicProfile> {
